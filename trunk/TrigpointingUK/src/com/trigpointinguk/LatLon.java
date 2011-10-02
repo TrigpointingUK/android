@@ -9,7 +9,7 @@ public class LatLon implements Serializable {
 	 * Class to handle WGS location
 	 *
 	 *  
-	 * calcOSGB method (c) 2006 Jonathan Stott
+	 * calcOSGB and getOSGB.. methods borrow heavily from: http://www.jstott.me.uk/jcoord/ (c) 2006 Jonathan Stott
 	 * 
 	 */
 	
@@ -18,6 +18,17 @@ public class LatLon implements Serializable {
 	private Double mLon;
 	private Double mEastings;
 	private Double mNorthings;
+
+	public static final double AIRYMAJ = 6377563.396;
+	public static final double AIRYMIN = 6356256.909;
+	public static final double AIRYECC = ((AIRYMAJ * AIRYMAJ) - (AIRYMIN * AIRYMIN)) / (AIRYMAJ * AIRYMAJ);
+		
+	public static final double WGSMAJ = 6378137.000;
+	public static final double WGSMIN = 6356752.3141;
+	public static final double WGSECC = ((WGSMAJ * WGSMAJ) - (WGSMIN * WGSMIN)) / (WGSMAJ * WGSMAJ);
+		
+
+	
 	
 	public LatLon() {
 	}
@@ -152,9 +163,8 @@ public class LatLon implements Serializable {
 	
 	
 	private void calcOSGB() {
-		RefEll wgs84 = new RefEll(6378137.000, 6356752.3141);
-		double a = wgs84.getMaj();
-		double eSquared = wgs84.getEcc();
+		double a = WGSMAJ;
+		double eSquared = WGSECC;
 		double phi = Math.toRadians(mLat);
 		double lambda = Math.toRadians(mLon);
 		double v = a / (Math.sqrt(1 - eSquared * sinSquared(phi)));
@@ -175,9 +185,8 @@ public class LatLon implements Serializable {
 		double yB = ty + (rz * x) + (y * (1 + s)) + (-rx * z);
 		double zB = tz + (-ry * x) + (rx * y) + (z * (1 + s));
 
-		RefEll airy1830 = new RefEll(6377563.396, 6356256.909);
-		a = airy1830.getMaj();
-		eSquared = airy1830.getEcc();
+		a = AIRYMAJ;
+		eSquared = AIRYECC;
 
 		double lambdaB = Math.toDegrees(Math.atan(yB / xB));
 		double p = Math.sqrt((xB * xB) + (yB * yB));
@@ -200,9 +209,9 @@ public class LatLon implements Serializable {
 		double E0 = 400000.0;
 		double phi0 = Math.toRadians(49.0);
 		double lambda0 = Math.toRadians(-2.0);
-		a = airy1830.getMaj();
-		double b = airy1830.getMin();
-		eSquared = airy1830.getEcc();
+		a = AIRYMAJ;
+		double b = AIRYMIN;
+		eSquared = AIRYECC;
 		phi = Math.toRadians(osgbLat);
 		lambda = Math.toRadians(osgbLon);
 		double n = (a - b) / (a + b);
