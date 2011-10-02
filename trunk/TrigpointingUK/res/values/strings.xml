@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hello, Android! T:UK string resource!</string>
+    <string name="app_name">TrigpointingUK</string>
+	<string name="btnNearest">Nearest</string>
+	<string name="btnMap">Map</string>
+	<string name="btnSearch">Search</string>
+	<string name="noTrigs">Searching for nearby trigpoints</string>
+	<string name="siteName">TrigpointingUK</string>
+	<string name="downTrigs">Download Trig Database</string>
+	<string name="syncLogs">Sync Logs</string>
+	<string name="btnSync">Sync Logs</string>
+	<string name="downloadTitle">Download Trigpoint Database</string>
+	<string name="downloadBlurb">When you first install this app, and every now and then afterwards, you need to download a full set of trigpoint data from the TrigpointingUK.com server.  This data is stored on your phone, so that you can search for trigpoints even when out of phone reception.</string>
+	<string name="downloadStatus">Status: </string>
+	<string name="downloadIdleStatus">idle</string>
+	<string name="downloadInsertStatus">updating database</string>
+	<string name="btnDownload">Download</string>
+	<string name="nearest_all">All</string>
+
+	<string name="downloadMapsTitle">Download Offline Maps</string>
+	<string name="downloadMapsBlurb">If you have a slow or expensive mobile internet connection, you may download a set of maps for the whole of the UK when convenient, to minimise the amount of map downloads in the field.  This is a large file (&gt;90MB), so please ensure you have enough space on your SD card, and that you have a fast, cheap internet connection.</string>
+	<string name="downMaps">Download Offline Maps</string>
+	<string name="downloadMapsStatus">Status: </string>
+	<string name="downloadMapsIdleStatus">idle</string>
+	<string name="downloadMapsInsertStatus">saving to SD card</string>
+
+	<string name="prefs">Preferences</string>
+	<string name="prefsAccount">Account Details</string>
+	<string name="prefsUsername">Username</string>
+	<string name="PrefsUsernameDetails">Your username on TrigpointingUK</string>
+	<string name="prefsPassword">Password</string>
+	<string name="PrefsPasswordDetails">Your password on TrigpointingUK</string>
+	<string name="prefsAutoSync">AutoSync</string>
+	<string name="PrefsAutoSyncDetails">Sync logs on app startup?</string>
+	<string name="prefsChoose">Please chose</string>
+	<string name="prefsCount">List size</string>
+	<string name="prefsCountDetails">Number of items in Nearest Trigs list</string>
+    <string-array name="prefsCountArray">
+        <item>10</item>
+        <item>100</item>
+        <item>1000</item>
+        <item>All</item>
+    </string-array>
+    <string-array name="prefsCountArrayValues">
+        <item>10</item>
+        <item>100</item>
+        <item>1000</item>
+        <item>10000</item>
+    </string-array>
+	<string name="prefsMapCount">Map icons</string>
+	<string name="prefsMapCountDetails">Approx number of icons shown on map</string>
+    <string-array name="prefsMapCountArray">
+        <item>10</item>
+        <item>20</item>
+        <item>100</item>
+        <item>1000</item>
+        <item>All</item>
+    </string-array>
+    <string-array name="prefsMapCountArrayValues">
+        <item>40</item>
+        <item>80</item>
+        <item>400</item>
+        <item>4000</item>
+        <item>10000</item>
+    </string-array>
+	<string name="prefsMap">Map type</string>
+	<string name="prefsMapDetails">Style of Open Street Map raster</string>
+    <string-array name="prefsMapArray">
+        <item>Mapnik</item>
+        <item>Osmarender</item>
+        <item>Cycle Map</item>
+        <item>Mapquest OSM</item>
+    </string-array>
+    <string-array name="prefsMapArrayValues">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </string-array>
+    <string name="DefaultName">Username</string>
+
+	<string name="condition0">Unknown</string>
+	<string name="condition1">Good</string>
+	<string name="condition2">Slightly Damaged</string>
+	<string name="condition3">Damaged</string>
+	<string name="condition4">Toppled or Moved</string>
+	<string name="condition5">Possibly Missing</string>
+	<string name="condition6">Definitely Missing</string>
+	<string name="condition7">Unreachable but Visible</string>
+	<string name="condition8">Totally Unreachable</string>
+	<string name="condition9">Not Logged</string>
+	<string name="current0">Unknown - user added</string>
+	<string name="current1">Passive station</string>
+	<string name="current2">Active station</string>
+	<string name="current3">None</string>
+	<string name="historic0">Unknown - user added</string>
+	<string name="historic1">Primary</string>
+	<string name="historic2">Secondary</string>
+	<string name="historic3">Fundamental Benchmark</string>
+	<string name="historic4">Active Station</string>
+	<string name="historic5">Project Emily</string>
+	<string name="historic6">Great Glen Project</string>
+	<string name="historic7">None</string>
+	<string name="physical00">Unknown - user added</string>
+	<string name="physical01">Pillar</string>
+	<string name="physical02">FBM</string>
+	<string name="physical03">Active Station</string>
+	<string name="physical04">Berntsen</string>
+	<string name="physical05">Block</string>
+	<string name="physical06">Bolt</string>
+	<string name="physical07">Buried Block</string>
+	<string name="physical08">Centre</string>
+	<string name="physical09">Rivet</string>
+	<string name="physical10">Surface Block</string>
+	
+</resources>
