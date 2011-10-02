@@ -7,7 +7,7 @@ This application helps users of TrigpointingUK to find and log trigpoints using 
 
 = Installation =
 
-The easiest way to install the application is to search for it on Amazon Marketplace.  Alternatively, download the .apk file from here, copy it onto your SD card, then use your favorite file manager to install from the file.
+Right now, this code is very much pre-alpha, and not ready for end users to install.  If you want to run it, you'll need to ckeck it out of SVN and build it yourself.
 
 
 http://trigpointinguk.googlecode.com/svn/wiki/img/nearest.png  http://trigpointinguk.googlecode.com/svn/wiki/img/map.png
