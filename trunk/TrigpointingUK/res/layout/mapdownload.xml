@@ -14,7 +14,7 @@
         <TextView android:id="@+id/textView3" android:layout_width="wrap_content" android:textAppearance="?android:attr/textAppearanceMedium" android:layout_height="wrap_content" android:text="@string/downloadStatus" android:layout_marginBottom="25dip"></TextView>
         <TextView android:textAppearance="?android:attr/textAppearanceMedium" android:layout_height="wrap_content" android:layout_width="fill_parent" android:text="@string/downloadIdleStatus" android:id="@+id/downloadMapsStatus"></TextView>
     </LinearLayout>
-    <Spinner android:layout_height="wrap_content" android:id="@+id/spinner1" android:layout_width="fill_parent" android:entries="@array/prefsMapArray"></Spinner>
+    <Spinner android:layout_height="wrap_content" android:layout_width="fill_parent" android:entries="@array/downloadMapsArray" android:id="@+id/downloadMapsTileSource"></Spinner>
     <Button android:layout_width="fill_parent" android:layout_height="wrap_content" android:text="@string/btnDownload" android:layout_marginTop="10dip" android:id="@+id/btnDownloadMaps"></Button>
     
 </LinearLayout>

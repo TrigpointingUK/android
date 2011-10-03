@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 public class DownloadMaps extends Activity {
@@ -25,6 +26,7 @@ public class DownloadMaps extends Activity {
 	private Button mDownloadBtn;
 	private static final int mProgressMax = 27000;
 	private static final String TAG = "DownloadMaps";
+	private AsyncTask <String, Integer, Integer> mTask;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -41,23 +43,46 @@ public class DownloadMaps extends Activity {
 		mDownloadBtn.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				mDownloadBtn.setClickable(false);
-				mDownloadBtn.setEnabled(false);
-				new PopulateMapsTask().execute();
+				if (mTask == null) {
+					final Spinner tileSource = (Spinner) findViewById(R.id.downloadMapsTileSource);  
+					final int tilePos = tileSource.getSelectedItemPosition();
+					final String tileURL = getResources().getStringArray(R.array.downloadMapsArrayValues)[tilePos];
+					Log.i(TAG, tileURL);
+					mTask = new PopulateMapsTask().execute(tileURL);
+					mDownloadBtn.setText(R.string.btnCancel);
+				} else {
+					mTask.cancel(true);
+					mTask = null;
+					mDownloadBtn.setText(R.string.btnDownload);
+				}
 			}
 		});       
+	}
 
+	
+	
+
+
+	@Override
+	protected void onDestroy() {
+		Log.i(TAG, "Destroyed");
+		if (mTask != null) {
+			mTask.cancel(true);
+		}
+		super.onDestroy();
 	}
 
 
 
-	private class PopulateMapsTask extends AsyncTask<Void, Integer, Integer> {
-		protected Integer doInBackground(Void... arg0) {
+
+
+	private class PopulateMapsTask extends AsyncTask<String, Integer, Integer> {
+		protected Integer doInBackground(String... arg) {
 			String cacheDir = "/sdcard/osmdroid/tiles/";
 			int i=0;
 
 			try {
-				URL url = new URL("http://www.trigpointinguk.com/pics/mapnik.zip");
+				URL url = new URL(arg[0]);
 				URLConnection ucon = url.openConnection();
 				InputStream is = ucon.getInputStream();
 				ZipInputStream zis = new ZipInputStream(is); 
@@ -80,6 +105,10 @@ public class DownloadMaps extends Activity {
 						fout.close(); 
 					} 
 					if (++i % 10 == 0) {publishProgress(i);}
+					if (isCancelled()) {
+						zis.close();
+						return i;
+					}
 				} 
 				zis.close(); 
 			} catch (IOException e) {
@@ -94,18 +123,27 @@ public class DownloadMaps extends Activity {
 			} 
 		} 
 
-
+		@Override
 		protected void onProgressUpdate(Integer... progress) {
 			mProgress.setProgress(progress[0]);
 			mStatus.setText("Downloaded " + progress[0] + " tiles");
 		}
+		@Override
 		protected void onPostExecute(Integer arg0) {
 			mProgress.setProgress(mProgressMax);
 			mStatus.setText("Finished downloading " + arg0 +" tiles");
 		}
+		@Override
 		protected void onPreExecute() {
 			mStatus.setText(R.string.downloadMapsInsertStatus);
 		}
+		@Override
+		protected void onCancelled() {
+			mProgress.setProgress(0);
+			mStatus.setText("Download Cancelled");
+			super.onCancelled();
+		}
+
 	}
 
 }
