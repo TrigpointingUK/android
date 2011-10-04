@@ -20,19 +20,41 @@
 	<string name="nearest_all">All</string>
 
 	<string name="downloadMapsTitle">Download Offline Maps</string>
-	<string name="downloadMapsBlurb">If you have a slow or expensive mobile internet connection, you may download a set of maps for the whole of the UK when convenient, to minimise the amount of map downloads in the field.  This is a large file (&gt;90MB), so please ensure you have enough space on your SD card, and that you have a fast, cheap internet connection.</string>
+	<string name="downloadMapsBlurb">If you have a slow or expensive mobile internet connection, you may download a set of maps for the whole of the UK when convenient, to minimise the amount of map downloads in the field.  These are large files, so please ensure you have enough space on your SD card, and that you have a fast, cheap internet connection.</string>
 	<string name="downMaps">Download Offline Maps</string>
 	<string name="downloadMapsStatus">Status: </string>
 	<string name="downloadMapsIdleStatus">idle</string>
 	<string name="downloadMapsInsertStatus">saving to SD card</string>
     <string-array name="downloadMapsArray">
-        <item>Mapnik - from google</item>
-        <item>Mapnik - from T:UK</item>
+        <item>Mapnik - E+W (90MB)</item>
+        <item>MapQuest - E+W (387MB)</item>
+        <item>Osmarender - E+W (150MB)</item>
+        <item>Cloudmade - E+W (78MB)</item>
+        <item>Mapnik - Scot (32MB)</item>
+        <item>MapQuest - Scot (310MB)</item>
+        <item>Osmarender - Scot (53MB)</item>
+        <item>Cloudmade - Scot (29MB)</item>
     </string-array>
     <string-array name="downloadMapsArrayValues">
-        <item>http://trigpointinguk.googlecode.com/files/mapnik_0.1.zip</item>
-        <item>http://www.trigpointinguk.com/pics/mapnik.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/mapnik_ew_z12_f01_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/mapquest_ew_z10_f01_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_z11_f01_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_z12_f01_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_z12_f02_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_z12_f03_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_z12_f04_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_z12_f05_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/osmarender_ew_z11_f01_v01.zip,http://trigpointinguk.googlecode.com/files/osmarender_ew_z12_f01_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/cloudmade_ew_z12_f01_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/mapnik_s_z12_f01_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/mapquest_s_z11_f01_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_s_z12_f01_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_s_z12_f02_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_s_z12_f03_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/osmarender_s_z12_f01_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/cloudmade_s_z12_f01_v01.zip</item>
     </string-array>
+    <integer-array name="downloadMapsArrayTiles">
+        <item>7694</item>
+        <item>7686</item>
+        <item>7686</item>
+        <item>7686</item>
+        <item>7055</item>
+        <item>7055</item>
+        <item>7055</item>
+        <item>7055</item>
+    </integer-array>
 
 	<string name="prefs">Preferences</string>
 	<string name="prefsAccount">Account Details</string>

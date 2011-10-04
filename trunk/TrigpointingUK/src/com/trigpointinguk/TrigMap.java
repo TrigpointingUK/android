@@ -200,7 +200,8 @@ public class TrigMap extends Activity implements MapListener {
 
 	private void populateTrigOverlay(BoundingBoxE6 bb) {
 		ArrayList<OverlayItem> newitems = new ArrayList<OverlayItem>();
-		
+
+		// Only repopulate if the new bounding box extends beyond region previously queried
 		if (bb.getLatNorthE6() < mBigBB.getLatNorthE6() 
 				&& bb.getLatSouthE6() > mBigBB.getLatSouthE6() 
 				&& bb.getLonEastE6() < mBigBB.getLonEastE6() 
@@ -208,27 +209,36 @@ public class TrigMap extends Activity implements MapListener {
 				&& mTooManyTrigs == false) {
 			return;
 		}
+		// Cope with empty regions (when map initially loading)
+		if (bb.getLatitudeSpanE6() == 0 || bb.getLongitudeSpanE6() == 0) {
+			return;
+		}
 		
 		Log.w(TAG, "Reloading trigs");
 		mTrigOverlay.removeAllItems();
 		
+		// query a larger region than currently shown, to reduce number of reloads
 		mBigBB = bb.increaseByScale(2);
-		Cursor c = mDb.fetchTrigMapList(mBigBB);
-		Log.i(TAG, "Found " + c.getCount() + " trigs");
+		
 
-		if (c.getCount() < Integer.parseInt(mPrefs.getString("mapcount", "80"))) {
-			mTooManyTrigs = false;
-			c.moveToFirst();
-			while (c.isAfterLast() == false) {
-				GeoPoint point = new GeoPoint((int)(c.getDouble(2)*1000000), (int)(c.getDouble(3)*1000000));
-				newitems.add(new OverlayItem(c.getString(0), c.getString(1), point));
-				c.moveToNext();
+		Cursor c = mDb.fetchTrigMapList(mBigBB);
+		if (c != null) {
+			Log.i(TAG, "Found " + c.getCount() + " trigs");
+	
+			if (c.getCount() < Integer.parseInt(mPrefs.getString("mapcount", "80"))) {
+				mTooManyTrigs = false;
+				c.moveToFirst();
+				while (c.isAfterLast() == false) {
+					GeoPoint point = new GeoPoint((int)(c.getDouble(2)*1000000), (int)(c.getDouble(3)*1000000));
+					newitems.add(new OverlayItem(c.getString(0), c.getString(1), point));
+					c.moveToNext();
+				}
+				mTrigOverlay.addItems(newitems);
+			} else {
+				mTooManyTrigs = true;
+				Log.i(TAG, "Too Many Trigs");
 			}
-			mTrigOverlay.addItems(newitems);
-		} else {
-			mTooManyTrigs = true;
-			Log.i(TAG, "Too Many Trigs");
+			c.close();
 		}
-		c.close();
 	}
 }

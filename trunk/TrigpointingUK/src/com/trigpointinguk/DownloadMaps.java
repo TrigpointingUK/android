@@ -24,7 +24,8 @@ public class DownloadMaps extends Activity {
 	private TextView mStatus;
 	private ProgressBar mProgress;
 	private Button mDownloadBtn;
-	private static final int mProgressMax = 27000;
+	private Spinner mTileSource;
+	private int mProgressMax=100;
 	private static final String TAG = "DownloadMaps";
 	private AsyncTask <String, Integer, Integer> mTask;
 
@@ -33,27 +34,30 @@ public class DownloadMaps extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.mapdownload);
 
-		mStatus = (TextView) findViewById(R.id.downloadMapsStatus);
+		mStatus 		= (TextView)	findViewById(R.id.downloadMapsStatus);
+		mProgress 		= (ProgressBar)	findViewById(R.id.downloadMapsProgress);
+		mDownloadBtn	= (Button)		findViewById(R.id.btnDownloadMaps);
+		mTileSource 	= (Spinner)		findViewById(R.id.downloadMapsTileSource);  
+
 		mStatus.setText(R.string.downloadMapsIdleStatus);
-		mProgress = (ProgressBar) findViewById(R.id.downloadMapsProgress);
-		mProgress.setMax(mProgressMax);
 		mProgress.setProgress(0);
-		mDownloadBtn = (Button) findViewById(R.id.btnDownloadMaps);
 
 		mDownloadBtn.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
 				if (mTask == null) {
-					final Spinner tileSource = (Spinner) findViewById(R.id.downloadMapsTileSource);  
-					final int tilePos = tileSource.getSelectedItemPosition();
+					// find which item is selected
+					final int tilePos = mTileSource.getSelectedItemPosition();
+					// get the list of URLs
 					final String tileURL = getResources().getStringArray(R.array.downloadMapsArrayValues)[tilePos];
+					// get the number of tiles
+					mProgressMax = getResources().getIntArray(R.array.downloadMapsArrayTiles)[tilePos];
 					Log.i(TAG, tileURL);
+					Log.i(TAG, mProgressMax + " Tiles");
 					mTask = new PopulateMapsTask().execute(tileURL);
-					mDownloadBtn.setText(R.string.btnCancel);
 				} else {
 					mTask.cancel(true);
 					mTask = null;
-					mDownloadBtn.setText(R.string.btnDownload);
 				}
 			}
 		});       
@@ -81,38 +85,45 @@ public class DownloadMaps extends Activity {
 			String cacheDir = "/sdcard/osmdroid/tiles/";
 			int i=0;
 
-			try {
-				URL url = new URL(arg[0]);
-				URLConnection ucon = url.openConnection();
-				InputStream is = ucon.getInputStream();
-				ZipInputStream zis = new ZipInputStream(is); 
-				ZipEntry ze; 
-
-				byte[] buffer = new byte[1024];
-				int length;
-
-				while ((ze = zis.getNextEntry()) != null) { 
-					Log.v(TAG, "Unzipping " + ze.getName()); 
-
-					if(ze.isDirectory()) { 
-						dirChecker(cacheDir + ze.getName()); 
-					} else {
-						FileOutputStream fout = new FileOutputStream(cacheDir + ze.getName()); 
-						while ((length = zis.read(buffer))>0) {
-							fout.write(buffer, 0, length);
-						}			 
-						zis.closeEntry(); 
-						fout.close(); 
+			String[] files = arg[0].split(",");
+			for (String file : files) {
+				try {
+					Log.i(TAG, "Getting : " + file);
+					URL url = new URL(file);
+					URLConnection ucon = url.openConnection();
+					InputStream is = ucon.getInputStream();
+					ZipInputStream zis = new ZipInputStream(is); 
+					ZipEntry ze; 
+	
+					byte[] buffer = new byte[1024];
+					int length;
+	
+					while ((ze = zis.getNextEntry()) != null) { 
+						Log.v(TAG, "Unzipping " + ze.getName()); 
+	
+						if(ze.isDirectory()) { 
+							dirChecker(cacheDir + ze.getName()); 
+						} else {
+							FileOutputStream fout = new FileOutputStream(cacheDir + ze.getName()); 
+							while ((length = zis.read(buffer))>0) {
+								fout.write(buffer, 0, length);
+							}			 
+							zis.closeEntry(); 
+							fout.close(); 
+						} 
+						if (++i % 10 == 0) {
+							if (isCancelled()) {
+								zis.close();
+								return i;
+							} else {
+								publishProgress(i);
+							}
+						}
 					} 
-					if (++i % 10 == 0) {publishProgress(i);}
-					if (isCancelled()) {
-						zis.close();
-						return i;
-					}
-				} 
-				zis.close(); 
-			} catch (IOException e) {
-				Log.d(TAG, "Error: " + e);
+					zis.close(); 
+				} catch (IOException e) {
+					Log.w(TAG, "Error: " + e);
+				}
 			}
 			return i;
 		}
@@ -121,8 +132,16 @@ public class DownloadMaps extends Activity {
 			if(!f.isDirectory()) { 
 				f.mkdirs(); 
 			} 
-		} 
-
+		}
+		
+		@Override
+		protected void onPreExecute() {
+			mStatus.setText(R.string.downloadMapsInsertStatus);
+			mDownloadBtn.setText(R.string.btnCancel);
+			mTileSource.setEnabled(false);
+			mProgress.setMax(mProgressMax);
+			mProgress.setProgress(0);
+		}
 		@Override
 		protected void onProgressUpdate(Integer... progress) {
 			mProgress.setProgress(progress[0]);
@@ -132,15 +151,15 @@ public class DownloadMaps extends Activity {
 		protected void onPostExecute(Integer arg0) {
 			mProgress.setProgress(mProgressMax);
 			mStatus.setText("Finished downloading " + arg0 +" tiles");
-		}
-		@Override
-		protected void onPreExecute() {
-			mStatus.setText(R.string.downloadMapsInsertStatus);
+			mDownloadBtn.setText(R.string.btnDownload);
+			mTileSource.setEnabled(true);
 		}
 		@Override
 		protected void onCancelled() {
 			mProgress.setProgress(0);
 			mStatus.setText("Download Cancelled");
+			mDownloadBtn.setText(R.string.btnDownload);
+			mTileSource.setEnabled(true);
 			super.onCancelled();
 		}
 
