@@ -8,6 +8,7 @@ import org.osmdroid.events.MapListener;
 import org.osmdroid.events.ScrollEvent;
 import org.osmdroid.events.ZoomEvent;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.tileprovider.util.CloudmadeUtil;
 import org.osmdroid.util.BoundingBoxE6;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapController;
@@ -43,12 +44,7 @@ public class TrigMap extends Activity implements MapListener {
 	private ScaleBarOverlay mScaleBarOverlay;  
 	private SharedPreferences mPrefs;
 	
-	public static final int DOWNLOAD_ID				= Menu.FIRST;
-	public static final int SWITCH_MAPNIK_ID		= Menu.FIRST +1;
-	public static final int SWITCH_OSMARENDER_ID	= Menu.FIRST +2;
-	public static final int SWITCH_CYCLEMAP_ID		= Menu.FIRST +3;
-	public static final int SWITCH_MAPQUEST_ID		= Menu.FIRST +4;
-	public static final int SWITCH_CLOUDMADE_ID		= Menu.FIRST +5;
+	public static final int MENUFIRST		= Menu.FIRST;
 
 	public static final String TAG = "MapTest";
 	private Drawable mTrigIcon;
@@ -130,6 +126,10 @@ public class TrigMap extends Activity implements MapListener {
 		case TILE_MAPQUEST:
 			mMapView.setTileSource(TileSourceFactory.MAPQUESTOSM);
 			break;
+		case TILE_CLOUDMADE:
+            CloudmadeUtil.retrieveCloudmadeKey(getApplicationContext());
+			mMapView.setTileSource(TileSourceFactory.CLOUDMADESTANDARDTILES);
+			break;
 		}
 	}
 
@@ -137,7 +137,13 @@ public class TrigMap extends Activity implements MapListener {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		boolean result = super.onCreateOptionsMenu(menu);
-		menu.add(0, DOWNLOAD_ID, 0, R.string.downMaps);
+		menu.add(0, MENUFIRST, 0, R.string.downMaps);
+		String[] tileValues = getResources().getStringArray(R.array.prefsMapArrayValues);
+		String[] tileNames = getResources().getStringArray(R.array.prefsMapArray);
+		for (int i=0; i<tileValues.length; i++) {
+			menu.add(0, MENUFIRST + Integer.parseInt(tileValues[i]), 0, tileNames[i]);
+		}
+		
 		return result;
 	}    
 
@@ -145,10 +151,16 @@ public class TrigMap extends Activity implements MapListener {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		Intent i;
 		switch (item.getItemId()) {
-		case DOWNLOAD_ID:
+		case MENUFIRST:
 			i = new Intent(TrigMap.this, DownloadMaps.class);
 			startActivity(i);
 			return true;
+		default:
+			Integer tileValue = item.getItemId() - MENUFIRST;
+			setTileProvider(tileValue);
+			Editor editor = mPrefs.edit();
+			editor.putString("mapChoice", tileValue.toString());
+			editor.commit();
 		}
 		return super.onOptionsItemSelected(item);
 	}

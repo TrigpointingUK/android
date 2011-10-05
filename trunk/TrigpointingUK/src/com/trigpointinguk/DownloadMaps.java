@@ -31,6 +31,12 @@ public class DownloadMaps extends Activity {
 	private int mDownloadCount;
 	private boolean mRunning=false;
 	private static final String TAG = "DownloadMaps";
+	private static final int STATUS_OK 			= 0;
+	private static final int STATUS_CORRUPT		= 1;
+	private static final int STATUS_CANCELLED	= 2;
+	private static final int STATUS_NOTFOUND	= 3;
+	private static final int STATUS_NOSPACE		= 4;
+	private static final int STATUS_IOERROR		= 5;
 	private AsyncTask <String, Integer, Integer> mTask;
 
 	@Override
@@ -119,7 +125,7 @@ public class DownloadMaps extends Activity {
 							if (isCancelled()) {
 								zis.close();
 								mDownloadCount=i;
-								return 4;
+								return STATUS_CANCELLED;
 							} else {
 								publishProgress(i);
 							}
@@ -131,12 +137,12 @@ public class DownloadMaps extends Activity {
 				catch (ZipException e) {
 					Log.w(TAG, "Error: " + e);
 					mDownloadCount = i;
-					return 1;					
+					return STATUS_CORRUPT;					
 				}
 				catch (FileNotFoundException e) {
 					Log.w(TAG, "Error: " + e);
 					mDownloadCount = i;
-					return 3;										
+					return STATUS_NOTFOUND;										
 				}
 				catch (IOException e) {
 					Log.w(TAG, "Error: " + e);
@@ -144,12 +150,12 @@ public class DownloadMaps extends Activity {
 					Log.w(TAG, "Cause: " + e.getCause());
 					mDownloadCount = i;
 					if (e.getMessage().equals("No space left on device")) {
-						return 5;
+						return STATUS_NOSPACE;
 					}
-					return 2;
+					return STATUS_IOERROR;
 				}
 			}
-			return 0;
+			return STATUS_OK;
 		}
 		private void dirChecker(String dir) { 
 			File f = new File(dir); 
@@ -177,20 +183,23 @@ public class DownloadMaps extends Activity {
 		protected void onPostExecute(Integer arg0) {
 			mProgress.setProgress(mDownloadCount);
 			switch (arg0) {
-			case 0:
+			case STATUS_OK:
 				mStatus.setText("Finished downloading " + mDownloadCount +" tiles");
 				break;
-			case 1:
+			case STATUS_CORRUPT:
 				mStatus.setText("Error - corrupt file! " + mDownloadCount +" tiles");
 				break;
-			case 3:
-				mStatus.setText("Error - couldn't save! " + mDownloadCount +" tiles");
+			case STATUS_NOTFOUND:
+				mStatus.setText("Error - file not found! " + mDownloadCount +" tiles");
 				break;
-			case 4:
+			case STATUS_CANCELLED:
 				mStatus.setText("Download Cancelled! " + mDownloadCount +" tiles");
 				break;
-			case 5:
+			case STATUS_NOSPACE:
 				mStatus.setText("Error - out of space! " + mDownloadCount +" tiles");
+				break;
+			case STATUS_IOERROR:
+				mStatus.setText("Error - I/O failed! " + mDownloadCount +" tiles");
 				break;
 			default:
 				mStatus.setText("Error downloading! " + mDownloadCount + " tiles");

@@ -101,13 +101,15 @@
         <item>Mapnik</item>
         <item>Osmarender</item>
         <item>Cycle Map</item>
-        <item>Mapquest OSM</item>
+        <item>Mapquest</item>
+        <item>Cloudmade</item>
     </string-array>
     <string-array name="prefsMapArrayValues">
         <item>1</item>
         <item>2</item>
         <item>3</item>
         <item>4</item>
+        <item>5</item>
     </string-array>
     <string name="DefaultName">Username</string>
 
