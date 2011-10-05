@@ -1,12 +1,14 @@
 package com.trigpointinguk;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
 
 import android.app.Activity;
@@ -26,6 +28,8 @@ public class DownloadMaps extends Activity {
 	private Button mDownloadBtn;
 	private Spinner mTileSource;
 	private int mProgressMax=100;
+	private int mDownloadCount;
+	private boolean mRunning=false;
 	private static final String TAG = "DownloadMaps";
 	private AsyncTask <String, Integer, Integer> mTask;
 
@@ -45,7 +49,7 @@ public class DownloadMaps extends Activity {
 		mDownloadBtn.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				if (mTask == null) {
+				if (!mRunning) {
 					// find which item is selected
 					final int tilePos = mTileSource.getSelectedItemPosition();
 					// get the list of URLs
@@ -57,7 +61,6 @@ public class DownloadMaps extends Activity {
 					mTask = new PopulateMapsTask().execute(tileURL);
 				} else {
 					mTask.cancel(true);
-					mTask = null;
 				}
 			}
 		});       
@@ -83,7 +86,7 @@ public class DownloadMaps extends Activity {
 	private class PopulateMapsTask extends AsyncTask<String, Integer, Integer> {
 		protected Integer doInBackground(String... arg) {
 			String cacheDir = "/sdcard/osmdroid/tiles/";
-			int i=0;
+			int i=0; // not using mDownloadcount in loop for performance reasons
 
 			String[] files = arg[0].split(",");
 			for (String file : files) {
@@ -109,23 +112,44 @@ public class DownloadMaps extends Activity {
 								fout.write(buffer, 0, length);
 							}			 
 							zis.closeEntry(); 
-							fout.close(); 
+							fout.close();
+							i++;
 						} 
-						if (++i % 10 == 0) {
+						if (i % 10 == 0) {
 							if (isCancelled()) {
 								zis.close();
-								return i;
+								mDownloadCount=i;
+								return 4;
 							} else {
 								publishProgress(i);
 							}
 						}
 					} 
 					zis.close(); 
-				} catch (IOException e) {
+					mDownloadCount=i;
+				} 
+				catch (ZipException e) {
 					Log.w(TAG, "Error: " + e);
+					mDownloadCount = i;
+					return 1;					
+				}
+				catch (FileNotFoundException e) {
+					Log.w(TAG, "Error: " + e);
+					mDownloadCount = i;
+					return 3;										
+				}
+				catch (IOException e) {
+					Log.w(TAG, "Error: " + e);
+					Log.w(TAG, "Message: " + e.getMessage());
+					Log.w(TAG, "Cause: " + e.getCause());
+					mDownloadCount = i;
+					if (e.getMessage().equals("No space left on device")) {
+						return 5;
+					}
+					return 2;
 				}
 			}
-			return i;
+			return 0;
 		}
 		private void dirChecker(String dir) { 
 			File f = new File(dir); 
@@ -141,6 +165,8 @@ public class DownloadMaps extends Activity {
 			mTileSource.setEnabled(false);
 			mProgress.setMax(mProgressMax);
 			mProgress.setProgress(0);
+			mDownloadCount = 0;
+			mRunning = true;
 		}
 		@Override
 		protected void onProgressUpdate(Integer... progress) {
@@ -149,17 +175,37 @@ public class DownloadMaps extends Activity {
 		}
 		@Override
 		protected void onPostExecute(Integer arg0) {
-			mProgress.setProgress(mProgressMax);
-			mStatus.setText("Finished downloading " + arg0 +" tiles");
+			mProgress.setProgress(mDownloadCount);
+			switch (arg0) {
+			case 0:
+				mStatus.setText("Finished downloading " + mDownloadCount +" tiles");
+				break;
+			case 1:
+				mStatus.setText("Error - corrupt file! " + mDownloadCount +" tiles");
+				break;
+			case 3:
+				mStatus.setText("Error - couldn't save! " + mDownloadCount +" tiles");
+				break;
+			case 4:
+				mStatus.setText("Download Cancelled! " + mDownloadCount +" tiles");
+				break;
+			case 5:
+				mStatus.setText("Error - out of space! " + mDownloadCount +" tiles");
+				break;
+			default:
+				mStatus.setText("Error downloading! " + mDownloadCount + " tiles");
+			}
 			mDownloadBtn.setText(R.string.btnDownload);
 			mTileSource.setEnabled(true);
+			mRunning = false;
 		}
 		@Override
 		protected void onCancelled() {
-			mProgress.setProgress(0);
+			mProgress.setProgress(mDownloadCount);
 			mStatus.setText("Download Cancelled");
 			mDownloadBtn.setText(R.string.btnDownload);
 			mTileSource.setEnabled(true);
+			mRunning = false;
 			super.onCancelled();
 		}
 

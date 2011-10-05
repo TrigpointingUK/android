@@ -14,8 +14,9 @@ import android.widget.TextView;
 
 public class TUKActivity extends Activity {
 
-    public static final int DOWNLOAD_ID = Menu.FIRST;
-    public static final int PREFS_ID 	= Menu.FIRST +1;
+    public static final int DOWNLOAD_MAPS_ID	= Menu.FIRST;
+    public static final int DOWNLOAD_TRIGS_ID	= Menu.FIRST + 1;
+    public static final int PREFS_ID 			= Menu.FIRST + 2;
     public static final String TAG 		="TUKActivity";
     private SharedPreferences mPrefs;
     
@@ -63,7 +64,8 @@ public class TUKActivity extends Activity {
  	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
         boolean result = super.onCreateOptionsMenu(menu);
-        menu.add(0, DOWNLOAD_ID, 0, R.string.downTrigs);
+		menu.add(0, DOWNLOAD_MAPS_ID, 0, R.string.downMaps);
+        menu.add(0, DOWNLOAD_TRIGS_ID, 0, R.string.downTrigs);
         menu.add(0, PREFS_ID, 0, R.string.prefs);
         return result;
     }    
@@ -73,8 +75,12 @@ public class TUKActivity extends Activity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		Intent i;
         switch (item.getItemId()) {
-        case DOWNLOAD_ID:
+        case DOWNLOAD_TRIGS_ID:
             i = new Intent(TUKActivity.this, DownloadTrigs.class);
+            startActivity(i);
+            return true;
+        case DOWNLOAD_MAPS_ID:
+            i = new Intent(TUKActivity.this, DownloadMaps.class);
             startActivity(i);
             return true;
         case PREFS_ID:

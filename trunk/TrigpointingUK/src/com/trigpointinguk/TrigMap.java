@@ -43,7 +43,13 @@ public class TrigMap extends Activity implements MapListener {
 	private ScaleBarOverlay mScaleBarOverlay;  
 	private SharedPreferences mPrefs;
 	
-	public static final int DOWNLOAD_ID = Menu.FIRST;
+	public static final int DOWNLOAD_ID				= Menu.FIRST;
+	public static final int SWITCH_MAPNIK_ID		= Menu.FIRST +1;
+	public static final int SWITCH_OSMARENDER_ID	= Menu.FIRST +2;
+	public static final int SWITCH_CYCLEMAP_ID		= Menu.FIRST +3;
+	public static final int SWITCH_MAPQUEST_ID		= Menu.FIRST +4;
+	public static final int SWITCH_CLOUDMADE_ID		= Menu.FIRST +5;
+
 	public static final String TAG = "MapTest";
 	private Drawable mTrigIcon;
 	private TrigDbHelper mDb;
@@ -51,6 +57,11 @@ public class TrigMap extends Activity implements MapListener {
 	private BoundingBoxE6 mBigBB = new BoundingBoxE6(0, 0, 0, 0);
 	private boolean mTooManyTrigs;
 
+	public static final int TILE_MAPNIK		= 1;
+	public static final int TILE_OSMARENDER	= 2;
+	public static final int TILE_CYCLEMAP	= 3;
+	public static final int TILE_MAPQUEST	= 4;
+	public static final int TILE_CLOUDMADE	= 5;
 	
 	
 	/** Called when the activity is first created. */
@@ -63,23 +74,11 @@ public class TrigMap extends Activity implements MapListener {
 		mDb.open();
 
 		mMapView = (MapView) findViewById(R.id.mapview);  
-		switch (Integer.parseInt(mPrefs.getString("mapChoice", "1"))) {
-		case 1:
-			mMapView.setTileSource(TileSourceFactory.MAPNIK);
-			break;
-		case 2:
-			mMapView.setTileSource(TileSourceFactory.OSMARENDER);
-			break;
-		case 3:
-			mMapView.setTileSource(TileSourceFactory.CYCLEMAP);
-			break;
-		case 4:
-			mMapView.setTileSource(TileSourceFactory.MAPQUESTOSM);
-			break;
-		}
 		mMapView.setBuiltInZoomControls(true);
 		mMapView.setMultiTouchControls(true);
 		mMapController = mMapView.getController();
+
+		setTileProvider(Integer.parseInt(mPrefs.getString("mapChoice", "1")));
 
 		mMyLocationOverlay = new SimpleLocationOverlay(this);      
 		mMyLocationOverlay.setLocation(new GeoPoint(50931280,-1450510));
@@ -113,10 +112,26 @@ public class TrigMap extends Activity implements MapListener {
 		mMapView.getOverlays().add(mTrigOverlay);
 		mMapView.setMapListener(this);
 
-		loadPrefs();
+		loadViewFromPrefs();
 	}
 
 
+	private void setTileProvider(int tileSource) {
+		switch (tileSource) {
+		case TILE_MAPNIK:
+			mMapView.setTileSource(TileSourceFactory.MAPNIK);
+			break;
+		case TILE_OSMARENDER:
+			mMapView.setTileSource(TileSourceFactory.OSMARENDER);
+			break;
+		case TILE_CYCLEMAP:
+			mMapView.setTileSource(TileSourceFactory.CYCLEMAP);
+			break;
+		case TILE_MAPQUEST:
+			mMapView.setTileSource(TileSourceFactory.MAPQUESTOSM);
+			break;
+		}
+	}
 
 
 	@Override
@@ -159,7 +174,7 @@ public class TrigMap extends Activity implements MapListener {
 
 	@Override
 	protected void onResume() {
-		loadPrefs();
+		loadViewFromPrefs();
 		super.onResume();
 	}
 
@@ -171,7 +186,7 @@ public class TrigMap extends Activity implements MapListener {
 	}
 
 
-	private void loadPrefs() {
+	private void loadViewFromPrefs() {
 		try {
 			mMapController.setZoom(mPrefs.getInt("zoomLevel", 12));
 			mMapController.setCenter(new GeoPoint(mPrefs.getInt("latitude", 50931280), mPrefs.getInt("longitude", -1450510)));
