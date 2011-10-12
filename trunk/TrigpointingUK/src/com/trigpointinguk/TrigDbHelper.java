@@ -174,7 +174,7 @@ public class TrigDbHelper {
 		
 		Log.i(TAG, strWhere);
 		Log.i(TAG, strOrder);
-		return mDb.query(TRIG_TABLE, new String[] {TRIG_ID, TRIG_NAME, TRIG_LAT, TRIG_LON}, strWhere, null, null, null, strOrder);
+		return mDb.query(TRIG_TABLE, new String[] {TRIG_ID, TRIG_NAME, TRIG_LAT, TRIG_LON, TRIG_TYPE}, strWhere, null, null, null, strOrder);
 	}
 	
 	/**

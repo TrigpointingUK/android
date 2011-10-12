@@ -18,6 +18,7 @@ import org.osmdroid.views.overlay.OverlayItem;
 import org.osmdroid.views.overlay.ScaleBarOverlay;
 import org.osmdroid.views.overlay.SimpleLocationOverlay;
 import org.osmdroid.views.overlay.ItemizedIconOverlay.OnItemGestureListener;
+import org.osmdroid.views.overlay.OverlayItem.HotspotPlace;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -47,7 +48,6 @@ public class TrigMap extends Activity implements MapListener {
 	public static final int MENUFIRST		= Menu.FIRST;
 
 	public static final String TAG = "MapTest";
-	private Drawable mTrigIcon;
 	private TrigDbHelper mDb;
 	private ItemizedIconOverlay<OverlayItem> mTrigOverlay;
 	private BoundingBoxE6 mBigBB = new BoundingBoxE6(0, 0, 0, 0);
@@ -84,14 +84,13 @@ public class TrigMap extends Activity implements MapListener {
 		mMapView.getOverlays().add(mScaleBarOverlay);
 
 
-		mTrigIcon = this.getResources().getDrawable(R.drawable.icon);
-
 		mTrigOverlay = new ItemizedIconOverlay<OverlayItem>(
 				new ArrayList<OverlayItem>(),
-				mTrigIcon,
+				this.getResources().getDrawable(R.drawable.mapicon_00_pillar),
 				new OnItemGestureListener<OverlayItem>() {
 					@Override
 					public boolean onItemSingleTapUp(final int index, final OverlayItem item) {
+						// When icon is tapped, jump to TrigDetails activity
 						Intent i = new Intent(TrigMap.this, TrigDetails.class);
 						i.putExtra(TrigDbHelper.TRIG_ID, (long)Long.parseLong(item.mTitle));
 						startActivity(i);
@@ -101,7 +100,7 @@ public class TrigMap extends Activity implements MapListener {
 					@Override
 					public boolean onItemLongPress(final int index,
 							final OverlayItem item) {
-						Toast.makeText(TrigMap.this, "Item '" + item.mTitle + item.mDescription + "' (index=" + index + ") got long pressed", Toast.LENGTH_LONG).show();
+						Toast.makeText(TrigMap.this, item.mDescription, Toast.LENGTH_SHORT).show();
 						return false;
 					}
 				}, new DefaultResourceProxyImpl(getApplicationContext()));
@@ -256,8 +255,12 @@ public class TrigMap extends Activity implements MapListener {
 				mTooManyTrigs = false;
 				c.moveToFirst();
 				while (c.isAfterLast() == false) {
-					GeoPoint point = new GeoPoint((int)(c.getDouble(2)*1000000), (int)(c.getDouble(3)*1000000));
-					newitems.add(new OverlayItem(c.getString(0), c.getString(1), point));
+					GeoPoint point = new GeoPoint((int)(c.getDouble(c.getColumnIndex(TrigDbHelper.TRIG_LAT))*1000000), (int)(c.getDouble(c.getColumnIndex(TrigDbHelper.TRIG_LON))*1000000));
+					OverlayItem oi = new OverlayItem(c.getString(c.getColumnIndex(TrigDbHelper.TRIG_ID)), 
+													 c.getString(c.getColumnIndex(TrigDbHelper.TRIG_NAME)), point);
+					oi.setMarker(getIcon(c.getInt(c.getColumnIndex(TrigDbHelper.TRIG_TYPE))));
+					oi.setMarkerHotspot(HotspotPlace.CENTER);
+					newitems.add(oi);
 					c.moveToNext();
 				}
 				mTrigOverlay.addItems(newitems);
@@ -268,4 +271,16 @@ public class TrigMap extends Activity implements MapListener {
 			c.close();
 		}
 	}
+	
+	private Drawable getIcon(int physicalType) {
+		switch (physicalType) {
+		case 13:
+			return this.getResources().getDrawable(R.drawable.mapicon_00_pillar);
+		case 9:
+			return this.getResources().getDrawable(R.drawable.mapicon_01_fbm);
+		default:
+			return this.getResources().getDrawable(R.drawable.mapicon_02_passive);
+		}
+	}
+	
 }
