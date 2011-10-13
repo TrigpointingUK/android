@@ -28,5 +28,6 @@
         <activity android:name="TrigOSMap"></activity>
         <activity android:name="TrigMap"></activity>
         <meta-data android:value="6668b1358f29457b88baf287a692ae97" android:name="CLOUDMADE_KEY"></meta-data>
+        <activity android:name="HelpPage"></activity>
     </application>
 </manifest>

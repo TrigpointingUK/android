@@ -17,6 +17,7 @@ public class TUKActivity extends Activity {
     public static final int DOWNLOAD_MAPS_ID	= Menu.FIRST;
     public static final int DOWNLOAD_TRIGS_ID	= Menu.FIRST + 1;
     public static final int PREFS_ID 			= Menu.FIRST + 2;
+    public static final int ABOUT_ID 			= Menu.FIRST + 3;
     public static final String TAG 		="TUKActivity";
     private SharedPreferences mPrefs;
     
@@ -67,6 +68,7 @@ public class TUKActivity extends Activity {
 		menu.add(0, DOWNLOAD_MAPS_ID, 0, R.string.downMaps);
         menu.add(0, DOWNLOAD_TRIGS_ID, 0, R.string.downTrigs);
         menu.add(0, PREFS_ID, 0, R.string.prefs);
+        menu.add(0, ABOUT_ID, 0, R.string.help_about);
         return result;
     }    
     
@@ -86,6 +88,11 @@ public class TUKActivity extends Activity {
         case PREFS_ID:
             i = new Intent(TUKActivity.this, Preferences.class);
             startActivityForResult(i, PREFS_ID);
+            return true;
+        case ABOUT_ID:
+            i = new Intent(TUKActivity.this, HelpPage.class);
+            i.putExtra(HelpPage.PAGE, "about.html");
+            startActivity(i);
             return true;
         }
 		return super.onOptionsItemSelected(item);

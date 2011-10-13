@@ -18,7 +18,7 @@
 	<string name="btnDownload">Download</string>
 	<string name="btnCancel">Cancel</string>
 	<string name="nearest_all">All</string>
-
+	<string name="help_about">About</string>
 	<string name="colourScheme">Icon colourscheme</string>
 	<string name="downloadMapsTitle">Download Offline Maps</string>
 	<string name="downloadMapsBlurb">If you have a slow or expensive mobile internet connection, you may download a set of maps for the whole of the UK when convenient, to minimise the amount of map downloads in the field.  These are large files, so please ensure you have enough space on your SD card, and that you have a fast, cheap internet connection.</string>
