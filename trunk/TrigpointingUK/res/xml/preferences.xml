@@ -15,7 +15,6 @@
  
 	    <PreferenceCategory
 	        android:key="behaviour_category" android:title="Application preferences"><CheckBoxPreference android:summary="@string/PrefsAutoSyncDetails" android:key="autosync" android:title="@string/prefsAutoSync" android:defaultValue="false"/><ListPreference android:entries="@array/prefsCountArray" android:entryValues="@array/prefsCountArrayValues" android:summary="@string/prefsCountDetails" android:defaultValue="100" android:title="@string/prefsCount" android:key="listentries"/>
-	        <ListPreference android:key="mapChoice" android:title="@string/prefsMap" android:summary="@string/prefsMapDetails" android:defaultValue="2" android:entryValues="@array/prefsMapArrayValues" android:entries="@array/prefsMapArray"></ListPreference>
 	        <ListPreference android:entries="@array/prefsMapCountArray" android:entryValues="@array/prefsMapCountArrayValues" android:key="mapcount" android:summary="@string/prefsCountDetails" android:title="@string/prefsMapCount" android:defaultValue="20"></ListPreference>
 	 
 	        

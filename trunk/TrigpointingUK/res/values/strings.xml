@@ -19,6 +19,7 @@
 	<string name="btnCancel">Cancel</string>
 	<string name="nearest_all">All</string>
 
+	<string name="colourScheme">Icon colourscheme</string>
 	<string name="downloadMapsTitle">Download Offline Maps</string>
 	<string name="downloadMapsBlurb">If you have a slow or expensive mobile internet connection, you may download a set of maps for the whole of the UK when convenient, to minimise the amount of map downloads in the field.  These are large files, so please ensure you have enough space on your SD card, and that you have a fast, cheap internet connection.</string>
 	<string name="downMaps">Download Offline Maps</string>
@@ -94,22 +95,6 @@
         <item>400</item>
         <item>4000</item>
         <item>10000</item>
-    </string-array>
-	<string name="prefsMap">Map type</string>
-	<string name="prefsMapDetails">Style of Open Street Map raster</string>
-    <string-array name="prefsMapArray">
-        <item>Mapnik</item>
-        <item>Osmarender</item>
-        <item>Cycle Map</item>
-        <item>Mapquest</item>
-        <item>Cloudmade</item>
-    </string-array>
-    <string-array name="prefsMapArrayValues">
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
-        <item>4</item>
-        <item>5</item>
     </string-array>
     <string name="DefaultName">Username</string>
 

@@ -14,9 +14,9 @@ import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapController;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.ItemizedIconOverlay;
+import org.osmdroid.views.overlay.MyLocationOverlay;
 import org.osmdroid.views.overlay.OverlayItem;
 import org.osmdroid.views.overlay.ScaleBarOverlay;
-import org.osmdroid.views.overlay.SimpleLocationOverlay;
 import org.osmdroid.views.overlay.ItemizedIconOverlay.OnItemGestureListener;
 import org.osmdroid.views.overlay.OverlayItem.HotspotPlace;
 
@@ -30,6 +30,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -39,26 +40,26 @@ import android.widget.Toast;
 
 public class TrigMap extends Activity implements MapListener {
 
+	public enum TileSource 		{NONE, MAPNIK, OSMARENDER, CYCLEMAP, MAPQUEST, CLOUDMADE};	
+	public enum IconColouring 	{NONE, BYCONDITION, BYLOGGED};	
+
 	private MapView mMapView;
 	private MapController mMapController;
-	private SimpleLocationOverlay mMyLocationOverlay;
+	private MyLocationOverlay mMyLocationOverlay;
 	private ScaleBarOverlay mScaleBarOverlay;  
 	private SharedPreferences mPrefs;
 	
-	public static final int MENUFIRST		= Menu.FIRST;
+	public static final int MENUDOWNLOAD		= Menu.FIRST;
+	public static final int MENUCOLOURING		= Menu.FIRST;
+	public static final int MENUTILEPROVIDER	= Menu.FIRST;
 
-	public static final String TAG = "MapTest";
+	public static final String TAG = "TrigMap";
 	private TrigDbHelper mDb;
 	private ItemizedIconOverlay<OverlayItem> mTrigOverlay;
 	private BoundingBoxE6 mBigBB = new BoundingBoxE6(0, 0, 0, 0);
 	private boolean mTooManyTrigs;
-
-	public static final int TILE_MAPNIK		= 1;
-	public static final int TILE_OSMARENDER	= 2;
-	public static final int TILE_CYCLEMAP	= 3;
-	public static final int TILE_MAPQUEST	= 4;
-	public static final int TILE_CLOUDMADE	= 5;
-	
+	private IconColouring mIconColouring = IconColouring.NONE;
+	private TileSource    mTileSource = TileSource.NONE;
 	
 	/** Called when the activity is first created. */
 	@Override
@@ -69,24 +70,26 @@ public class TrigMap extends Activity implements MapListener {
 		mDb = new TrigDbHelper(this);
 		mDb.open();
 
+		// basic map setup
 		mMapView = (MapView) findViewById(R.id.mapview);  
 		mMapView.setBuiltInZoomControls(true);
 		mMapView.setMultiTouchControls(true);
 		mMapController = mMapView.getController();
 
-		setTileProvider(Integer.parseInt(mPrefs.getString("mapChoice", "1")));
 
-		mMyLocationOverlay = new SimpleLocationOverlay(this);      
-		mMyLocationOverlay.setLocation(new GeoPoint(50931280,-1450510));
+		// setup current location overlay
+		mMyLocationOverlay = new MyLocationOverlay(this, mMapView);      
+		mMyLocationOverlay.enableMyLocation();
 		mMapView.getOverlays().add(mMyLocationOverlay);
 
+		// add scalebar
 		mScaleBarOverlay = new ScaleBarOverlay(this);                          
 		mMapView.getOverlays().add(mScaleBarOverlay);
 
-
+		// setup trigpoint overlay
 		mTrigOverlay = new ItemizedIconOverlay<OverlayItem>(
 				new ArrayList<OverlayItem>(),
-				this.getResources().getDrawable(R.drawable.mapicon_00_pillar),
+				this.getResources().getDrawable(R.drawable.mapicon_00_pillar_green),
 				new OnItemGestureListener<OverlayItem>() {
 					@Override
 					public boolean onItemSingleTapUp(final int index, final OverlayItem item) {
@@ -111,56 +114,115 @@ public class TrigMap extends Activity implements MapListener {
 	}
 
 
-	private void setTileProvider(int tileSource) {
+	private void setTileProvider(TileSource tileSource) {
+		mTileSource = tileSource;
 		switch (tileSource) {
-		case TILE_MAPNIK:
+		case MAPNIK:
 			mMapView.setTileSource(TileSourceFactory.MAPNIK);
 			break;
-		case TILE_OSMARENDER:
+		case OSMARENDER:
 			mMapView.setTileSource(TileSourceFactory.OSMARENDER);
 			break;
-		case TILE_CYCLEMAP:
+		case CYCLEMAP:
 			mMapView.setTileSource(TileSourceFactory.CYCLEMAP);
 			break;
-		case TILE_MAPQUEST:
+		case MAPQUEST:
 			mMapView.setTileSource(TileSourceFactory.MAPQUESTOSM);
 			break;
-		case TILE_CLOUDMADE:
+		case CLOUDMADE:
             CloudmadeUtil.retrieveCloudmadeKey(getApplicationContext());
 			mMapView.setTileSource(TileSourceFactory.CLOUDMADESTANDARDTILES);
 			break;
 		}
+		// save choice to prefs
+		Editor editor = mPrefs.edit();
+		editor.putString("tileSource", tileSource.toString());
+		editor.commit();	
 	}
 
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		boolean result = super.onCreateOptionsMenu(menu);
-		menu.add(0, MENUFIRST, 0, R.string.downMaps);
-		String[] tileValues = getResources().getStringArray(R.array.prefsMapArrayValues);
-		String[] tileNames = getResources().getStringArray(R.array.prefsMapArray);
-		for (int i=0; i<tileValues.length; i++) {
-			menu.add(0, MENUFIRST + Integer.parseInt(tileValues[i]), 0, tileNames[i]);
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.mapmenu, menu);
+		// initialise menu ticks
+		switch (mIconColouring) {
+		case BYCONDITION:
+			menu.findItem(R.id.byCondition).setChecked(true);
+			break;
+		case BYLOGGED:
+			menu.findItem(R.id.byLogged).setChecked(true);
+			break;
+		case NONE:
+			menu.findItem(R.id.none).setChecked(true);
+			break;
 		}
-		
+		// initialise tile provider ticks
+		switch (mTileSource) {
+		case MAPNIK:
+			menu.findItem(R.id.mapnik).setChecked(true);
+			break;
+		case MAPQUEST:
+			menu.findItem(R.id.mapquest).setChecked(true);
+			break;
+		case CLOUDMADE:
+			menu.findItem(R.id.cloudmade).setChecked(true);
+			break;
+		case CYCLEMAP:
+			menu.findItem(R.id.cyclemap).setChecked(true);
+			break;
+		case OSMARENDER:
+			menu.findItem(R.id.osmarender).setChecked(true);
+			break;
+		}
 		return result;
 	}    
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		Intent i;
+		item.setChecked(true);
 		switch (item.getItemId()) {
-		case MENUFIRST:
-			i = new Intent(TrigMap.this, DownloadMaps.class);
+		// Tile provider options
+		case R.id.cloudmade:
+			setTileProvider(TileSource.CLOUDMADE);
+			break;
+		case R.id.cyclemap:
+			setTileProvider(TileSource.CYCLEMAP);
+			break;
+		case R.id.mapnik:
+			setTileProvider(TileSource.MAPNIK);
+			break;
+		case R.id.mapquest:
+			setTileProvider(TileSource.MAPQUEST);
+			break;
+		case R.id.osmarender:
+			setTileProvider(TileSource.OSMARENDER);
+			break;
+
+		// Icon colouring options
+		case R.id.byCondition:
+			mIconColouring = IconColouring.BYCONDITION;
+			mTooManyTrigs = true; // fudge to ensure redraw
+			populateTrigOverlay(mMapView.getBoundingBox());
+			break;
+		case R.id.none:
+			mIconColouring = IconColouring.NONE;
+			mTooManyTrigs = true; // fudge to ensure redraw
+			populateTrigOverlay(mMapView.getBoundingBox());
+			break;
+		case R.id.byLogged:
+			mIconColouring = IconColouring.BYLOGGED;
+			mTooManyTrigs = true; // fudge to ensure redraw
+			populateTrigOverlay(mMapView.getBoundingBox());
+			break;
+			
+		case R.id.downloadmaps:
+			Intent i = new Intent(TrigMap.this, DownloadMaps.class);
 			startActivity(i);
 			return true;
-		default:
-			Integer tileValue = item.getItemId() - MENUFIRST;
-			setTileProvider(tileValue);
-			Editor editor = mPrefs.edit();
-			editor.putString("mapChoice", tileValue.toString());
-			editor.commit();
 		}
+
 		return super.onOptionsItemSelected(item);
 	}
 
@@ -178,6 +240,7 @@ public class TrigMap extends Activity implements MapListener {
 		editor.putInt("south", bb.getLatSouthE6());
 		editor.putInt("east", bb.getLonEastE6());
 		editor.putInt("west", bb.getLonWestE6());
+		editor.putString("iconColouring", mIconColouring.toString());
 		editor.commit();
 		super.onPause();
 	}
@@ -199,6 +262,11 @@ public class TrigMap extends Activity implements MapListener {
 
 	private void loadViewFromPrefs() {
 		try {
+			// set tilesource from prefs
+			setTileProvider(TileSource.valueOf(mPrefs.getString("tileSource", TileSource.MAPNIK.toString())));
+			// set colouring from prefs
+			mIconColouring = IconColouring.valueOf(mPrefs.getString("iconColouring", IconColouring.NONE.toString()));
+			// set view from prefs
 			mMapController.setZoom(mPrefs.getInt("zoomLevel", 12));
 			mMapController.setCenter(new GeoPoint(mPrefs.getInt("latitude", 50931280), mPrefs.getInt("longitude", -1450510)));
 			BoundingBoxE6 bb = new BoundingBoxE6(mPrefs.getInt("north", 50997336), mPrefs.getInt("east", -1369857), mPrefs.getInt("south", 50875311), mPrefs.getInt("west", -1534652));
@@ -258,7 +326,18 @@ public class TrigMap extends Activity implements MapListener {
 					GeoPoint point = new GeoPoint((int)(c.getDouble(c.getColumnIndex(TrigDbHelper.TRIG_LAT))*1000000), (int)(c.getDouble(c.getColumnIndex(TrigDbHelper.TRIG_LON))*1000000));
 					OverlayItem oi = new OverlayItem(c.getString(c.getColumnIndex(TrigDbHelper.TRIG_ID)), 
 													 c.getString(c.getColumnIndex(TrigDbHelper.TRIG_NAME)), point);
-					oi.setMarker(getIcon(c.getInt(c.getColumnIndex(TrigDbHelper.TRIG_TYPE))));
+					switch (mIconColouring) {
+					case BYCONDITION:
+						oi.setMarker(getIcon(c.getInt(c.getColumnIndex(TrigDbHelper.TRIG_TYPE)), 
+								c.getInt(c.getColumnIndex(TrigDbHelper.TRIG_CONDITION))));
+						break;
+					case BYLOGGED:
+						oi.setMarker(getIcon(c.getInt(c.getColumnIndex(TrigDbHelper.TRIG_TYPE)), 
+								c.getInt(c.getColumnIndex(TrigDbHelper.TRIG_LOGGED))));
+						break;
+					default:
+						oi.setMarker(getIcon(c.getInt(c.getColumnIndex(TrigDbHelper.TRIG_TYPE))));
+					}
 					oi.setMarkerHotspot(HotspotPlace.CENTER);
 					newitems.add(oi);
 					c.moveToNext();
@@ -270,17 +349,84 @@ public class TrigMap extends Activity implements MapListener {
 			}
 			c.close();
 		}
+		mMapView.invalidate();
 	}
 	
 	private Drawable getIcon(int physicalType) {
 		switch (physicalType) {
 		case 13:
-			return this.getResources().getDrawable(R.drawable.mapicon_00_pillar);
+			return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_green);
 		case 9:
-			return this.getResources().getDrawable(R.drawable.mapicon_01_fbm);
+			return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_green);
 		default:
-			return this.getResources().getDrawable(R.drawable.mapicon_02_passive);
+			return this.getResources().getDrawable(R.drawable.mapicon_02_passive_green);
 		}
 	}
+	
+	private Drawable getIcon(int physicalType, int logged) {
+		switch (physicalType) {
+		case 13: // pillar
+			switch (logged) {
+			case 0: // unknown
+			case 9: // nolog
+				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_grey);
+			case 1: // good
+			case 2: // slightly damaged
+			case 3: // damaged
+			case 4: // toppled
+				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_green);
+			case 7: // unreachable but visible
+				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_yellow);
+			case 5: // possibly missing
+			case 6: // definitely missing
+			case 8: // totally unreachable
+				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_red);
+			default:
+				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_grey);
+			}	
+			
+		case 9: // fbm
+			switch (logged) {
+			case 0: // unknown
+			case 9: // nolog
+				return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_grey);
+			case 1: // good
+			case 2: // slightly damaged
+			case 3: // damaged
+			case 4: // toppled
+				return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_green);
+			case 7: // unreachable but visible
+				return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_yellow);
+			case 5: // possibly missing
+			case 6: // definitely missing
+			case 8: // totally unreachable
+				return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_red);
+			default:
+				return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_grey);
+			}	
+
+		default:
+			switch (logged) {
+			case 0: // unknown
+			case 9: // nolog
+				return this.getResources().getDrawable(R.drawable.mapicon_02_passive_grey);
+			case 1: // good
+			case 2: // slightly damaged
+			case 3: // damaged
+			case 4: // toppled
+				return this.getResources().getDrawable(R.drawable.mapicon_02_passive_green);
+			case 7: // unreachable but visible
+				return this.getResources().getDrawable(R.drawable.mapicon_02_passive_yellow);
+			case 5: // possibly missing
+			case 6: // definitely missing
+			case 8: // totally unreachable
+				return this.getResources().getDrawable(R.drawable.mapicon_02_passive_red);
+			default:
+				return this.getResources().getDrawable(R.drawable.mapicon_02_passive_grey);
+			}	
+		}
+	}
+	
+	
 	
 }
