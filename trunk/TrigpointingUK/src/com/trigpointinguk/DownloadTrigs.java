@@ -81,7 +81,7 @@ public class DownloadTrigs extends Activity {
 					int type		= Integer.valueOf(csv[5]);
 					String fb		= csv[6];
 					int condition	= Integer.valueOf(csv[7]);
-					int logged		= Trig.C_N_NOTLOGGED;
+					int logged		= Trig.CONDITION_N_NOTLOGGED;
 					int current		= Integer.valueOf(csv[8]);
 					int historic	= Integer.valueOf(csv[9]);
 					db.createTrig(id, name, waypoint, lat, lon, type, condition, logged, current, historic, fb);

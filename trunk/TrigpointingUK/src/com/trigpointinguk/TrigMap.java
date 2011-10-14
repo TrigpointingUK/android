@@ -40,27 +40,24 @@ import android.widget.Toast;
 
 
 public class TrigMap extends Activity implements MapListener {
-
+	public static final String TAG = "TrigMap";
+	
 	public enum TileSource 		{NONE, MAPNIK, OSMARENDER, CYCLEMAP, MAPQUEST, CLOUDMADE, BING_AERIAL, BING_ROAD, BING_AERIAL_LABELS};	
 	public enum IconColouring 	{NONE, BYCONDITION, BYLOGGED};	
 
-	private MapView mMapView;
-	private MapController mMapController;
-	private MyLocationOverlay mMyLocationOverlay;
-	private ScaleBarOverlay mScaleBarOverlay;  
-	private SharedPreferences mPrefs;
-	
-	public static final int MENUDOWNLOAD		= Menu.FIRST;
-	public static final int MENUCOLOURING		= Menu.FIRST;
-	public static final int MENUTILEPROVIDER	= Menu.FIRST;
+	private MapView            mMapView;
+	private MapController      mMapController;
+	private MyLocationOverlay  mMyLocationOverlay;
+	private ScaleBarOverlay    mScaleBarOverlay;  
 
-	public static final String TAG = "TrigMap";
-	private TrigDbHelper mDb;
+	private SharedPreferences  mPrefs;
+	private TrigDbHelper       mDb;
+	
 	private ItemizedIconOverlay<OverlayItem> mTrigOverlay;
-	private BoundingBoxE6 mBigBB = new BoundingBoxE6(0, 0, 0, 0);
-	private boolean mTooManyTrigs;
-	private IconColouring mIconColouring = IconColouring.NONE;
-	private TileSource    mTileSource = TileSource.NONE;
+	private BoundingBoxE6      mBigBB         = new BoundingBoxE6(0, 0, 0, 0);
+	private IconColouring      mIconColouring = IconColouring.NONE;
+	private TileSource         mTileSource    = TileSource.NONE;
+	private boolean            mTooManyTrigs;
 	
 	/** Called when the activity is first created. */
 	@Override
@@ -421,41 +418,41 @@ public class TrigMap extends Activity implements MapListener {
 	
 	private Drawable getIcon(int physicalType, int logged) {
 		switch (physicalType) {
-		case 13: // pillar
+		case Trig.PHYSICAL_PILLAR:
 			switch (logged) {
-			case 0: // unknown
-			case 9: // nolog
+			case Trig.CONDITION_U_UNKNOWN: 
+			case Trig.CONDITION_N_NOTLOGGED:
 				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_grey);
-			case 1: // good
-			case 2: // slightly damaged
-			case 3: // damaged
-			case 4: // toppled
+			case Trig.CONDITION_G_GOOD:
+			case Trig.CONDITION_S_SLIGTLYDAMAGED:
+			case Trig.CONDITION_D_DAMAGED:
+			case Trig.CONDITION_T_TOPPLED:
 				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_green);
-			case 7: // unreachable but visible
+			case Trig.CONDITION_V_UNREACHABLEBUTVISIBLE:
 				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_yellow);
-			case 5: // possibly missing
-			case 6: // definitely missing
-			case 8: // totally unreachable
+			case Trig.CONDITION_Q_POSSIBLYMISSING:
+			case Trig.CONDITION_X_DEFINITELYMISSING:
+			case Trig.CONDITION_P_TOTALLYUNREACHABLE:
 				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_red);
 			default:
 				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_grey);
 			}	
 			
-		case 9: // fbm
+		case Trig.PHYSICAL_FBM:
 			switch (logged) {
-			case 0: // unknown
-			case 9: // nolog
+			case Trig.CONDITION_U_UNKNOWN: 
+			case Trig.CONDITION_N_NOTLOGGED:
 				return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_grey);
-			case 1: // good
-			case 2: // slightly damaged
-			case 3: // damaged
-			case 4: // toppled
+			case Trig.CONDITION_G_GOOD:
+			case Trig.CONDITION_S_SLIGTLYDAMAGED:
+			case Trig.CONDITION_D_DAMAGED:
+			case Trig.CONDITION_T_TOPPLED:
 				return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_green);
-			case 7: // unreachable but visible
+			case Trig.CONDITION_V_UNREACHABLEBUTVISIBLE:
 				return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_yellow);
-			case 5: // possibly missing
-			case 6: // definitely missing
-			case 8: // totally unreachable
+			case Trig.CONDITION_Q_POSSIBLYMISSING:
+			case Trig.CONDITION_X_DEFINITELYMISSING:
+			case Trig.CONDITION_P_TOTALLYUNREACHABLE:
 				return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_red);
 			default:
 				return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_grey);
@@ -463,19 +460,19 @@ public class TrigMap extends Activity implements MapListener {
 
 		default:
 			switch (logged) {
-			case 0: // unknown
-			case 9: // nolog
+			case Trig.CONDITION_U_UNKNOWN: 
+			case Trig.CONDITION_N_NOTLOGGED:
 				return this.getResources().getDrawable(R.drawable.mapicon_02_passive_grey);
-			case 1: // good
-			case 2: // slightly damaged
-			case 3: // damaged
-			case 4: // toppled
+			case Trig.CONDITION_G_GOOD:
+			case Trig.CONDITION_S_SLIGTLYDAMAGED:
+			case Trig.CONDITION_D_DAMAGED:
+			case Trig.CONDITION_T_TOPPLED:
 				return this.getResources().getDrawable(R.drawable.mapicon_02_passive_green);
-			case 7: // unreachable but visible
+			case Trig.CONDITION_V_UNREACHABLEBUTVISIBLE:
 				return this.getResources().getDrawable(R.drawable.mapicon_02_passive_yellow);
-			case 5: // possibly missing
-			case 6: // definitely missing
-			case 8: // totally unreachable
+			case Trig.CONDITION_Q_POSSIBLYMISSING:
+			case Trig.CONDITION_X_DEFINITELYMISSING:
+			case Trig.CONDITION_P_TOTALLYUNREACHABLE:
 				return this.getResources().getDrawable(R.drawable.mapicon_02_passive_red);
 			default:
 				return this.getResources().getDrawable(R.drawable.mapicon_02_passive_grey);
