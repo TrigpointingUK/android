@@ -25,7 +25,7 @@
         </menu>
     </item>
     <item android:id="@+id/downloadmaps" android:title="@string/downMaps"></item>
-    <item android:checkable="true" android:title="Track Location" android:titleCondensed="Location" android:id="@+id/location" android:checked="false"></item>
-    <item android:titleCondensed="Compass" android:id="@+id/compass" android:title="Show Compass" android:checkable="true" android:checked="false"></item>
+    <item android:checkable="true" android:title="Track My Location" android:titleCondensed="My Location" android:id="@+id/location" android:checked="false"></item>
+    <item android:titleCondensed="Compass" android:id="@+id/compass" android:title="Show Compass" android:checkable="true" android:checked="true"></item>
     
 </menu>

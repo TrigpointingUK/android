@@ -166,6 +166,7 @@ public class TrigMap extends Activity implements MapListener {
 		boolean result = super.onCreateOptionsMenu(menu);
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.mapmenu, menu);
+		
 		// initialise menu ticks
 		switch (mIconColouring) {
 		case BYCONDITION:
@@ -261,13 +262,7 @@ public class TrigMap extends Activity implements MapListener {
 			startActivity(i);
 			return true;
 		case R.id.location:
-            if (mMyLocationOverlay.isMyLocationEnabled()) {
-                mMyLocationOverlay.disableFollowLocation();
-                mMyLocationOverlay.disableMyLocation();
-            } else {
-            	mMyLocationOverlay.enableFollowLocation();
-            	mMyLocationOverlay.enableMyLocation();
-            }
+			mMyLocationOverlay.enableFollowLocation();
             return true;
 		case R.id.compass:
 			if (mMyLocationOverlay.isCompassEnabled()) {
