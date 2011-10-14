@@ -8,6 +8,7 @@ import org.osmdroid.events.MapListener;
 import org.osmdroid.events.ScrollEvent;
 import org.osmdroid.events.ZoomEvent;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.tileprovider.tilesource.bing.BingMapTileSource;
 import org.osmdroid.tileprovider.util.CloudmadeUtil;
 import org.osmdroid.util.BoundingBoxE6;
 import org.osmdroid.util.GeoPoint;
@@ -40,7 +41,7 @@ import android.widget.Toast;
 
 public class TrigMap extends Activity implements MapListener {
 
-	public enum TileSource 		{NONE, MAPNIK, OSMARENDER, CYCLEMAP, MAPQUEST, CLOUDMADE};	
+	public enum TileSource 		{NONE, MAPNIK, OSMARENDER, CYCLEMAP, MAPQUEST, CLOUDMADE, BING_AERIAL, BING_ROAD, BING_AERIAL_LABELS};	
 	public enum IconColouring 	{NONE, BYCONDITION, BYLOGGED};	
 
 	private MapView mMapView;
@@ -133,6 +134,25 @@ public class TrigMap extends Activity implements MapListener {
             CloudmadeUtil.retrieveCloudmadeKey(getApplicationContext());
 			mMapView.setTileSource(TileSourceFactory.CLOUDMADESTANDARDTILES);
 			break;
+		case BING_AERIAL:
+            BingMapTileSource.retrieveBingKey(getApplicationContext());
+            BingMapTileSource bingTileSource = new BingMapTileSource(null);
+            bingTileSource.setStyle(BingMapTileSource.IMAGERYSET_AERIAL);
+			mMapView.setTileSource(bingTileSource);
+			break;
+		case BING_AERIAL_LABELS:
+            BingMapTileSource.retrieveBingKey(getApplicationContext());
+            BingMapTileSource bingTileSource2 = new BingMapTileSource(null);
+            bingTileSource2.setStyle(BingMapTileSource.IMAGERYSET_AERIALWITHLABELS);
+			mMapView.setTileSource(bingTileSource2);
+			break;
+		case BING_ROAD:
+            BingMapTileSource.retrieveBingKey(getApplicationContext());
+            BingMapTileSource bingTileSource3 = new BingMapTileSource(null);
+            bingTileSource3.setStyle(BingMapTileSource.IMAGERYSET_ROAD);
+			mMapView.setTileSource(bingTileSource3);
+			break;
+
 		}
 		// save choice to prefs
 		Editor editor = mPrefs.edit();
@@ -175,6 +195,15 @@ public class TrigMap extends Activity implements MapListener {
 		case OSMARENDER:
 			menu.findItem(R.id.osmarender).setChecked(true);
 			break;
+		case BING_AERIAL:
+			menu.findItem(R.id.bingaerial).setChecked(true);
+			break;
+		case BING_AERIAL_LABELS:
+			menu.findItem(R.id.bingaeriallabels).setChecked(true);
+			break;
+		case BING_ROAD:
+			menu.findItem(R.id.bingroad).setChecked(true);
+			break;
 		}
 		return result;
 	}    
@@ -198,6 +227,15 @@ public class TrigMap extends Activity implements MapListener {
 			break;
 		case R.id.osmarender:
 			setTileProvider(TileSource.OSMARENDER);
+			break;
+		case R.id.bingaerial:
+			setTileProvider(TileSource.BING_AERIAL);
+			break;
+		case R.id.bingaeriallabels:
+			setTileProvider(TileSource.BING_AERIAL_LABELS);
+			break;
+		case R.id.bingroad:
+			setTileProvider(TileSource.BING_ROAD);
 			break;
 
 		// Icon colouring options

@@ -9,6 +9,9 @@
             <item android:title="Mapquest" android:id="@+id/mapquest"></item>
             <item android:title="Osmarender" android:id="@+id/osmarender"></item>
             <item android:title="Open Cycle Map" android:id="@+id/cyclemap"></item>
+            <item android:title="Bing Aerial" android:id="@+id/bingaerial"></item>
+            <item android:title="Bing Aerial with Labels" android:id="@+id/bingaeriallabels"></item>
+            <item android:title="Bing Road" android:id="@+id/bingroad"></item>
             </group>
         </menu>
     </item>
