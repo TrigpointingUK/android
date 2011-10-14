@@ -110,7 +110,7 @@ public class TrigMap extends Activity implements MapListener {
 				}, new DefaultResourceProxyImpl(getApplicationContext()));
 		mMapView.getOverlays().add(mTrigOverlay);
 		mMapView.setMapListener(this);
-
+		
 		loadViewFromPrefs();
 	}
 
@@ -255,9 +255,26 @@ public class TrigMap extends Activity implements MapListener {
 			populateTrigOverlay(mMapView.getBoundingBox());
 			break;
 			
+		// Other
 		case R.id.downloadmaps:
 			Intent i = new Intent(TrigMap.this, DownloadMaps.class);
 			startActivity(i);
+			return true;
+		case R.id.location:
+            if (mMyLocationOverlay.isMyLocationEnabled()) {
+                mMyLocationOverlay.disableFollowLocation();
+                mMyLocationOverlay.disableMyLocation();
+            } else {
+            	mMyLocationOverlay.enableFollowLocation();
+            	mMyLocationOverlay.enableMyLocation();
+            }
+            return true;
+		case R.id.compass:
+			if (mMyLocationOverlay.isCompassEnabled()) {
+				mMyLocationOverlay.disableCompass();
+			} else {
+				mMyLocationOverlay.enableCompass();
+			}
 			return true;
 		}
 
@@ -304,6 +321,12 @@ public class TrigMap extends Activity implements MapListener {
 			setTileProvider(TileSource.valueOf(mPrefs.getString("tileSource", TileSource.MAPNIK.toString())));
 			// set colouring from prefs
 			mIconColouring = IconColouring.valueOf(mPrefs.getString("iconColouring", IconColouring.NONE.toString()));
+		} catch (IllegalArgumentException e) {
+			// invalid preference
+			setTileProvider(TileSource.MAPNIK);
+			mIconColouring = IconColouring.NONE;
+		}
+		try {
 			// set view from prefs
 			mMapController.setZoom(mPrefs.getInt("zoomLevel", 12));
 			mMapController.setCenter(new GeoPoint(mPrefs.getInt("latitude", 50931280), mPrefs.getInt("longitude", -1450510)));

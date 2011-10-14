@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu
   xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:title="Map Style" android:id="@+id/MapStyle">
+    <item android:title="Map Style" android:id="@+id/MapStyle" android:titleCondensed="Map">
         <menu>
             <group android:checkableBehavior="single" android:id="@+id/TileSource">
             <item android:title="Cloudmade" android:id="@+id/cloudmade"></item>
@@ -15,7 +15,7 @@
             </group>
         </menu>
     </item>
-    <item android:title="Icon Colouring" android:id="@+id/IconColouring">
+    <item android:title="Icon Colouring" android:id="@+id/IconColouring" android:titleCondensed="Icons">
         <menu>
             <group android:id="@+id/group2" android:checkableBehavior="single">
             <item android:title="None" android:id="@+id/none"></item>
@@ -25,5 +25,7 @@
         </menu>
     </item>
     <item android:id="@+id/downloadmaps" android:title="@string/downMaps"></item>
+    <item android:checkable="true" android:title="Track Location" android:titleCondensed="Location" android:id="@+id/location" android:checked="false"></item>
+    <item android:titleCondensed="Compass" android:id="@+id/compass" android:title="Show Compass" android:checkable="true" android:checked="false"></item>
     
 </menu>
