@@ -59,12 +59,12 @@ public class TrigOSMap extends Activity {
 		Double lat = c.getDouble(c.getColumnIndex(TrigDbHelper.TRIG_LAT));
 		Double lon = c.getDouble(c.getColumnIndex(TrigDbHelper.TRIG_LON));
 
-		
+		// OS 1:25000 maps
 		url = String.format("%s/%s/%3.5f,%3.5f/%d?key=%s",
 				"http://dev.virtualearth.net/REST/v1/Imagery/Map",
 				"OrdnanceSurvey",
 				lat, lon,
-				14,
+				13,
 				"AmX-6eFz_aE2rrhkXUprU3HRV2BNMrCYQoKodIFdfNEcZosjAEbsNetB00GFktP5");
 		URLs.add(url);
 
@@ -76,6 +76,7 @@ public class TrigOSMap extends Activity {
 				"AmX-6eFz_aE2rrhkXUprU3HRV2BNMrCYQoKodIFdfNEcZosjAEbsNetB00GFktP5");
 		URLs.add(url);
 
+		// Aerial photos
 		url = String.format("%s/%s/%3.5f,%3.5f/%d?key=%s",
 				"http://dev.virtualearth.net/REST/v1/Imagery/Map",
 				"Aerial",

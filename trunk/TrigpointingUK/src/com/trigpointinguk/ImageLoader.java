@@ -34,7 +34,7 @@ public class ImageLoader {
         //Make the background thead low priority. This way it will not affect the UI performance
         photoLoaderThread.setPriority(Thread.NORM_PRIORITY-1);
         
-        fileCache=new FileCache(context);
+        fileCache=new FileCache(context, "images");
     }
     
     public void DisplayImage(String url, Activity activity, ImageView imageView)

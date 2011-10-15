@@ -23,8 +23,8 @@ public class TrigOSMapAdapter extends BaseAdapter {
         mUrls=urls;
         imageLoader=new ImageLoader(mActivity);
         
-        TypedArray attr = mContext.obtainStyledAttributes(R.styleable.HelloGallery);
-        mGalleryItemBackground = attr.getResourceId(R.styleable.HelloGallery_android_galleryItemBackground, 0);
+        TypedArray attr = mContext.obtainStyledAttributes(R.styleable.TrigpointingUK);
+        mGalleryItemBackground = attr.getResourceId(R.styleable.TrigpointingUK_android_galleryItemBackground, 0);
     }
 
     public int getCount() {
