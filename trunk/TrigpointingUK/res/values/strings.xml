@@ -37,14 +37,14 @@
         <item>Cloudmade - Scot (29MB)</item>
     </string-array>
     <string-array name="downloadMapsArrayValues">
-        <item>http://trigpointinguk.googlecode.com/files/mapnik_ew_z12_f01_v01.zip</item>
-        <item>http://trigpointinguk.googlecode.com/files/mapquest_ew_z10_f01_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_z11_f01_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_z12_f01_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_z12_f02_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_z12_f03_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_z12_f04_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_z12_f05_v01.zip</item>
-        <item>http://trigpointinguk.googlecode.com/files/osmarender_ew_z11_f01_v01.zip,http://trigpointinguk.googlecode.com/files/osmarender_ew_z12_f01_v01.zip</item>
-        <item>http://trigpointinguk.googlecode.com/files/cloudmade_ew_z12_f01_v01.zip</item>
-        <item>http://trigpointinguk.googlecode.com/files/mapnik_s_z12_f01_v01.zip</item>
-        <item>http://trigpointinguk.googlecode.com/files/mapquest_s_z11_f01_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_s_z12_f01_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_s_z12_f02_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_s_z12_f03_v01.zip</item>
-        <item>http://trigpointinguk.googlecode.com/files/osmarender_s_z12_f01_v01.zip</item>
-        <item>http://trigpointinguk.googlecode.com/files/cloudmade_s_z12_f01_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/mapnik_ew_f01_z12_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/mapquest_ew_f01_z10_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_f02_z11_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_f03_z12_f01_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_f04_z12_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_f05_z12_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_f06_z12_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/osmarender_ew_f01_z11_v01.zip,http://trigpointinguk.googlecode.com/files/osmarender_ew_f02_z12_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/cloudmade_ew_f01_z12_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/mapnik_s_f01_z12_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/mapquest_s_f01_z11_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_s_f02_z12_f01_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_s_f03_z12_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_s_f04_z12_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/osmarender_s_f01_z12_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/cloudmade_s_f01_z12_v01.zip</item>
     </string-array>
     <integer-array name="downloadMapsArrayTiles">
         <item>7694</item>
