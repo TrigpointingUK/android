@@ -1,6 +1,5 @@
 package com.trigpointinguk.android;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.view.View;
@@ -13,19 +12,17 @@ import com.trigpointinguk.android.common.LazyImageLoader;
 
 public class TrigOSMapAdapter extends BaseAdapter {
     
-    private Activity mActivity;
-    private Context mContext;
     private String[] mUrls;
     public LazyImageLoader imageLoader;
 	private int mGalleryItemBackground; 
+	private Context mContext;
     
-    public TrigOSMapAdapter(Activity activity, String[] urls) {
-    	mActivity = activity;
-    	mContext = activity.getApplicationContext();
+    public TrigOSMapAdapter(Context context, String[] urls) {
         mUrls=urls;
-        imageLoader=new LazyImageLoader(mActivity);
+        mContext=context;
+        imageLoader=new LazyImageLoader(context);
         
-        TypedArray attr = mContext.obtainStyledAttributes(R.styleable.TrigpointingUK);
+        TypedArray attr = context.obtainStyledAttributes(R.styleable.TrigpointingUK);
         mGalleryItemBackground = attr.getResourceId(R.styleable.TrigpointingUK_android_galleryItemBackground, 0);
     }
 
@@ -42,8 +39,8 @@ public class TrigOSMapAdapter extends BaseAdapter {
     }
     
     public View getView(int position, View convertView, ViewGroup parent) {
-        ImageView imageView = new ImageView(mActivity);
-        imageLoader.DisplayImage(mUrls[position], mActivity, imageView);
+        ImageView imageView = new ImageView(mContext);
+        imageLoader.DisplayImage(mUrls[position], imageView);
 
         imageView.setLayoutParams(new Gallery.LayoutParams(300, 300));
         imageView.setScaleType(ImageView.ScaleType.FIT_XY);

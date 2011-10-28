@@ -65,5 +65,6 @@ public class TrigInfoTab extends Activity {
 		tv.setText(c.getString(c.getColumnIndex(DbHelper.TRIG_FB)));
 
 		c.close();
+		mDb.close();
     }
 }

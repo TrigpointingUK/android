@@ -29,8 +29,8 @@ public class LazyImageLoader {
 
     final int stub_id=R.drawable.imageloading;
 
-    CacheMemory memoryCache=new CacheMemory();
-    CacheFile fileCache;
+    MemoryCache memoryCache=new MemoryCache();
+    FileCache fileCache;
     private Map<ImageView, String> imageViews=Collections.synchronizedMap(new WeakHashMap<ImageView, String>());
 
     PhotosLoader photoLoaderThread=new PhotosLoader();
@@ -41,10 +41,10 @@ public class LazyImageLoader {
         //Make the background thead low priority. This way it will not affect the UI performance
         photoLoaderThread.setPriority(Thread.NORM_PRIORITY-1);
         
-        fileCache=new CacheFile(context, "images");
+        fileCache=new FileCache(context, "images");
     }
     
-    public void DisplayImage(String url, Activity activity, ImageView imageView)
+    public void DisplayImage(String url, ImageView imageView)
     {
         imageViews.put(imageView, url);
         Bitmap bitmap=memoryCache.getBitmap(url);
@@ -52,12 +52,12 @@ public class LazyImageLoader {
             imageView.setImageBitmap(bitmap);
         	Log.i(TAG, "Got "+url+" from memory");
         } else {
-            queuePhoto(url, activity, imageView);
+            queuePhoto(url, imageView);
             imageView.setImageResource(stub_id);
         }    
     }
         
-    private void queuePhoto(String url, Activity activity, ImageView imageView)
+    private void queuePhoto(String url, ImageView imageView)
     {
         //This ImageView may be used for other images before. So there may be some old tasks in the queue. We need to discard them. 
         photosQueue.Clean(imageView);

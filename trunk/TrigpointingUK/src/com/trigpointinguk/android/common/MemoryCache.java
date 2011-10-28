@@ -4,7 +4,7 @@ import java.lang.ref.SoftReference;
 import java.util.HashMap;
 import android.graphics.Bitmap;
 
-public class CacheMemory {
+public class MemoryCache {
     private HashMap<String, SoftReference<Object>> cache=new HashMap<String, SoftReference<Object>>();
     
     public Bitmap getBitmap(String id){
@@ -23,6 +23,10 @@ public class CacheMemory {
     
     public void put(String id, Bitmap bitmap){
         cache.put(id, new SoftReference<Object>(bitmap));
+    }
+
+    public void put(String id, String string){
+        cache.put(id, new SoftReference<Object>(string));
     }
 
     public void clear() {
