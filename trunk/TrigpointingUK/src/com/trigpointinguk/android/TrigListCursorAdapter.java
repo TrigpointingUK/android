@@ -1,4 +1,4 @@
-package com.trigpointinguk;
+package com.trigpointinguk.android;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -9,6 +9,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.trigpointinguk.android.common.LatLon;
 
 public class TrigListCursorAdapter extends SimpleCursorAdapter {
 
@@ -31,11 +33,11 @@ public class TrigListCursorAdapter extends SimpleCursorAdapter {
 		mInflater = LayoutInflater.from(context);
 
 		if (c != null) {
-			mNameIndex = c.getColumnIndex(TrigDbHelper.TRIG_NAME);
-			mConditionIndex = c.getColumnIndex(TrigDbHelper.TRIG_CONDITION);
-			mLoggedIndex = c.getColumnIndex(TrigDbHelper.TRIG_LOGGED);
-			mLatIndex = c.getColumnIndex(TrigDbHelper.TRIG_LAT);	
-			mLonIndex = c.getColumnIndex(TrigDbHelper.TRIG_LON);
+			mNameIndex = c.getColumnIndex(DbHelper.TRIG_NAME);
+			mConditionIndex = c.getColumnIndex(DbHelper.TRIG_CONDITION);
+			mLoggedIndex = c.getColumnIndex(DbHelper.TRIG_LOGGED);
+			mLatIndex = c.getColumnIndex(DbHelper.TRIG_LAT);	
+			mLonIndex = c.getColumnIndex(DbHelper.TRIG_LON);
 		}
 	}
 
@@ -68,11 +70,11 @@ public class TrigListCursorAdapter extends SimpleCursorAdapter {
 	public Cursor swapCursor(Cursor c, Location loc) {
 		mCurrentLocation = loc;
 		if (c != null) {
-			mNameIndex = c.getColumnIndex(TrigDbHelper.TRIG_NAME);
-			mConditionIndex = c.getColumnIndex(TrigDbHelper.TRIG_CONDITION);
-			mLoggedIndex = c.getColumnIndex(TrigDbHelper.TRIG_LOGGED);
-			mLatIndex = c.getColumnIndex(TrigDbHelper.TRIG_LAT);	
-			mLonIndex = c.getColumnIndex(TrigDbHelper.TRIG_LON);
+			mNameIndex = c.getColumnIndex(DbHelper.TRIG_NAME);
+			mConditionIndex = c.getColumnIndex(DbHelper.TRIG_CONDITION);
+			mLoggedIndex = c.getColumnIndex(DbHelper.TRIG_LOGGED);
+			mLatIndex = c.getColumnIndex(DbHelper.TRIG_LAT);	
+			mLonIndex = c.getColumnIndex(DbHelper.TRIG_LON);
 		}
 		return super.swapCursor(c);
 	}

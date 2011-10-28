@@ -1,9 +1,9 @@
-package com.trigpointinguk;
+package com.trigpointinguk.android;
 
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 
-public class Preferences extends PreferenceActivity {
+public class PreferencesActivity extends PreferenceActivity {
     public static final String PREFS_NAME = "TUKPrefsFile";
 
 	@Override

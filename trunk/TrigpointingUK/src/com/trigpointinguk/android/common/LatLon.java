@@ -1,4 +1,4 @@
-package com.trigpointinguk;
+package com.trigpointinguk.android.common;
 
 import java.io.Serializable;
 

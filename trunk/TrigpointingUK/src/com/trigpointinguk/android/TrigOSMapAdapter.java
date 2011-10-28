@@ -1,4 +1,4 @@
-package com.trigpointinguk;
+package com.trigpointinguk.android;
 
 import android.app.Activity;
 import android.content.Context;
@@ -9,19 +9,21 @@ import android.widget.BaseAdapter;
 import android.widget.Gallery;
 import android.widget.ImageView;
 
+import com.trigpointinguk.android.common.LazyImageLoader;
+
 public class TrigOSMapAdapter extends BaseAdapter {
     
     private Activity mActivity;
     private Context mContext;
     private String[] mUrls;
-    public ImageLoader imageLoader;
+    public LazyImageLoader imageLoader;
 	private int mGalleryItemBackground; 
     
     public TrigOSMapAdapter(Activity activity, String[] urls) {
     	mActivity = activity;
     	mContext = activity.getApplicationContext();
         mUrls=urls;
-        imageLoader=new ImageLoader(mActivity);
+        imageLoader=new LazyImageLoader(mActivity);
         
         TypedArray attr = mContext.obtainStyledAttributes(R.styleable.TrigpointingUK);
         mGalleryItemBackground = attr.getResourceId(R.styleable.TrigpointingUK_android_galleryItemBackground, 0);

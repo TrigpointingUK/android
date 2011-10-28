@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       android:versionCode="1"
-      android:versionName="1.0" package="com.trigpointinguk">
+      android:versionName="1.0" package="com.trigpointinguk.android">
     <uses-sdk android:minSdkVersion="7" />
     <uses-permission android:name="android.permission.INTERNET"></uses-permission>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"></uses-permission>
@@ -11,24 +11,24 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></uses-permission>
 
     <application android:icon="@drawable/icon" android:label="@string/app_name" android:debuggable="true">
-        <activity android:label="@string/app_name" android:name="TUKActivity">
+        <activity android:label="@string/app_name" android:name="MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="TrigList"></activity>
-        <activity android:configChanges="keyboardHidden|orientation" android:name="DownloadTrigs"></activity>
+        <activity android:name="TrigListActivity"></activity>
+        <activity android:configChanges="keyboardHidden|orientation" android:name=".DownloadTrigsActivity"></activity>
         <activity android:name="Preferences"></activity>
-        <activity android:configChanges="keyboardHidden|orientation" android:name="DownloadMaps"></activity>
-        <activity android:name="TrigDetails"></activity>
-        <activity android:name="TrigAlbum"></activity>
-        <activity android:name="TrigInfo"></activity>
-        <activity android:name="TrigLogs"></activity>
-        <activity android:name="TrigOSMap"></activity>
-        <activity android:name="TrigMap"></activity>
+        <activity android:configChanges="keyboardHidden|orientation" android:name=".DownloadMapsActivity"></activity>
+        <activity android:name="TrigDetailsActivity"></activity>
+        <activity android:name=".TrigAlbumTab"></activity>
+        <activity android:name="TrigInfoTab"></activity>
+        <activity android:name="TrigLogsTab"></activity>
+        <activity android:name="TrigOSMapTab"></activity>
+        <activity android:name="MapActivity"></activity>
         <meta-data android:value="6668b1358f29457b88baf287a692ae97" android:name="CLOUDMADE_KEY"></meta-data>
         <meta-data android:value="AmX-6eFz_aE2rrhkXUprU3HRV2BNMrCYQoKodIFdfNEcZosjAEbsNetB00GFktP5" android:name="BING_KEY"></meta-data>
-        <activity android:name="HelpPage"></activity>
+        <activity android:name=".android.HelpPageActivity"></activity>
     </application>
 </manifest>

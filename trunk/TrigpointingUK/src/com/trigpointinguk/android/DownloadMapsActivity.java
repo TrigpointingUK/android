@@ -1,4 +1,4 @@
-package com.trigpointinguk;
+package com.trigpointinguk.android;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -22,7 +22,7 @@ import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-public class DownloadMaps extends Activity {
+public class DownloadMapsActivity extends Activity {
 	private TextView mStatus;
 	private ProgressBar mProgress;
 	private Button mDownloadBtn;
@@ -30,7 +30,7 @@ public class DownloadMaps extends Activity {
 	private int mProgressMax=100;
 	private int mDownloadCount;
 	private boolean mRunning=false;
-	private static final String TAG = "DownloadMaps";
+	private static final String TAG = "DownloadMapsActivity";
 	private static final int STATUS_OK 			= 0;
 	private static final int STATUS_CORRUPT		= 1;
 	private static final int STATUS_CANCELLED	= 2;

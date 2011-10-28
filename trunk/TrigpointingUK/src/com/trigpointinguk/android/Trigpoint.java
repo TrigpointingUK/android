@@ -1,8 +1,10 @@
-package com.trigpointinguk;
+package com.trigpointinguk.android;
+
+import com.trigpointinguk.android.common.LatLon;
 
 import android.location.Location;
 
-public class Trig extends LatLon {
+public class Trigpoint extends LatLon {
 	/**
 	 * Mini class for trigs in list
 	 */
@@ -66,16 +68,16 @@ public class Trig extends LatLon {
 	public static final int PHYSICAL_USER_ADDED       = 17;
 
 	
-	public Trig() {
+	public Trigpoint() {
 	}
 	
-	public Trig(Double lat, Double lon) {
+	public Trigpoint(Double lat, Double lon) {
 		super(lat, lon);
 	}
-	public Trig(Location loc) {
+	public Trigpoint(Location loc) {
 		super(loc);
 	}
-	public Trig(Double lat, Double lon, String name) {
+	public Trigpoint(Double lat, Double lon, String name) {
 		super(lat, lon);
 		this.name = name;
 	}

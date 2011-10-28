@@ -1,4 +1,4 @@
-package com.trigpointinguk;
+package com.trigpointinguk.android;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -12,13 +12,13 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
 
-public class TUKActivity extends Activity {
+public class MainActivity extends Activity {
 
     public static final int DOWNLOAD_MAPS_ID	= Menu.FIRST;
     public static final int DOWNLOAD_TRIGS_ID	= Menu.FIRST + 1;
     public static final int PREFS_ID 			= Menu.FIRST + 2;
     public static final int ABOUT_ID 			= Menu.FIRST + 3;
-    public static final String TAG 		="TUKActivity";
+    public static final String TAG 				="MainActivity";
     private SharedPreferences mPrefs;
     
  	@Override
@@ -34,7 +34,7 @@ public class TUKActivity extends Activity {
         btnNearest.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				Intent i = new Intent(TUKActivity.this, TrigList.class);
+				Intent i = new Intent(MainActivity.this, TrigListActivity.class);
 				startActivity(i);
 			}
 		});       
@@ -43,21 +43,21 @@ public class TUKActivity extends Activity {
 			@Override
 			public void onClick(View arg0) {
 				//new UpdateTrigLogsTask().execute();
-				new Sync(TUKActivity.this).execute();
+				new SyncTask(MainActivity.this).execute();
 			}
 		});
         final Button btnMap = (Button) findViewById(R.id.btnMap);
         btnMap.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				Intent i = new Intent(TUKActivity.this, TrigMap.class);
+				Intent i = new Intent(MainActivity.this, MapActivity.class);
 				startActivity(i);
 			}
 		});
         
         //autosync
         if (mPrefs.getBoolean("autosync", false)) {
-			new Sync(TUKActivity.this).execute();        	
+			new SyncTask(MainActivity.this).execute();        	
         }   
     }
 
@@ -78,20 +78,20 @@ public class TUKActivity extends Activity {
 		Intent i;
         switch (item.getItemId()) {
         case DOWNLOAD_TRIGS_ID:
-            i = new Intent(TUKActivity.this, DownloadTrigs.class);
+            i = new Intent(MainActivity.this, DownloadTrigsActivity.class);
             startActivity(i);
             return true;
         case DOWNLOAD_MAPS_ID:
-            i = new Intent(TUKActivity.this, DownloadMaps.class);
+            i = new Intent(MainActivity.this, DownloadMapsActivity.class);
             startActivity(i);
             return true;
         case PREFS_ID:
-            i = new Intent(TUKActivity.this, Preferences.class);
+            i = new Intent(MainActivity.this, PreferencesActivity.class);
             startActivityForResult(i, PREFS_ID);
             return true;
         case ABOUT_ID:
-            i = new Intent(TUKActivity.this, HelpPage.class);
-            i.putExtra(HelpPage.PAGE, "about.html");
+            i = new Intent(MainActivity.this, HelpPageActivity.class);
+            i.putExtra(HelpPageActivity.PAGE, "about.html");
             startActivity(i);
             return true;
         }

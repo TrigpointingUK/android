@@ -1,4 +1,4 @@
-package com.trigpointinguk;
+package com.trigpointinguk.android;
 
 import org.osmdroid.util.BoundingBoxE6;
 
@@ -13,8 +13,8 @@ import android.location.Location;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-public class TrigDbHelper {
-	private static final String TAG					= "TrigDbHelper";
+public class DbHelper {
+	private static final String TAG					= "DbHelper";
 
 	private static final int 	DATABASE_VERSION 	= 3;
 	private static final String DATABASE_NAME		= "trigpointinguk";
@@ -68,7 +68,7 @@ public class TrigDbHelper {
      * 
      * @param ctx the Context within which to work
      */
-	public TrigDbHelper(Context ctx) {
+	public DbHelper(Context ctx) {
 		this.mCtx = ctx;
 		mPrefs = PreferenceManager.getDefaultSharedPreferences(mCtx);
 	}
@@ -81,7 +81,7 @@ public class TrigDbHelper {
 	 * @return this (self reference, allowing this to be chained in an initialisation call)
 	 * @throws SQLException if the database could be neither opened or created
 	 */
-	public TrigDbHelper open() throws SQLException {
+	public DbHelper open() throws SQLException {
 		Log.i(TAG, "Opening mDbHelper");
 		mDbHelper = new DatabaseHelper(mCtx);
 		mDb = mDbHelper.getWritableDatabase();

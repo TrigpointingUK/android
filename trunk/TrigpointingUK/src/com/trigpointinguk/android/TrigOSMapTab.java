@@ -1,4 +1,4 @@
-package com.trigpointinguk;
+package com.trigpointinguk.android;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,11 +13,11 @@ import android.widget.Gallery;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
-public class TrigOSMap extends Activity {
-	private static final String TAG = "TrigOSMap";
+public class TrigOSMapTab extends Activity {
+	private static final String TAG = "TrigOSMapTab";
 
 	private long mTrigId;
-	private TrigDbHelper mDb;
+	private DbHelper mDb;
 
 
 	public void onCreate(Bundle savedInstanceState) {
@@ -27,11 +27,11 @@ public class TrigOSMap extends Activity {
 		// get trig_id from extras
         Bundle extras = getIntent().getExtras();
 		if (extras == null) {return;}
-		mTrigId = extras.getLong(TrigDbHelper.TRIG_ID);
+		mTrigId = extras.getLong(DbHelper.TRIG_ID);
 		Log.i(TAG, "Trig_id = "+mTrigId);
 		
 		// get trig info from database
-		mDb = new TrigDbHelper(TrigOSMap.this);
+		mDb = new DbHelper(TrigOSMapTab.this);
 		mDb.open();		
 		Cursor c = mDb.fetchTrigInfo(mTrigId);
 		c.moveToFirst();
@@ -45,7 +45,7 @@ public class TrigOSMap extends Activity {
 	    
 	    gallery.setOnItemClickListener(new OnItemClickListener() {
 	        public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-	            Toast.makeText(TrigOSMap.this, "" + position, Toast.LENGTH_SHORT).show();
+	            Toast.makeText(TrigOSMapTab.this, "" + position, Toast.LENGTH_SHORT).show();
 	        }
 	    });
 	}
@@ -56,8 +56,8 @@ public class TrigOSMap extends Activity {
 		String url;
 		List<String> URLs = new ArrayList<String>();
 		
-		Double lat = c.getDouble(c.getColumnIndex(TrigDbHelper.TRIG_LAT));
-		Double lon = c.getDouble(c.getColumnIndex(TrigDbHelper.TRIG_LON));
+		Double lat = c.getDouble(c.getColumnIndex(DbHelper.TRIG_LAT));
+		Double lon = c.getDouble(c.getColumnIndex(DbHelper.TRIG_LON));
 
 		// OS 1:25000 maps
 		url = String.format("%s/%s/%3.5f,%3.5f/%d?key=%s",

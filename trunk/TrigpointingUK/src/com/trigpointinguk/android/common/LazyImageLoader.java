@@ -1,4 +1,4 @@
-package com.trigpointinguk;
+package com.trigpointinguk.android.common;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Stack;
 import java.util.WeakHashMap;
+
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -19,28 +20,34 @@ import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.widget.ImageView;
 
+import com.trigpointinguk.android.R;
+
 // Code from https://github.com/thest1/LazyList
 
-public class ImageLoader {
+public class LazyImageLoader {
 	private static final String TAG = "ImageLoader";
 
     final int stub_id=R.drawable.imageloading;
 
-    MemoryCache memoryCache=new MemoryCache();
-    FileCache fileCache;
+    CacheMemory memoryCache=new CacheMemory();
+    CacheFile fileCache;
     private Map<ImageView, String> imageViews=Collections.synchronizedMap(new WeakHashMap<ImageView, String>());
+
+    PhotosLoader photoLoaderThread=new PhotosLoader();
+    PhotosQueue photosQueue=new PhotosQueue();
+
     
-    public ImageLoader(Context context){
+    public LazyImageLoader(Context context){
         //Make the background thead low priority. This way it will not affect the UI performance
         photoLoaderThread.setPriority(Thread.NORM_PRIORITY-1);
         
-        fileCache=new FileCache(context, "images");
+        fileCache=new CacheFile(context, "images");
     }
     
     public void DisplayImage(String url, Activity activity, ImageView imageView)
     {
         imageViews.put(imageView, url);
-        Bitmap bitmap=memoryCache.get(url);
+        Bitmap bitmap=memoryCache.getBitmap(url);
         if(bitmap!=null) {
             imageView.setImageBitmap(bitmap);
         	Log.i(TAG, "Got "+url+" from memory");
@@ -135,7 +142,6 @@ public class ImageLoader {
         }
     }
     
-    PhotosQueue photosQueue=new PhotosQueue();
     
     public void stopThread()
     {
@@ -193,14 +199,16 @@ public class ImageLoader {
         }
     }
     
-    PhotosLoader photoLoaderThread=new PhotosLoader();
     
     //Used to display bitmap in the UI thread
     class BitmapDisplayer implements Runnable
     {
         Bitmap bitmap;
         ImageView imageView;
-        public BitmapDisplayer(Bitmap b, ImageView i){bitmap=b;imageView=i;}
+        public BitmapDisplayer(Bitmap b, ImageView i){
+        	bitmap=b;
+        	imageView=i;
+        }
         public void run()
         {
             if(bitmap!=null)

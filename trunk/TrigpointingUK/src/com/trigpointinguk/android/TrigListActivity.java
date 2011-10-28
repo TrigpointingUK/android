@@ -1,4 +1,4 @@
-package com.trigpointinguk;
+package com.trigpointinguk.android;
 
 import android.app.ListActivity;
 import android.content.Context;
@@ -15,10 +15,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 
-public class TrigList extends ListActivity {
+public class TrigListActivity extends ListActivity {
 	private Location mCurrentLocation;
 	private TrigListCursorAdapter mListAdapter;
-	private TrigDbHelper mDb;
+	private DbHelper mDb;
 	static int mUpdateCount = 0;
 	static int mLocationCount = 0;
 	private boolean mTaskRunning = false;
@@ -32,7 +32,7 @@ public class TrigList extends ListActivity {
 		setContentView(R.layout.triglist);
 
 		// create various objects
-		mDb = new TrigDbHelper(TrigList.this);
+		mDb = new DbHelper(TrigListActivity.this);
 		mDb.open();
 	
 		// Start off with no location + no trigs
@@ -92,8 +92,8 @@ public class TrigList extends ListActivity {
 
     protected void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
-        Intent i = new Intent(this, TrigDetails.class);
-        i.putExtra(TrigDbHelper.TRIG_ID, id);
+        Intent i = new Intent(this, TrigDetailsActivity.class);
+        i.putExtra(DbHelper.TRIG_ID, id);
         Log.i(TAG, "Trig_id = " +id);
         startActivity(i);
     }

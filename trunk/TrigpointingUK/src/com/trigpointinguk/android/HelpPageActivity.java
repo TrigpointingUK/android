@@ -1,10 +1,10 @@
-package com.trigpointinguk;
+package com.trigpointinguk.android;
 
 import android.app.Activity;
 import android.os.Bundle;
 import android.webkit.WebView;
 
-public class HelpPage extends Activity {
+public class HelpPageActivity extends Activity {
 
 	public static final String PAGE="PAGE";
     private WebView mWebView;

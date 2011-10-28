@@ -1,4 +1,4 @@
-package com.trigpointinguk;
+package com.trigpointinguk.android;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -19,13 +19,13 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-public class DownloadTrigs extends Activity {
+public class DownloadTrigsActivity extends Activity {
 
 	private TextView mStatus;
 	private ProgressBar mProgress;
 	private Button mDownloadBtn;
 	private static final int mProgressMax = 7800;
-	private static final String TAG = "DownloadTrigs";
+	private static final String TAG = "DownloadTrigsActivity";
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +54,7 @@ public class DownloadTrigs extends Activity {
 	private class PopulateTrigsTask extends AsyncTask<Void, Integer, Integer> {
 		protected Integer doInBackground(Void... arg0) {
 
-			TrigDbHelper db = new TrigDbHelper(DownloadTrigs.this);
+			DbHelper db = new DbHelper(DownloadTrigsActivity.this);
 			String strLine;                
 			int i=0;
 
@@ -81,7 +81,7 @@ public class DownloadTrigs extends Activity {
 					int type		= Integer.valueOf(csv[5]);
 					String fb		= csv[6];
 					int condition	= Integer.valueOf(csv[7]);
-					int logged		= Trig.CONDITION_N_NOTLOGGED;
+					int logged		= Trigpoint.CONDITION_N_NOTLOGGED;
 					int current		= Integer.valueOf(csv[8]);
 					int historic	= Integer.valueOf(csv[9]);
 					db.createTrig(id, name, waypoint, lat, lon, type, condition, logged, current, historic, fb);

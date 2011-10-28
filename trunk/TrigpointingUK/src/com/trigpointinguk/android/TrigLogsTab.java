@@ -1,10 +1,10 @@
-package com.trigpointinguk;
+package com.trigpointinguk.android;
 
 import android.app.Activity;
 import android.os.Bundle;
 import android.widget.TextView;
 
-public class TrigLogs extends Activity {
+public class TrigLogsTab extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 

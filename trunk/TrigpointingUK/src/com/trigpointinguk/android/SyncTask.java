@@ -1,4 +1,4 @@
-package com.trigpointinguk;
+package com.trigpointinguk.android;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -21,14 +21,14 @@ import android.widget.Toast;
 
 
 
-public class Sync extends AsyncTask<Void, Integer, Integer> {
-	public static final String TAG ="Sync";
+public class SyncTask extends AsyncTask<Void, Integer, Integer> {
+	public static final String TAG ="SyncTask";
 	private Context mCtx;
 	private SharedPreferences mPrefs;
     private ProgressDialog mProgressDialog;
 
 	
-	Sync(Context pCtx) {
+	SyncTask(Context pCtx) {
 		this.mCtx = pCtx;
 	}
 	
@@ -36,7 +36,7 @@ public class Sync extends AsyncTask<Void, Integer, Integer> {
 		Log.d(TAG, "doInBackground");
 		if (isCancelled()){return 0;}
 		
-		TrigDbHelper db = new TrigDbHelper(mCtx);
+		DbHelper db = new DbHelper(mCtx);
         String strLine;                
 		int i=0;
 		String strUser;

@@ -1,14 +1,14 @@
-package com.trigpointinguk;
+package com.trigpointinguk.android.common;
 
 import java.io.File;
 import android.content.Context;
 
-public class FileCache {
+public class CacheFile {
 
 	private File cacheDir;
 
-	public FileCache(Context context, String cachedir){
-		//Find the dir to save cached images
+	public CacheFile(Context context, String cachedir){
+		//Find the dir to save cached objects
 		if (android.os.Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED)) {
 			cacheDir=new File(android.os.Environment.getExternalStorageDirectory() + "/Android/data/com.trigpointinguk/cache/", cachedir);
 		} else {

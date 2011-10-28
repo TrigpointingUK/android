@@ -1,4 +1,4 @@
-package com.trigpointinguk;
+package com.trigpointinguk.android;
 
 import android.app.Activity;
 import android.database.Cursor;
@@ -7,9 +7,11 @@ import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-public class TrigInfo extends Activity {
+import com.trigpointinguk.android.common.LatLon;
+
+public class TrigInfoTab extends Activity {
 	private long mTrigId;
-	private TrigDbHelper mDb;
+	private DbHelper mDb;
 
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -18,11 +20,11 @@ public class TrigInfo extends Activity {
         // get trig_id from extras
         Bundle extras = getIntent().getExtras();
 		if (extras == null) {return;}
-		mTrigId = extras.getLong(TrigDbHelper.TRIG_ID);
+		mTrigId = extras.getLong(DbHelper.TRIG_ID);
 		Log.i("TrigInfo", "Trig_id = "+mTrigId);
 
 		// get trig info from database
-		mDb = new TrigDbHelper(TrigInfo.this);
+		mDb = new DbHelper(TrigInfoTab.this);
 		mDb.open();		
 		Cursor c = mDb.fetchTrigInfo(mTrigId);
 		c.moveToFirst();
@@ -31,18 +33,18 @@ public class TrigInfo extends Activity {
 		ImageView iv;
 		
 		tv = (TextView)  findViewById(R.id.triginfo_name);
-		tv.setText(c.getString(c.getColumnIndex(TrigDbHelper.TRIG_NAME)));
+		tv.setText(c.getString(c.getColumnIndex(DbHelper.TRIG_NAME)));
 		
 		tv = (TextView)  findViewById(R.id.triginfo_waypoint);
-		tv.setText(String.format("TP%04d", c.getLong(c.getColumnIndex(TrigDbHelper.TRIG_ID))));
+		tv.setText(String.format("TP%04d", c.getLong(c.getColumnIndex(DbHelper.TRIG_ID))));
 		
 		iv = (ImageView) findViewById(R.id.triginfo_condition_icon);
-		iv.setImageResource(R.drawable.c0_unknown + c.getInt(c.getColumnIndex(TrigDbHelper.TRIG_CONDITION)));
+		iv.setImageResource(R.drawable.c0_unknown + c.getInt(c.getColumnIndex(DbHelper.TRIG_CONDITION)));
 
 		tv = (TextView) findViewById(R.id.triginfo_condition);
-		tv.setText(R.string.condition00 + c.getInt(c.getColumnIndex(TrigDbHelper.TRIG_CONDITION)));
+		tv.setText(R.string.condition00 + c.getInt(c.getColumnIndex(DbHelper.TRIG_CONDITION)));
 
-		LatLon ll = new LatLon(c.getDouble(c.getColumnIndex(TrigDbHelper.TRIG_LAT)), c.getDouble(c.getColumnIndex(TrigDbHelper.TRIG_LON)));
+		LatLon ll = new LatLon(c.getDouble(c.getColumnIndex(DbHelper.TRIG_LAT)), c.getDouble(c.getColumnIndex(DbHelper.TRIG_LON)));
 
 		tv = (TextView)  findViewById(R.id.triginfo_gridref);
 		tv.setText(ll.getOSGB10());
@@ -51,16 +53,16 @@ public class TrigInfo extends Activity {
 		tv.setText(ll.getWGS());
 		
 		tv = (TextView) findViewById(R.id.triginfo_current);
-		tv.setText(R.string.current00 + c.getInt(c.getColumnIndex(TrigDbHelper.TRIG_CURRENT)));
+		tv.setText(R.string.current00 + c.getInt(c.getColumnIndex(DbHelper.TRIG_CURRENT)));
 
 		tv = (TextView) findViewById(R.id.triginfo_historic);
-		tv.setText(R.string.historic00 + c.getInt(c.getColumnIndex(TrigDbHelper.TRIG_HISTORIC)));
+		tv.setText(R.string.historic00 + c.getInt(c.getColumnIndex(DbHelper.TRIG_HISTORIC)));
 
 		tv = (TextView) findViewById(R.id.triginfo_type);
-		tv.setText(R.string.physical00 + c.getInt(c.getColumnIndex(TrigDbHelper.TRIG_TYPE)));
+		tv.setText(R.string.physical00 + c.getInt(c.getColumnIndex(DbHelper.TRIG_TYPE)));
 
 		tv = (TextView) findViewById(R.id.triginfo_fb);
-		tv.setText(c.getString(c.getColumnIndex(TrigDbHelper.TRIG_FB)));
+		tv.setText(c.getString(c.getColumnIndex(DbHelper.TRIG_FB)));
 
 		c.close();
     }
