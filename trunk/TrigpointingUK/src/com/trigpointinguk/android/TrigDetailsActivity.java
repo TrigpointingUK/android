@@ -3,11 +3,17 @@ package com.trigpointinguk.android;
 import android.app.TabActivity;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.ImageView;
 import android.widget.TabHost;
+import android.widget.TextView;
 
 public class TrigDetailsActivity extends TabActivity {
 
+	private static final String TAG="TrigDetailsActivity";
+	
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
 	    setContentView(R.layout.trigdetails);
@@ -56,5 +62,28 @@ public class TrigDetailsActivity extends TabActivity {
 
 	    
 	    tabHost.setCurrentTab(0);
+	    
+	    // Change title
+	    // get trig_id from extras
+		if (extras == null) {return;}
+		Long  trigId = extras.getLong(DbHelper.TRIG_ID);
+		Log.i(TAG, "Trig_id = "+trigId);
+
+		// get trig info from database
+		DbHelper mDb = new DbHelper(this);
+		try {
+			mDb.open();		
+			Cursor c = mDb.fetchTrigInfo(trigId);
+			c.moveToFirst();
+				
+			String title = String.format("TrigpointingUK - %s" 
+					, c.getString(c.getColumnIndex(DbHelper.TRIG_NAME))
+			);
+			this.setTitle(title);
+	        mDb.close();
+		} catch (Exception e) {
+		} finally {
+			mDb.close();
+		}
 	}
 }
