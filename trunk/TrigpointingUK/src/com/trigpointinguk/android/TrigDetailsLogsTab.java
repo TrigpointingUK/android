@@ -9,16 +9,17 @@ import android.util.Log;
 
 import com.trigpointinguk.android.common.StringLoader;
 
-public class TrigAlbumTab extends ListActivity {
+public class TrigDetailsLogsTab extends ListActivity {
+	private static final String TAG="TrigDetailsLogsTab";
+	
 	private long mTrigId;
-	private static final String TAG="TrigAlbumTab";
 	private StringLoader mStrLoader;
-    private ArrayList<TrigPhoto> mTrigPhotos;
-    private TrigAlbumAdapter mTrigAlbumAdapter;
-    
+    private ArrayList<TrigLog> mTrigLogs;
+    private TrigDetailsLogsAdapter mTrigLogsAdapter;
+
+	
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.trigalbum);
         
         // get trig_id from extras
         Bundle extras = getIntent().getExtras();
@@ -27,9 +28,9 @@ public class TrigAlbumTab extends ListActivity {
 		Log.i(TAG, "Trig_id = "+mTrigId);
 
         // attach the array adapter
-		mTrigPhotos = new ArrayList<TrigPhoto>();
-        mTrigAlbumAdapter = new TrigAlbumAdapter(TrigAlbumTab.this, R.layout.trigalbumrow, mTrigPhotos); 
-		setListAdapter(mTrigAlbumAdapter);
+		mTrigLogs = new ArrayList<TrigLog>();
+        mTrigLogsAdapter = new TrigDetailsLogsAdapter(TrigDetailsLogsTab.this, R.layout.triglogrow, mTrigLogs); 
+		setListAdapter(mTrigLogsAdapter);
 
 		// get list of photos
         new PopulatePhotosTask().execute();
@@ -37,38 +38,40 @@ public class TrigAlbumTab extends ListActivity {
     
     
     
+    
+    
+    
+    
 	private class PopulatePhotosTask extends AsyncTask<Void, Integer, Integer> {
 		protected Integer doInBackground(Void... arg0) {
 			int count=0;
-			mTrigPhotos.clear();
+			mTrigLogs.clear();
 			
-	        String url = String.format("http://www.trigpointinguk.com/trigs/down-android-trigphotos.php?t=%d", mTrigId);
+	        String url = String.format("http://www.trigpointinguk.com/trigs/down-android-triglogs.php?t=%d", mTrigId);
 	        String list = mStrLoader.getString(url, false);
 	        if (list == null || list.trim().length()==0) {
-	    		Log.i(TAG, "No photos for "+mTrigId);        	
+	    		Log.i(TAG, "No logs for "+mTrigId);        	
 	    		return count;
 	        }
 			//Log.d(TAG,list);        	
 
-	        TrigPhoto tp;
+	        TrigLog tl;
 
 	        String[] lines = list.split("\n");
 			//System.out.println(java.util.Arrays.toString(lines));
-			Log.i(TAG, "Photos found : "+lines.length);
+			Log.i(TAG, "Logs found : "+lines.length);
 			
 	        for (String line : lines) {
 	        	if (!(line.trim().equals(""))) { 
 	        		String[] csv = line.split("\t");
 	        		//System.out.println(java.util.Arrays.toString(csv));
 	        		try {
-	        			tp = new TrigPhoto(
-	        					csv[2],		//name 
-	        					csv[3], 	//descr
-	        					csv[1],		//photo
-	        					csv[0],		//icon
-	        					csv[5],		//user
-	        					csv[4]);	//date
-	        			mTrigPhotos.add(tp);
+	        			tl= new TrigLog(
+	        					csv[0],		//username 
+	        					csv[1], 	//date
+	        					csv[3], 	//condition
+	        					csv[2]);	//text
+	        			mTrigLogs.add(tl);
 	        			count++;
 	        		} catch (Exception e) {
 	        			System.out.println(e);
@@ -79,12 +82,12 @@ public class TrigAlbumTab extends ListActivity {
 		}
 		protected void onPreExecute() {
 			// create string loader class
-	        mStrLoader = new StringLoader(TrigAlbumTab.this);
+	        mStrLoader = new StringLoader(TrigDetailsLogsTab.this);
 		}
 		protected void onProgressUpdate(Integer... progress) {
 		}
 		protected void onPostExecute(Integer arg0) {
-	        mTrigAlbumAdapter.notifyDataSetChanged();
+	        mTrigLogsAdapter.notifyDataSetChanged();
 		}
 	}
 

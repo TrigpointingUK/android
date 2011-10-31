@@ -12,12 +12,12 @@ import android.widget.TextView;
 
 import com.trigpointinguk.android.common.LazyImageLoader;
 
-public class TrigAlbumAdapter extends ArrayAdapter<TrigPhoto> {
+public class TrigDetailsAlbumAdapter extends ArrayAdapter<TrigPhoto> {
 	private ArrayList<TrigPhoto> mPhotos;
 	private Context 			 mContext;
     public  LazyImageLoader      imageLoader;
 	
-	public TrigAlbumAdapter(Context context, int rowResourceId, ArrayList<TrigPhoto> photos) {
+	public TrigDetailsAlbumAdapter(Context context, int rowResourceId, ArrayList<TrigPhoto> photos) {
 		super(context, rowResourceId, photos);
     	mContext = context;
         mPhotos=photos;

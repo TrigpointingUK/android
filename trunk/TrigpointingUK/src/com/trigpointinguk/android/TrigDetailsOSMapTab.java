@@ -13,8 +13,8 @@ import android.widget.Gallery;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
-public class TrigOSMapTab extends Activity {
-	private static final String TAG = "TrigOSMapTab";
+public class TrigDetailsOSMapTab extends Activity {
+	private static final String TAG = "TrigDetailsOSMapTab";
 
 	private long mTrigId;
 	private DbHelper mDb;
@@ -31,7 +31,7 @@ public class TrigOSMapTab extends Activity {
 		Log.i(TAG, "Trig_id = "+mTrigId);
 		
 		// get trig info from database
-		mDb = new DbHelper(TrigOSMapTab.this);
+		mDb = new DbHelper(TrigDetailsOSMapTab.this);
 		mDb.open();		
 		Cursor c = mDb.fetchTrigInfo(mTrigId);
 		c.moveToFirst();
@@ -39,13 +39,13 @@ public class TrigOSMapTab extends Activity {
 		c.close();
 		
 	    Gallery gallery = (Gallery) findViewById(R.id.trigosgallery);
-	    gallery.setAdapter(new TrigOSMapAdapter(this, urls));
+	    gallery.setAdapter(new TrigDetailsOSMapAdapter(this, urls));
 
 	    
 	    
 	    gallery.setOnItemClickListener(new OnItemClickListener() {
 	        public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-	            Toast.makeText(TrigOSMapTab.this, "" + position, Toast.LENGTH_SHORT).show();
+	            Toast.makeText(TrigDetailsOSMapTab.this, "" + position, Toast.LENGTH_SHORT).show();
 	        }
 	    });
 	}

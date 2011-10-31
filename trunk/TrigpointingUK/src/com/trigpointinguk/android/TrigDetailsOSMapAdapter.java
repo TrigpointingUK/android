@@ -10,14 +10,14 @@ import android.widget.ImageView;
 
 import com.trigpointinguk.android.common.LazyImageLoader;
 
-public class TrigOSMapAdapter extends BaseAdapter {
+public class TrigDetailsOSMapAdapter extends BaseAdapter {
     
     private String[] mUrls;
     public LazyImageLoader imageLoader;
 	private int mGalleryItemBackground; 
 	private Context mContext;
     
-    public TrigOSMapAdapter(Context context, String[] urls) {
+    public TrigDetailsOSMapAdapter(Context context, String[] urls) {
         mUrls=urls;
         mContext=context;
         imageLoader=new LazyImageLoader(context);

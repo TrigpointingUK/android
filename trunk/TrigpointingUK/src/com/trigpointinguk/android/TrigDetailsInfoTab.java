@@ -9,7 +9,7 @@ import android.widget.TextView;
 
 import com.trigpointinguk.android.common.LatLon;
 
-public class TrigInfoTab extends Activity {
+public class TrigDetailsInfoTab extends Activity {
 	private long mTrigId;
 	private DbHelper mDb;
 
@@ -24,7 +24,7 @@ public class TrigInfoTab extends Activity {
 		Log.i("TrigInfo", "Trig_id = "+mTrigId);
 
 		// get trig info from database
-		mDb = new DbHelper(TrigInfoTab.this);
+		mDb = new DbHelper(TrigDetailsInfoTab.this);
 		mDb.open();		
 		Cursor c = mDb.fetchTrigInfo(mTrigId);
 		c.moveToFirst();

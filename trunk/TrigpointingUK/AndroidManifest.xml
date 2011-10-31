@@ -22,10 +22,10 @@
         <activity android:name="PreferencesActivity"></activity>
         <activity android:configChanges="keyboardHidden|orientation" android:name="DownloadMapsActivity"></activity>
         <activity android:name="TrigDetailsActivity"></activity>
-        <activity android:name="TrigAlbumTab"></activity>
-        <activity android:name="TrigInfoTab"></activity>
-        <activity android:name="TrigLogsTab"></activity>
-        <activity android:name="TrigOSMapTab"></activity>
+        <activity android:name="TrigDetailsAlbumTab"></activity>
+        <activity android:name="TrigDetailsInfoTab"></activity>
+        <activity android:name="TrigDetailsLogsTab"></activity>
+        <activity android:name="TrigDetailsOSMapTab"></activity>
         <activity android:name="MapActivity"></activity>
         <meta-data android:value="6668b1358f29457b88baf287a692ae97" android:name="CLOUDMADE_KEY"></meta-data>
         <meta-data android:value="AmX-6eFz_aE2rrhkXUprU3HRV2BNMrCYQoKodIFdfNEcZosjAEbsNetB00GFktP5" android:name="BING_KEY"></meta-data>

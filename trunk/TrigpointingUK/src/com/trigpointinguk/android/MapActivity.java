@@ -418,41 +418,41 @@ public class MapActivity extends Activity implements MapListener {
 	
 	private Drawable getIcon(int physicalType, int logged) {
 		switch (physicalType) {
-		case Trigpoint.PHYSICAL_PILLAR:
+		case Trig.PHYSICAL_PILLAR:
 			switch (logged) {
-			case Trigpoint.CONDITION_U_UNKNOWN: 
-			case Trigpoint.CONDITION_N_NOTLOGGED:
+			case Trig.CONDITION_U_UNKNOWN: 
+			case Trig.CONDITION_N_NOTLOGGED:
 				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_grey);
-			case Trigpoint.CONDITION_G_GOOD:
-			case Trigpoint.CONDITION_S_SLIGTLYDAMAGED:
-			case Trigpoint.CONDITION_D_DAMAGED:
-			case Trigpoint.CONDITION_T_TOPPLED:
+			case Trig.CONDITION_G_GOOD:
+			case Trig.CONDITION_S_SLIGTLYDAMAGED:
+			case Trig.CONDITION_D_DAMAGED:
+			case Trig.CONDITION_T_TOPPLED:
 				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_green);
-			case Trigpoint.CONDITION_V_UNREACHABLEBUTVISIBLE:
+			case Trig.CONDITION_V_UNREACHABLEBUTVISIBLE:
 				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_yellow);
-			case Trigpoint.CONDITION_Q_POSSIBLYMISSING:
-			case Trigpoint.CONDITION_X_DEFINITELYMISSING:
-			case Trigpoint.CONDITION_P_TOTALLYUNREACHABLE:
+			case Trig.CONDITION_Q_POSSIBLYMISSING:
+			case Trig.CONDITION_X_DEFINITELYMISSING:
+			case Trig.CONDITION_P_TOTALLYUNREACHABLE:
 				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_red);
 			default:
 				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_grey);
 			}	
 			
-		case Trigpoint.PHYSICAL_FBM:
+		case Trig.PHYSICAL_FBM:
 			switch (logged) {
-			case Trigpoint.CONDITION_U_UNKNOWN: 
-			case Trigpoint.CONDITION_N_NOTLOGGED:
+			case Trig.CONDITION_U_UNKNOWN: 
+			case Trig.CONDITION_N_NOTLOGGED:
 				return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_grey);
-			case Trigpoint.CONDITION_G_GOOD:
-			case Trigpoint.CONDITION_S_SLIGTLYDAMAGED:
-			case Trigpoint.CONDITION_D_DAMAGED:
-			case Trigpoint.CONDITION_T_TOPPLED:
+			case Trig.CONDITION_G_GOOD:
+			case Trig.CONDITION_S_SLIGTLYDAMAGED:
+			case Trig.CONDITION_D_DAMAGED:
+			case Trig.CONDITION_T_TOPPLED:
 				return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_green);
-			case Trigpoint.CONDITION_V_UNREACHABLEBUTVISIBLE:
+			case Trig.CONDITION_V_UNREACHABLEBUTVISIBLE:
 				return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_yellow);
-			case Trigpoint.CONDITION_Q_POSSIBLYMISSING:
-			case Trigpoint.CONDITION_X_DEFINITELYMISSING:
-			case Trigpoint.CONDITION_P_TOTALLYUNREACHABLE:
+			case Trig.CONDITION_Q_POSSIBLYMISSING:
+			case Trig.CONDITION_X_DEFINITELYMISSING:
+			case Trig.CONDITION_P_TOTALLYUNREACHABLE:
 				return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_red);
 			default:
 				return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_grey);
@@ -460,19 +460,19 @@ public class MapActivity extends Activity implements MapListener {
 
 		default:
 			switch (logged) {
-			case Trigpoint.CONDITION_U_UNKNOWN: 
-			case Trigpoint.CONDITION_N_NOTLOGGED:
+			case Trig.CONDITION_U_UNKNOWN: 
+			case Trig.CONDITION_N_NOTLOGGED:
 				return this.getResources().getDrawable(R.drawable.mapicon_02_passive_grey);
-			case Trigpoint.CONDITION_G_GOOD:
-			case Trigpoint.CONDITION_S_SLIGTLYDAMAGED:
-			case Trigpoint.CONDITION_D_DAMAGED:
-			case Trigpoint.CONDITION_T_TOPPLED:
+			case Trig.CONDITION_G_GOOD:
+			case Trig.CONDITION_S_SLIGTLYDAMAGED:
+			case Trig.CONDITION_D_DAMAGED:
+			case Trig.CONDITION_T_TOPPLED:
 				return this.getResources().getDrawable(R.drawable.mapicon_02_passive_green);
-			case Trigpoint.CONDITION_V_UNREACHABLEBUTVISIBLE:
+			case Trig.CONDITION_V_UNREACHABLEBUTVISIBLE:
 				return this.getResources().getDrawable(R.drawable.mapicon_02_passive_yellow);
-			case Trigpoint.CONDITION_Q_POSSIBLYMISSING:
-			case Trigpoint.CONDITION_X_DEFINITELYMISSING:
-			case Trigpoint.CONDITION_P_TOTALLYUNREACHABLE:
+			case Trig.CONDITION_Q_POSSIBLYMISSING:
+			case Trig.CONDITION_X_DEFINITELYMISSING:
+			case Trig.CONDITION_P_TOTALLYUNREACHABLE:
 				return this.getResources().getDrawable(R.drawable.mapicon_02_passive_red);
 			default:
 				return this.getResources().getDrawable(R.drawable.mapicon_02_passive_grey);
