@@ -3,17 +3,20 @@ package com.trigpointinguk.android;
 import java.util.ArrayList;
 
 import android.app.ListActivity;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.ListView;
 
 import com.trigpointinguk.android.common.StringLoader;
 
 public class TrigDetailsAlbumTab extends ListActivity {
 	private long mTrigId;
 	private static final String TAG="TrigDetailsAlbumTab";
-	private StringLoader mStrLoader;
-    private ArrayList<TrigPhoto> mTrigPhotos;
+	private StringLoader 			mStrLoader;
+    private ArrayList<TrigPhoto> 	mTrigPhotos;
     private TrigDetailsAlbumAdapter mTrigAlbumAdapter;
     
     public void onCreate(Bundle savedInstanceState) {
@@ -32,8 +35,20 @@ public class TrigDetailsAlbumTab extends ListActivity {
 		setListAdapter(mTrigAlbumAdapter);
 
 		// get list of photos
-        new PopulatePhotosTask().execute();
+        new PopulatePhotosTask().execute();	    
     }
+    
+    
+    protected void onListItemClick(ListView l, View v, int position, long id) {
+        super.onListItemClick(l, v, position, id);
+        String url = mTrigPhotos.get(position).getPhotoURL();
+        Intent i = new Intent(this, DisplayBitmapActivity.class);
+        i.putExtra("URL", url);
+        Log.i(TAG, "Clicked photo at URL: " +url);
+        startActivity(i);
+    }
+	
+	
     
     
     
@@ -48,18 +63,15 @@ public class TrigDetailsAlbumTab extends ListActivity {
 	    		Log.i(TAG, "No photos for "+mTrigId);        	
 	    		return count;
 	        }
-			//Log.d(TAG,list);        	
 
 	        TrigPhoto tp;
 
 	        String[] lines = list.split("\n");
-			//System.out.println(java.util.Arrays.toString(lines));
 			Log.i(TAG, "Photos found : "+lines.length);
 			
 	        for (String line : lines) {
 	        	if (!(line.trim().equals(""))) { 
 	        		String[] csv = line.split("\t");
-	        		//System.out.println(java.util.Arrays.toString(csv));
 	        		try {
 	        			tp = new TrigPhoto(
 	        					csv[2],		//name 

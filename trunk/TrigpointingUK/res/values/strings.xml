@@ -8,6 +8,7 @@
 	<string name="noTrigs">Searching for nearby trigpoints</string>
 	<string name="noPhotos">Downloading photo album</string>
 	<string name="noLogs">Downloading logs</string>
+	<string name="reset">Reset</string>
 	<string name="siteName">TrigpointingUK</string>
 	<string name="downTrigs">Download Trig Database</string>
 	<string name="syncLogs">Sync Logs</string>

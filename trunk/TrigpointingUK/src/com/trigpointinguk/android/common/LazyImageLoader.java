@@ -25,7 +25,7 @@ import com.trigpointinguk.android.R;
 // Code from https://github.com/thest1/LazyList
 
 public class LazyImageLoader {
-	private static final String TAG = "ImageLoader";
+	private static final String TAG = "BitmapLoader";
 
     final int stub_id=R.drawable.imageloading;
 

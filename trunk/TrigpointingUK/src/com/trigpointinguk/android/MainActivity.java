@@ -6,7 +6,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -14,11 +13,6 @@ import android.widget.Button;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
-
-    public static final int DOWNLOAD_MAPS_ID	= Menu.FIRST;
-    public static final int DOWNLOAD_TRIGS_ID	= Menu.FIRST + 1;
-    public static final int PREFS_ID 			= Menu.FIRST + 2;
-    public static final int ABOUT_ID 			= Menu.FIRST + 3;
     public static final String TAG 				="MainActivity";
     private SharedPreferences mPrefs;
     
@@ -86,7 +80,7 @@ public class MainActivity extends Activity {
             return true;
         case R.id.prefs:
             i = new Intent(MainActivity.this, PreferencesActivity.class);
-            startActivityForResult(i, PREFS_ID);
+            startActivityForResult(i, R.id.prefs);
             return true;
         case R.id.about:
             i = new Intent(MainActivity.this, HelpPageActivity.class);
@@ -103,7 +97,7 @@ public class MainActivity extends Activity {
     	super.onActivityResult(requestCode, resultCode, intent);
  
     	switch(requestCode) {
-    	case PREFS_ID:
+    	case R.id.prefs:
     		TextView user = (TextView) findViewById(R.id.txtUserName);
     		user.setText(mPrefs.getString("username", ""));
     	    break;
