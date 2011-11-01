@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -65,10 +66,7 @@ public class MainActivity extends Activity {
  	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
         boolean result = super.onCreateOptionsMenu(menu);
-		menu.add(0, DOWNLOAD_MAPS_ID, 0, R.string.downMaps);
-        menu.add(0, DOWNLOAD_TRIGS_ID, 0, R.string.downTrigs);
-        menu.add(0, PREFS_ID, 0, R.string.prefs);
-        menu.add(0, ABOUT_ID, 0, R.string.help_about);
+		getMenuInflater().inflate(R.menu.mainmenu, menu);
         return result;
     }    
     
@@ -77,19 +75,20 @@ public class MainActivity extends Activity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		Intent i;
         switch (item.getItemId()) {
-        case DOWNLOAD_TRIGS_ID:
+        
+        case R.id.downloadtrigs:
             i = new Intent(MainActivity.this, DownloadTrigsActivity.class);
             startActivity(i);
             return true;
-        case DOWNLOAD_MAPS_ID:
+        case R.id.downloadmaps:
             i = new Intent(MainActivity.this, DownloadMapsActivity.class);
             startActivity(i);
             return true;
-        case PREFS_ID:
+        case R.id.prefs:
             i = new Intent(MainActivity.this, PreferencesActivity.class);
             startActivityForResult(i, PREFS_ID);
             return true;
-        case ABOUT_ID:
+        case R.id.about:
             i = new Intent(MainActivity.this, HelpPageActivity.class);
             i.putExtra(HelpPageActivity.PAGE, "about.html");
             startActivity(i);

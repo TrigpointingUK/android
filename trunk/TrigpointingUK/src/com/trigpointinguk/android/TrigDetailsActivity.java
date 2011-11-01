@@ -6,9 +6,7 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.ImageView;
 import android.widget.TabHost;
-import android.widget.TextView;
 
 public class TrigDetailsActivity extends TabActivity {
 
