@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hello, Android! T:UK string resource!</string>
+    <string name="app_name">TrigpointingUK</string>
+	<string name="btnNearest">Nearest</string>
+	<string name="btnMap">Map</string>
+	<string name="btnSearch">Search</string>
+	<string name="noTrigs">Searching for nearby trigpoints</string>
+	<string name="noPhotos">Downloading photo album</string>
+	<string name="noLogs">Downloading logs</string>
+	<string name="reset">Reset</string>
+	<string name="siteName">TrigpointingUK</string>
+	<string name="downTrigs">Download Trig Database</string>
+	<string name="syncLogs">Sync Logs</string>
+	<string name="btnSync">Sync Logs</string>
+	<string name="downloadTitle">Download Trigpoint Database</string>
+	<string name="downloadBlurb">When you first install this app, and every now and then afterwards, you need to download a full set of trigpoint data from the TrigpointingUK.com server.  This data is stored on your phone, so that you can search for trigpoints even when out of phone reception.</string>
+	<string name="downloadStatus">Status: </string>
+	<string name="downloadIdleStatus">idle</string>
+	<string name="downloadInsertStatus">updating database</string>
+	<string name="btnDownload">Download</string>
+	<string name="btnCancel">Cancel</string>
+	<string name="nearest_all">All</string>
+	<string name="help_about">About</string>
+	<string name="colourScheme">Icon colourscheme</string>
+	<string name="downloadMapsTitle">Download Offline Maps</string>
+	<string name="downloadMapsBlurb">If you have a slow or expensive mobile internet connection, you may download a set of maps for the whole of the UK when convenient, to minimise the amount of map downloads in the field.  These are large files, so please ensure you have enough space on your SD card, and that you have a fast, cheap internet connection.</string>
+	<string name="downMaps">Download Offline Maps</string>
+	<string name="downloadMapsStatus">Status: </string>
+	<string name="downloadMapsIdleStatus">idle</string>
+	<string name="downloadMapsInsertStatus">saving to SD card</string>
+    <string-array name="downloadMapsArray">
+        <item>Mapnik - E+W (90MB)</item>
+        <item>MapQuest - E+W (387MB)</item>
+        <item>Osmarender - E+W (150MB)</item>
+        <item>Cloudmade - E+W (78MB)</item>
+        <item>Mapnik - Scot (32MB)</item>
+        <item>MapQuest - Scot (310MB)</item>
+        <item>Osmarender - Scot (53MB)</item>
+        <item>Cloudmade - Scot (29MB)</item>
+    </string-array>
+    <string-array name="downloadMapsArrayValues">
+        <item>http://trigpointinguk.googlecode.com/files/mapnik_ew_f01_z12_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/mapquest_ew_f01_z10_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_f02_z11_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_f03_z12_f01_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_f04_z12_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_f05_z12_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_f06_z12_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/osmarender_ew_f01_z11_v01.zip,http://trigpointinguk.googlecode.com/files/osmarender_ew_f02_z12_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/cloudmade_ew_f01_z12_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/mapnik_s_f01_z12_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/mapquest_s_f01_z11_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_s_f02_z12_f01_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_s_f03_z12_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_s_f04_z12_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/osmarender_s_f01_z12_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/cloudmade_s_f01_z12_v01.zip</item>
+    </string-array>
+    <integer-array name="downloadMapsArrayTiles">
+        <item>7694</item>
+        <item>7686</item>
+        <item>7686</item>
+        <item>7686</item>
+        <item>7055</item>
+        <item>7055</item>
+        <item>7055</item>
+        <item>7055</item>
+    </integer-array>
+
+	<string name="prefs">Preferences</string>
+	<string name="prefsAccount">Account Details</string>
+	<string name="prefsUsername">Username</string>
+	<string name="PrefsUsernameDetails">Your username on TrigpointingUK</string>
+	<string name="prefsPassword">Password</string>
+	<string name="PrefsPasswordDetails">Your password on TrigpointingUK</string>
+	<string name="prefsAutoSync">AutoSync</string>
+	<string name="PrefsAutoSyncDetails">Sync logs on app startup?</string>
+	<string name="prefsChoose">Please chose</string>
+	<string name="prefsCount">List size</string>
+	<string name="prefsCountDetails">Number of items in Nearest Trigs list</string>
+    <string-array name="prefsCountArray">
+        <item>10</item>
+        <item>100</item>
+        <item>1000</item>
+        <item>All</item>
+    </string-array>
+    <string-array name="prefsCountArrayValues">
+        <item>10</item>
+        <item>100</item>
+        <item>1000</item>
+        <item>10000</item>
+    </string-array>
+	<string name="prefsMapCount">Map icons</string>
+	<string name="prefsMapCountDetails">Approx number of icons shown on map</string>
+    <string-array name="prefsMapCountArray">
+        <item>10</item>
+        <item>20</item>
+        <item>100</item>
+        <item>1000</item>
+        <item>All</item>
+    </string-array>
+    <string-array name="prefsMapCountArrayValues">
+        <item>40</item>
+        <item>80</item>
+        <item>400</item>
+        <item>4000</item>
+        <item>10000</item>
+    </string-array>
+    <string name="DefaultName">Username</string>
+
+	<string name="condition00">Unknown</string>
+	<string name="condition01">Good</string>
+	<string name="condition02">Slightly Damaged</string>
+	<string name="condition03">Damaged</string>
+	<string name="condition04">Toppled or Moved</string>
+	<string name="condition05">Possibly Missing</string>
+	<string name="condition06">Definitely Missing</string>
+	<string name="condition07">Unreachable but Visible</string>
+	<string name="condition08">Totally Unreachable</string>
+	<string name="condition09">Not Logged</string>
+	<string name="current00">Unknown - user added</string>
+	<string name="current01">Passive station</string>
+	<string name="current02">Active station</string>
+	<string name="current03">None</string>
+	<string name="historic00">3rd order</string>
+	<string name="historic01">4th order</string>
+	<string name="historic02">Active station</string>
+	<string name="historic03">Fundamental Benchmark</string>
+	<string name="historic04">Great Glen Project</string>
+	<string name="historic05">Hydrographic Survey Pillar</string>
+	<string name="historic06">None</string>
+	<string name="historic07">Other</string>
+	<string name="historic08">Passive Station</string>
+	<string name="historic09">Primary</string>
+	<string name="historic10">Project Emily</string>
+	<string name="historic11">Secondary</string>
+	<string name="historic12">Unknown</string>
+	<string name="historic13">Unknown - user added</string>
+	<string name="physical00">Active Station</string>
+	<string name="physical01">Berntsen</string>
+	<string name="physical02">Block</string>
+	<string name="physical03">Bolt</string>
+	<string name="physical04">Buried Block</string>
+	<string name="physical05">Cannon</string>
+	<string name="physical06">Centre</string>
+	<string name="physical07">Concrete Ring</string>
+	<string name="physical08">Curry Stool</string>
+	<string name="physical09">FBM</string>
+	<string name="physical10">Fenomark</string>
+	<string name="physical11">Monument</string>
+	<string name="physical12">Other</string>
+	<string name="physical13">Pillar</string>
+	<string name="physical14">Rivet</string>
+	<string name="physical15">Spider</string>
+	<string name="physical16">Surface Block</string>
+	<string name="physical17">Unknown - user added</string>
+</resources>
