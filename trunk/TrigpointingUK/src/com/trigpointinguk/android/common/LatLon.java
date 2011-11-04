@@ -3,6 +3,7 @@ package com.trigpointinguk.android.common;
 import java.io.Serializable;
 
 import android.location.Location;
+import android.util.Log;
 
 public class LatLon implements Serializable {
 	/**
@@ -14,6 +15,7 @@ public class LatLon implements Serializable {
 	 */
 	
 	private static final long serialVersionUID = 7608960556753529471L;
+	private static final String TAG = "LatLon";
 	private Double mLat;
 	private Double mLon;
 	private Double mEastings;
@@ -160,6 +162,13 @@ public class LatLon implements Serializable {
 
 		return String.format("%s%s %05d %05d", firstLetter, secondLetter, e, n);
 	}
+	
+	public String getOSGB6 () {
+		String gridref10 = getOSGB10();
+		String gridref6 = gridref10.substring(0,2) + gridref10.substring(3,6) + gridref10.substring(9,12);
+		return gridref6;
+	}
+
 	
 	
 	private void calcOSGB() {

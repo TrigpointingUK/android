@@ -29,7 +29,7 @@ public class MainActivity extends Activity {
         btnNearest.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				Intent i = new Intent(MainActivity.this, TrigListActivity.class);
+				Intent i = new Intent(MainActivity.this, NearestActivity.class);
 				startActivity(i);
 			}
 		});       
