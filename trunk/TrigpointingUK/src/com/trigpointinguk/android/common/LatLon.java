@@ -3,7 +3,6 @@ package com.trigpointinguk.android.common;
 import java.io.Serializable;
 
 import android.location.Location;
-import android.util.Log;
 
 public class LatLon implements Serializable {
 	/**
@@ -15,7 +14,7 @@ public class LatLon implements Serializable {
 	 */
 	
 	private static final long serialVersionUID = 7608960556753529471L;
-	private static final String TAG = "LatLon";
+	//private static final String TAG = "LatLon";
 	private Double mLat;
 	private Double mLon;
 	private Double mEastings;

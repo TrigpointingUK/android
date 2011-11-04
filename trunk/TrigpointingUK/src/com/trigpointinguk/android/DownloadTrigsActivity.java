@@ -24,35 +24,42 @@ public class DownloadTrigsActivity extends Activity {
 	private TextView mStatus;
 	private ProgressBar mProgress;
 	private Button mDownloadBtn;
+	private Integer mDownloadCount = 0;
+	private boolean mRunning = false;
 	private static final int mProgressMax = 7800;
 	private static final String TAG = "DownloadTrigsActivity";
-	
+	private enum DownloadStatus {OK, CANCELLED, ERROR};
+	private AsyncTask <Void, Integer, DownloadStatus> mTask;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.download);
-	
+
 		mStatus = (TextView) findViewById(R.id.downloadStatus);
 		mStatus.setText(R.string.downloadIdleStatus);
 		mProgress = (ProgressBar) findViewById(R.id.downloadProgress);
 		mProgress.setMax(mProgressMax);
 		mProgress.setProgress(0);
 		mDownloadBtn = (Button) findViewById(R.id.btnDownload);
-		
+
 		mDownloadBtn.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-		        mDownloadBtn.setClickable(false);
-		        mDownloadBtn.setEnabled(false);
-		        new PopulateTrigsTask().execute();
+				if (mRunning == false) {
+					mTask = new PopulateTrigsTask().execute();
+				} else {
+					mTask.cancel(true);
+				}
 			}
 		});       
 
 	}
 
 
-	private class PopulateTrigsTask extends AsyncTask<Void, Integer, Integer> {
-		protected Integer doInBackground(Void... arg0) {
+	private class PopulateTrigsTask extends AsyncTask<Void, Integer, DownloadStatus> {
+		@Override
+		protected DownloadStatus doInBackground(Void... arg0) {
 
 			DbHelper db = new DbHelper(DownloadTrigsActivity.this);
 			String strLine;                
@@ -85,29 +92,62 @@ public class DownloadTrigsActivity extends Activity {
 					int current		= Integer.valueOf(csv[8]);
 					int historic	= Integer.valueOf(csv[9]);
 					db.createTrig(id, name, waypoint, lat, lon, type, condition, logged, current, historic, fb);
-					if (i++%10==9){publishProgress(i);}
-				}
+					if (i++%10==9){
+						if (isCancelled()) {
+							mDownloadCount=i;
+							return DownloadStatus.CANCELLED;
+						} else {
+							publishProgress(i);
+						}
+					}
+				} 
 				db.mDb.execSQL("create index if not exists latlon on trig (lat, lon)");
 				db.mDb.setTransactionSuccessful();
-			} catch (IOException e) {
+			}catch (IOException e) {
 				Log.d(TAG, "Error: " + e);
+				return DownloadStatus.ERROR;
 			} finally {
 				db.mDb.endTransaction();
 				db.close();
+				mDownloadCount = i;
 			}
-
-			return i;
+			return DownloadStatus.OK;
 		}
+		@Override
+		protected void onPreExecute() {
+			mDownloadCount = 0;
+			mStatus.setText(R.string.downloadInsertStatus);
+			mDownloadBtn.setText(R.string.btnCancel);
+			mRunning = true;
+		}
+		@Override
 		protected void onProgressUpdate(Integer... progress) {
 			mProgress.setProgress(progress[0]);
 			mStatus.setText("Inserted " + progress[0] + " trigs");
 		}
-		protected void onPostExecute(Integer arg0) {
-			mProgress.setProgress(mProgressMax);
-			mStatus.setText("Finished inserting " + arg0 +" trigs");
+		@Override
+		protected void onPostExecute(DownloadStatus arg0) {
+			switch (arg0) {
+			case OK:
+				mStatus.setText("Finished downloading " + mDownloadCount +" trigs");
+				mProgress.setProgress(mProgressMax);
+				break;
+			case ERROR:
+				mStatus.setText("Download failed!");
+				mProgress.setProgress(0);
+				break;
+			}
+			mDownloadBtn.setText(R.string.btnDownload);
+			mRunning = false;
 		}
-		protected void onPreExecute() {
-			mStatus.setText(R.string.downloadInsertStatus);
+		@Override
+		protected void onCancelled() {
+			mProgress.setProgress(0);
+			mStatus.setText("Download Cancelled");
+			mDownloadBtn.setText(R.string.btnDownload);
+			mRunning = false;
+			super.onCancelled();
 		}
+
 	}
 }
