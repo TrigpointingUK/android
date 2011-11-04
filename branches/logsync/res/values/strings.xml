@@ -100,6 +100,19 @@
         <item>10000</item>
     </string-array>
     <string name="DefaultName">Username</string>
+	<string-array name="logConditionList">
+		<item></item>
+		<item>Good</item>
+		<item>Slightly Damaged</item>
+		<item>Damaged</item>
+		<item>Toppled or Moved</item>
+		<item>Possibly Missing</item>
+		<item>Definitely Missing</item>
+		<item>Couldn\'t find it</item>
+		<item>Unreachable but visible</item>
+		<item>Totally unreachable</item>
+	</string-array>
+
 
 	<string name="condition00">Unknown</string>
 	<string name="condition01">Good</string>
@@ -147,4 +160,13 @@
 	<string name="physical15">Spider</string>
 	<string name="physical16">Surface Block</string>
 	<string name="physical17">Unknown - user added</string>
+	<string name="logDate">Date:</string>
+	<string name="logTime">Time:</string>
+	<string name="logScore">Score:</string>
+	<string name="logComment">Comment:</string>
+	<string name="logCondition">Condition:</string>
+	<string name="logGridref">Logged Grid Reference:</string>
+	<string name="logFB">Flush Bracket:</string>
+	<string name="logFlag">Flag log for action by Site Administrator</string>
+	<string name="logGetLocation">Get location</string>
 </resources>

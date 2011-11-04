@@ -49,6 +49,14 @@ public class MainActivity extends Activity {
 				startActivity(i);
 			}
 		});
+        final Button btnSearch = (Button) findViewById(R.id.btnSearch);
+        btnSearch.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+				Intent i = new Intent(MainActivity.this, TrigDetailsLogTrigTab.class);
+				startActivity(i);
+			}
+		});
         
         //autosync
         if (mPrefs.getBoolean("autosync", false)) {
