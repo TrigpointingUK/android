@@ -50,7 +50,7 @@
         <item>http://trigpointinguk.googlecode.com/files/cloudmade_s_f01_z12_v01.zip</item>
     </string-array>
     <integer-array name="downloadMapsArrayTiles">
-        <item>7694</item>
+        <item>7474</item>
         <item>7686</item>
         <item>7686</item>
         <item>7686</item>

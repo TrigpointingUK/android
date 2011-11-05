@@ -12,7 +12,7 @@ import android.widget.TextView;
 
 import com.trigpointinguk.android.common.LatLon;
 
-public class TrigListCursorAdapter extends SimpleCursorAdapter {
+public class NearestCursorAdapter extends SimpleCursorAdapter {
 
 	private LayoutInflater mInflater;
 	private int mNameIndex;
@@ -22,12 +22,12 @@ public class TrigListCursorAdapter extends SimpleCursorAdapter {
 	private int mLoggedIndex;
 	private Location mCurrentLocation;
 	
-	public TrigListCursorAdapter(Context context, int layout, Cursor c,	String[] from, int[] to, Location currentLocation) {
+	public NearestCursorAdapter(Context context, int layout, Cursor c,	String[] from, int[] to, Location currentLocation) {
 		this(context, layout, c, from, to);
 		this.mCurrentLocation = currentLocation;
 	}
 
-	public TrigListCursorAdapter(Context context, int layout, Cursor c,
+	public NearestCursorAdapter(Context context, int layout, Cursor c,
 			String[] from, int[] to) {
 		super(context, layout, c, from, to, 0);
 		mInflater = LayoutInflater.from(context);

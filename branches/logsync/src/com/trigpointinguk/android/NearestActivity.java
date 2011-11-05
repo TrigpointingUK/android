@@ -1,5 +1,7 @@
 package com.trigpointinguk.android;
 
+import com.trigpointinguk.android.common.LatLon;
+
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
@@ -15,16 +17,16 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 
-public class TrigListActivity extends ListActivity {
+public class NearestActivity extends ListActivity {
 	private Location mCurrentLocation;
-	private TrigListCursorAdapter mListAdapter;
+	private NearestCursorAdapter mListAdapter;
 	private DbHelper mDb;
 	static int mUpdateCount = 0;
 	static int mLocationCount = 0;
 	private boolean mTaskRunning = false;
 	private LocationListener mLocationListener;
 	private LocationManager mLocationManager; 
-	private static final String TAG = "TrigList";
+	private static final String TAG = "NearestActivity";
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -32,11 +34,11 @@ public class TrigListActivity extends ListActivity {
 		setContentView(R.layout.triglist);
 
 		// create various objects
-		mDb = new DbHelper(TrigListActivity.this);
+		mDb = new DbHelper(NearestActivity.this);
 		mDb.open();
 	
 		// Start off with no location + no trigs
-		mListAdapter = new TrigListCursorAdapter(this, R.layout.trigrow, null, new String[]{}, new int[]{}, null);
+		mListAdapter = new NearestCursorAdapter(this, R.layout.trigrow, null, new String[]{}, new int[]{}, null);
 		setListAdapter(mListAdapter);
 
 		// Find a cached location
@@ -77,7 +79,10 @@ public class TrigListActivity extends ListActivity {
 		final TextView strLocation = (TextView) findViewById(R.id.trigListLocation);
 		
 		if (null != mCurrentLocation) {
-			strLocation.setText(String.format("%3.2f,%3.2f %s %d %d %s", mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude(), mCurrentLocation.getProvider(), mUpdateCount, mLocationCount, comment));
+			LatLon ll = new LatLon(mCurrentLocation);
+			strLocation.setText(String.format("%s %s %d %d %s" 
+					, mCurrentLocation.getProvider().equals("gps") ? ll.getOSGB10() : ll.getOSGB6()
+					, mCurrentLocation.getProvider(), mUpdateCount, mLocationCount, comment));
 		} else {
 			strLocation.setText("Location is unknown "+ comment);
 		}
@@ -104,8 +109,13 @@ public class TrigListActivity extends ListActivity {
 		
 		protected Cursor doInBackground(Void... arg0) {
 			Log.i(TAG, "FindTrigsTask.doInBackground");
-			Cursor c = mDb.fetchTrigList(mCurrentLocation);
-			startManagingCursor(c);
+			Cursor c = null;
+			try {
+				c = mDb.fetchTrigList(mCurrentLocation);
+				startManagingCursor(c);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			mUpdateCount++;
 			return c;
 		}
@@ -113,7 +123,12 @@ public class TrigListActivity extends ListActivity {
 		}
 		protected void onPostExecute(Cursor c) {			
 			Log.i(TAG, "FindTrigsTask.onPostExecute " + c);
-			mListAdapter.swapCursor(c, mCurrentLocation);
+			try {
+				mListAdapter.swapCursor(c, mCurrentLocation);
+			} catch (Exception e) {
+				e.printStackTrace();
+				mListAdapter.swapCursor(null, mCurrentLocation);
+			}
 			updateHeader("task");
 			mTaskRunning = false;
 		}

@@ -18,7 +18,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="TrigListActivity"></activity>
+        <activity android:name=".NearestActivity"></activity>
         <activity android:configChanges="keyboardHidden|orientation" android:name="DownloadTrigsActivity"></activity>
         <activity android:name="PreferencesActivity"></activity>
         <activity android:configChanges="keyboardHidden|orientation" android:name="DownloadMapsActivity"></activity>
