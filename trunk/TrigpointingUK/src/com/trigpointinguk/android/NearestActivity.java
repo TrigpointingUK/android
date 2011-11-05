@@ -109,8 +109,13 @@ public class NearestActivity extends ListActivity {
 		
 		protected Cursor doInBackground(Void... arg0) {
 			Log.i(TAG, "FindTrigsTask.doInBackground");
-			Cursor c = mDb.fetchTrigList(mCurrentLocation);
-			startManagingCursor(c);
+			Cursor c = null;
+			try {
+				c = mDb.fetchTrigList(mCurrentLocation);
+				startManagingCursor(c);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			mUpdateCount++;
 			return c;
 		}
@@ -118,7 +123,12 @@ public class NearestActivity extends ListActivity {
 		}
 		protected void onPostExecute(Cursor c) {			
 			Log.i(TAG, "FindTrigsTask.onPostExecute " + c);
-			mListAdapter.swapCursor(c, mCurrentLocation);
+			try {
+				mListAdapter.swapCursor(c, mCurrentLocation);
+			} catch (Exception e) {
+				e.printStackTrace();
+				mListAdapter.swapCursor(null, mCurrentLocation);
+			}
 			updateHeader("task");
 			mTaskRunning = false;
 		}
