@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 public class TrigDetailsLogTrigTab extends Activity {
@@ -14,6 +15,8 @@ public class TrigDetailsLogTrigTab extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.logtrig);
 
+		TimePicker tp = (TimePicker) findViewById(R.id.logTime);
+		tp.setIs24HourView(true);
 	}
 
 	@Override

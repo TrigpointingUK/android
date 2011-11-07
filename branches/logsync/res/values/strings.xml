@@ -167,6 +167,11 @@
 	<string name="logCondition">Condition:</string>
 	<string name="logGridref">Logged Grid Reference:</string>
 	<string name="logFB">Flush Bracket:</string>
-	<string name="logFlag">Flag log for action by Site Administrator</string>
+	<string name="logFlag">Flag log for action by Site Admins</string>
 	<string name="logGetLocation">Get location</string>
+	<string name="logPhotos">Photos:</string>
+	<string name="logAddPhoto">Add Photo</string>
+	<string name="logUploadNow">Upload Now</string>
+	<string name="logSyncLater">Sync Later</string>
+	<string name="logUserFlag">Flag log to warn other T:UK users</string>
 </resources>

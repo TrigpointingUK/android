@@ -2,7 +2,7 @@
 <resources>
     <style name="trigRatingBar" parent="@android:style/Widget.RatingBar">
         <item name="android:progressDrawable">@drawable/ratingpillar</item>
-        <item name="android:minHeight">24dip</item>
-        <item name="android:maxHeight">24dip</item>
+        <item name="android:minHeight">35dip</item>
+        <item name="android:maxHeight">35dip</item>
     </style>
 </resources>
