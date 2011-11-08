@@ -85,12 +85,12 @@ public class DownloadTrigsActivity extends Activity {
 					String name					= csv[2];
 					double lat					= Double.valueOf(csv[3]);
 					double lon					= Double.valueOf(csv[4]);
-					int type					= Integer.valueOf(csv[5]);
+					Trig.Physical type			= Trig.Physical.fromCode(csv[5]);
 					String fb					= csv[6];
-					Condition condition			= Condition.fromLetter(csv[7]);
+					Condition condition			= Condition.fromCode(csv[7]);
 					Condition logged			= Condition.NOTLOGGED;
-					int current					= Integer.valueOf(csv[8]);
-					int historic				= Integer.valueOf(csv[9]);
+					Trig.Current current		= Trig.Current.fromCode(csv[8]);
+					Trig.Historic historic		= Trig.Historic.fromCode(csv[9]);
 					db.createTrig(id, name, waypoint, lat, lon, type, condition, logged, current, historic, fb);
 					if (i++%10==9){
 						if (isCancelled()) {

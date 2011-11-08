@@ -102,18 +102,18 @@ public class DbHelper {
 	 * @param id
 	 * @return rowId or -1 if failed
 	 */
-	public long createTrig(int id, String name, String waypoint, Double lat, Double lon, int type, Condition condition, Condition logged, int current, int historic, String fb) {
+	public long createTrig(int id, String name, String waypoint, Double lat, Double lon, Trig.Physical type, Condition condition, Condition logged, Trig.Current current, Trig.Historic historic, String fb) {
 		ContentValues initialValues = new ContentValues();
 		initialValues.put(TRIG_ID			, id);
 		initialValues.put(TRIG_NAME			, name);
 		initialValues.put(TRIG_WAYPOINT		, waypoint);
 		initialValues.put(TRIG_LAT			, lat);
 		initialValues.put(TRIG_LON			, lon);
-		initialValues.put(TRIG_TYPE			, type);
-		initialValues.put(TRIG_CONDITION	, condition.letter());
-		initialValues.put(TRIG_LOGGED		, logged.letter());
-		initialValues.put(TRIG_CURRENT		, current);
-		initialValues.put(TRIG_HISTORIC		, historic);
+		initialValues.put(TRIG_TYPE			, type.code());
+		initialValues.put(TRIG_CONDITION	, condition.code());
+		initialValues.put(TRIG_LOGGED		, logged.code());
+		initialValues.put(TRIG_CURRENT		, current.code());
+		initialValues.put(TRIG_HISTORIC		, historic.code());
 		initialValues.put(TRIG_FB			, fb);
 		return mDb.insert(TRIG_TABLE, null, initialValues);
 	}
@@ -125,7 +125,7 @@ public class DbHelper {
 	 */
 	public boolean updateTrigLog(int id, Condition logged) {
 		ContentValues args = new ContentValues();
-		args.put(TRIG_LOGGED, logged.letter());
+		args.put(TRIG_LOGGED, logged.code());
 		return mDb.update(TRIG_TABLE, args, TRIG_ID + "=" + id, null) > 0;
 	}
 

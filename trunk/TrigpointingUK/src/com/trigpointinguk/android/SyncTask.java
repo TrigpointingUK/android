@@ -2,7 +2,6 @@ package com.trigpointinguk.android;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
@@ -59,9 +58,9 @@ public class SyncTask extends AsyncTask<Void, Integer, Integer> {
             BufferedReader br = new BufferedReader(new InputStreamReader(zis));
             
             while ((strLine = br.readLine()) != null && !strLine.trim().equals(""))   {
-            	Log.i(TAG,strLine);
+            	//Log.i(TAG,strLine);
 				String[] csv=strLine.split("\t");
-				Condition logged		= Condition.fromLetter(csv[0]);
+				Condition logged		= Condition.fromCode(csv[0]);
 				int id					= Integer.valueOf(csv[1]);
 				db.updateTrigLog(id, logged);
 				i++;

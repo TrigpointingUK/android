@@ -69,7 +69,7 @@ public class TrigDetailsLogsTab extends ListActivity {
 	        			tl= new TrigLog(
 	        					csv[3],							//username 
 	        					csv[0], 						//date
-	        					Condition.fromLetter(csv[2]), 	//condition
+	        					Condition.fromCode(csv[2]), 	//condition
 	        					csv[1]);						//text
 	        			mTrigLogs.add(tl);
 	        			count++;

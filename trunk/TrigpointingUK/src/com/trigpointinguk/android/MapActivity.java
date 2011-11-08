@@ -381,15 +381,15 @@ public class MapActivity extends Activity implements MapListener {
 													 c.getString(c.getColumnIndex(DbHelper.TRIG_NAME)), point);
 					switch (mIconColouring) {
 					case BYCONDITION:
-						oi.setMarker(getIcon(c.getInt(c.getColumnIndex(DbHelper.TRIG_TYPE)), 
-								Condition.fromLetter(c.getString(c.getColumnIndex(DbHelper.TRIG_CONDITION)))));
+						oi.setMarker(getIcon(Trig.Physical.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_TYPE))), 
+								Condition.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_CONDITION)))));
 						break;
 					case BYLOGGED:
-						oi.setMarker(getIcon(c.getInt(c.getColumnIndex(DbHelper.TRIG_TYPE)), 
-								Condition.fromLetter(c.getString(c.getColumnIndex(DbHelper.TRIG_LOGGED)))));
+						oi.setMarker(getIcon(Trig.Physical.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_TYPE))), 
+								Condition.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_LOGGED)))));
 						break;
 					default:
-						oi.setMarker(getIcon(c.getInt(c.getColumnIndex(DbHelper.TRIG_TYPE))));
+						oi.setMarker(getIcon(Trig.Physical.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_TYPE)))));
 					}
 					oi.setMarkerHotspot(HotspotPlace.CENTER);
 					newitems.add(oi);
@@ -405,20 +405,20 @@ public class MapActivity extends Activity implements MapListener {
 		mMapView.invalidate();
 	}
 	
-	private Drawable getIcon(int physicalType) {
-		switch (physicalType) {
-		case 13:
+	private Drawable getIcon(Trig.Physical type) {
+		switch (type) {
+		case PILLAR:
 			return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_green);
-		case 9:
+		case FBM:
 			return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_green);
 		default:
 			return this.getResources().getDrawable(R.drawable.mapicon_02_passive_green);
 		}
 	}
 	
-	private Drawable getIcon(int physicalType, Condition logged) {
-		switch (physicalType) {
-		case Trig.PHYSICAL_PILLAR:
+	private Drawable getIcon(Trig.Physical type, Condition logged) {
+		switch (type) {
+		case PILLAR:
 			switch (logged) {
 			case UNKNOWN: 
 			case NOTLOGGED:
@@ -438,7 +438,7 @@ public class MapActivity extends Activity implements MapListener {
 				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_grey);
 			}	
 			
-		case Trig.PHYSICAL_FBM:
+		case FBM:
 			switch (logged) {
 			case UNKNOWN: 
 			case NOTLOGGED:

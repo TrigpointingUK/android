@@ -17,16 +17,16 @@ public enum Condition {
 	NOTLOGGED		("N", R.drawable.c_nolog					, R.string.condition_N)
 	;
 
-	private final String   letter;
+	private final String   code;
 	private final int	   icon;
 	private final int	   descr;	
-	Condition(String letter, int icon, int descr) {
-		this.letter = letter;
+	Condition(String code, int icon, int descr) {
+		this.code = code;
 		this.icon   = icon;
 		this.descr  = descr;
 	}
-	public String letter() {
-		return letter;
+	public String code() {
+		return code;
 	}
 	public int icon() {
 		return icon;
@@ -34,15 +34,15 @@ public enum Condition {
 	public int descr() {
 		return descr;
 	}
-	public static Condition fromLetter(String letter) {  
-		if (letter != null) {
+	public static Condition fromCode(String code) {  
+		if (code != null) {
 			for (Condition c : values()) {  
-				if (letter.equals(c.letter)) {  
+				if (code.equals(c.code)) {  
 					return c;  
 				}  
 			}  
 		}
-		//throw new IllegalArgumentException("Invalid condition: " + letter); 
+		//throw new IllegalArgumentException("Invalid condition: " + code); 
 		return UNKNOWN;
 	}
 }
