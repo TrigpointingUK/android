@@ -45,7 +45,7 @@ public class TrigDetailsOSMapTab extends Activity {
 	    
 	    gallery.setOnItemClickListener(new OnItemClickListener() {
 	        public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-	            Toast.makeText(TrigDetailsOSMapTab.this, "Image " + position, Toast.LENGTH_SHORT).show();
+	            Toast.makeText(TrigDetailsOSMapTab.this, "" + position, Toast.LENGTH_SHORT).show();
 	        }
 	    });
 	}
