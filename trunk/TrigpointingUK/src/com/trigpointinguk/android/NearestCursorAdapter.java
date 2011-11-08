@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.location.Location;
 import android.support.v4.widget.SimpleCursorAdapter;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,8 +51,9 @@ public class NearestCursorAdapter extends SimpleCursorAdapter {
 		ImageView tl = (ImageView) view.findViewById(R.id.trigLogged);
 		
 		tn.setText(cursor.getString(mNameIndex));
-		tc.setImageResource(R.drawable.c0_unknown + cursor.getInt(mConditionIndex));
-		tl.setImageResource(R.drawable.c0_unknown + cursor.getInt(mLoggedIndex));
+		tc.setImageResource(Condition.fromLetter(cursor.getString(mConditionIndex)).icon());
+		tl.setImageResource(Condition.fromLetter(cursor.getString(mLoggedIndex)).icon());
+		Log.i("TAG", Condition.fromLetter(cursor.getString(mLoggedIndex)).letter());
 		if (mCurrentLocation != null) {
 			LatLon l = new LatLon(cursor.getDouble(mLatIndex), cursor.getDouble(mLonIndex));			
 			td.setText(String.format("%3.1f", l.distanceTo(mCurrentLocation)));

@@ -1,38 +1,27 @@
 package com.trigpointinguk.android;
 
-import com.trigpointinguk.android.common.LatLon;
-
 import android.location.Location;
+
+import com.trigpointinguk.android.common.LatLon;
 
 public class Trig extends LatLon {
 	/**
 	 * Mini class for trigs in list
 	 */
 	private static final long serialVersionUID = 1L;
-	
+
 	private String name;
 	private String distance;
 	private Double bearing;
 	private int type;
-	private int condition;
+	private Condition condition;
 	private int found;
-	
-	public static final int CONDITION_U_UNKNOWN               =  0;
-	public static final int CONDITION_G_GOOD                  =  1;
-	public static final int CONDITION_S_SLIGTLYDAMAGED        =  2;
-	public static final int CONDITION_D_DAMAGED               =  3;
-	public static final int CONDITION_T_TOPPLED               =  4;
-	public static final int CONDITION_Q_POSSIBLYMISSING       =  5;
-	public static final int CONDITION_X_DEFINITELYMISSING     =  6;
-	public static final int CONDITION_V_UNREACHABLEBUTVISIBLE =  7;
-	public static final int CONDITION_P_TOTALLYUNREACHABLE    =  8;
-	public static final int CONDITION_N_NOTLOGGED             =  9;
-	 
+
 	public static final int CURRENT_UNKNOWN           =  0;
 	public static final int CURRENT_PASSIVE           =  1;
 	public static final int CURRENT_ACTIVE            =  2;
 	public static final int CURRENT_NONE              =  3;
-	
+
 	public static final int HISTORIC_3RD_ORDER        =  0;
 	public static final int HISTORIC_4TH_ORDER        =  1;
 	public static final int HISTORIC_ACTIVE           =  2;
@@ -47,7 +36,7 @@ public class Trig extends LatLon {
 	public static final int HISTORIC_SECONDARY        = 11;
 	public static final int HISTORIC_UNKNOWN          = 12;
 	public static final int HISTORIC_USER_ADDED       = 13;
-	
+
 	public static final int PHYSICAL_ACTIVE           =  0;
 	public static final int PHYSICAL_BERNTSEN         =  1;
 	public static final int PHYSICAL_BLOCK            =  2;
@@ -67,10 +56,10 @@ public class Trig extends LatLon {
 	public static final int PHYSICAL_SURFACE_BLOCK    = 16;
 	public static final int PHYSICAL_USER_ADDED       = 17;
 
-	
+
 	public Trig() {
 	}
-	
+
 	public Trig(Double lat, Double lon) {
 		super(lat, lon);
 	}
@@ -81,8 +70,8 @@ public class Trig extends LatLon {
 		super(lat, lon);
 		this.name = name;
 	}
-	
-	
+
+
 	public String getName() {
 		return name;
 	}
@@ -101,10 +90,10 @@ public class Trig extends LatLon {
 	public void setFound(int found) {
 		this.found = found;
 	}
-	public int getCondition() {
+	public Condition getCondition() {
 		return condition;
 	}
-	public void setCondition(int condition) {
+	public void setCondition(Condition condition) {
 		this.condition = condition;
 	}
 	public String getDistance() {
@@ -119,5 +108,5 @@ public class Trig extends LatLon {
 	public void setBearing(Double bearing) {
 		this.bearing = bearing;
 	}
-	
+
 }

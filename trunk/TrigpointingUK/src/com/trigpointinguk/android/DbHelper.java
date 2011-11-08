@@ -16,7 +16,7 @@ import android.util.Log;
 public class DbHelper {
 	private static final String TAG					= "DbHelper";
 
-	private static final int 	DATABASE_VERSION 	= 3;
+	private static final int 	DATABASE_VERSION 	= 4;
 	private static final String DATABASE_NAME		= "trigpointinguk";
 	private static final String TRIG_TABLE			= "trig";
 	public 	static final String TRIG_ID				= "_id";
@@ -34,7 +34,7 @@ public class DbHelper {
 	private static final String TRIG_CREATE = "create table trig (_id integer primary key, "
 		+ "name text not null, waypoint text not null, "
 		+ "lat real not null, lon real not null, " 
-		+ "type integer not null, condition integer not null, logged integer not null, "
+		+ "type integer not null, condition char(1) not null, logged condition char(1) not null, "
 		+ "current integer not null, historic integer not null, fb text);";
 
 	private DatabaseHelper mDbHelper;
@@ -102,7 +102,7 @@ public class DbHelper {
 	 * @param id
 	 * @return rowId or -1 if failed
 	 */
-	public long createTrig(int id, String name, String waypoint, Double lat, Double lon, int type, int condition, int logged, int current, int historic, String fb) {
+	public long createTrig(int id, String name, String waypoint, Double lat, Double lon, int type, Condition condition, Condition logged, int current, int historic, String fb) {
 		ContentValues initialValues = new ContentValues();
 		initialValues.put(TRIG_ID			, id);
 		initialValues.put(TRIG_NAME			, name);
@@ -110,8 +110,8 @@ public class DbHelper {
 		initialValues.put(TRIG_LAT			, lat);
 		initialValues.put(TRIG_LON			, lon);
 		initialValues.put(TRIG_TYPE			, type);
-		initialValues.put(TRIG_CONDITION	, condition);
-		initialValues.put(TRIG_LOGGED		, logged);
+		initialValues.put(TRIG_CONDITION	, condition.letter());
+		initialValues.put(TRIG_LOGGED		, logged.letter());
 		initialValues.put(TRIG_CURRENT		, current);
 		initialValues.put(TRIG_HISTORIC		, historic);
 		initialValues.put(TRIG_FB			, fb);
@@ -123,9 +123,9 @@ public class DbHelper {
 	 * 
 	 * @return true if deleted, false otherwise
 	 */
-	public boolean updateTrigLog(int id, int logged) {
+	public boolean updateTrigLog(int id, Condition logged) {
 		ContentValues args = new ContentValues();
-		args.put(TRIG_LOGGED, logged);
+		args.put(TRIG_LOGGED, logged.letter());
 		return mDb.update(TRIG_TABLE, args, TRIG_ID + "=" + id, null) > 0;
 	}
 

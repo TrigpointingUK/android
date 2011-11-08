@@ -61,13 +61,13 @@ public class SyncTask extends AsyncTask<Void, Integer, Integer> {
             while ((strLine = br.readLine()) != null && !strLine.trim().equals(""))   {
             	Log.i(TAG,strLine);
 				String[] csv=strLine.split("\t");
-				int id			= Integer.valueOf(csv[0]);
-				int logged		= Integer.valueOf(csv[1]);
+				Condition logged		= Condition.fromLetter(csv[0]);
+				int id					= Integer.valueOf(csv[1]);
 				db.updateTrigLog(id, logged);
 				i++;
             }
 			db.mDb.setTransactionSuccessful();
-        } catch (IOException e) {
+        } catch (Exception e) {
         	Log.d(TAG, "Error: " + e);
         	i=-1;
         } finally {

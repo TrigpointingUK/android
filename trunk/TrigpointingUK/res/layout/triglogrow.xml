@@ -9,7 +9,7 @@
             android:layout_height="wrap_content"
             android:layout_marginRight="5px"
             android:layout_gravity="center_vertical">
- 		   <ImageView android:id="@+id/trigLogCondition" android:layout_height="wrap_content" android:src="@drawable/c0_unknown" android:layout_gravity="center_vertical" android:layout_width="wrap_content" android:layout_marginRight="5px"></ImageView>    
+ 		   <ImageView android:id="@+id/trigLogCondition" android:layout_height="wrap_content" android:src="@drawable/c_unknown" android:layout_gravity="center_vertical" android:layout_width="wrap_content" android:layout_marginRight="5px"></ImageView>    
            <TextView android:layout_width="wrap_content" android:text="logDateUser" android:textAppearance="?android:attr/textAppearanceSmall" android:layout_height="wrap_content" android:textStyle="bold" android:id="@+id/logDateUser"></TextView>
         </LinearLayout>
         <TextView android:id="@+id/logText" android:text="logText" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>

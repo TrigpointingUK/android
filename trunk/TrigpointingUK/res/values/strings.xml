@@ -101,16 +101,19 @@
     </string-array>
     <string name="DefaultName">Username</string>
 
-	<string name="condition00">Unknown</string>
-	<string name="condition01">Good</string>
-	<string name="condition02">Slightly Damaged</string>
-	<string name="condition03">Damaged</string>
-	<string name="condition04">Toppled or Moved</string>
-	<string name="condition05">Possibly Missing</string>
-	<string name="condition06">Definitely Missing</string>
-	<string name="condition07">Unreachable but Visible</string>
-	<string name="condition08">Totally Unreachable</string>
-	<string name="condition09">Not Logged</string>
+	<string name="condition_U">Unknown</string>
+	<string name="condition_G">Good</string>
+	<string name="condition_S">Slightly Damaged</string>
+	<string name="condition_D">Damaged</string>
+	<string name="condition_R">Remains</string>
+	<string name="condition_T">Toppled</string>
+	<string name="condition_C">Converted</string>
+	<string name="condition_M">Moved</string>
+	<string name="condition_Q">Possibly Missing</string>
+	<string name="condition_X">Definitely Missing</string>
+	<string name="condition_V">Unreachable but Visible</string>
+	<string name="condition_P">Inaccessible</string>
+	<string name="condition_N">Not Logged</string>
 	<string name="current00">Unknown - user added</string>
 	<string name="current01">Passive station</string>
 	<string name="current02">Active station</string>

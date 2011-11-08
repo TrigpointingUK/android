@@ -64,13 +64,13 @@ public class TrigDetailsLogsTab extends ListActivity {
 	        for (String line : lines) {
 	        	if (!(line.trim().equals(""))) { 
 	        		String[] csv = line.split("\t");
-	        		//System.out.println(java.util.Arrays.toString(csv));
+	        		System.out.println(java.util.Arrays.toString(csv));
 	        		try {
 	        			tl= new TrigLog(
-	        					csv[0],		//username 
-	        					csv[1], 	//date
-	        					csv[3], 	//condition
-	        					csv[2]);	//text
+	        					csv[3],							//username 
+	        					csv[0], 						//date
+	        					Condition.fromLetter(csv[2]), 	//condition
+	        					csv[1]);						//text
 	        			mTrigLogs.add(tl);
 	        			count++;
 	        		} catch (Exception e) {
