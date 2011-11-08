@@ -381,15 +381,15 @@ public class MapActivity extends Activity implements MapListener {
 													 c.getString(c.getColumnIndex(DbHelper.TRIG_NAME)), point);
 					switch (mIconColouring) {
 					case BYCONDITION:
-						oi.setMarker(getIcon(c.getInt(c.getColumnIndex(DbHelper.TRIG_TYPE)), 
-								c.getInt(c.getColumnIndex(DbHelper.TRIG_CONDITION))));
+						oi.setMarker(getIcon(Trig.Physical.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_TYPE))), 
+								Condition.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_CONDITION)))));
 						break;
 					case BYLOGGED:
-						oi.setMarker(getIcon(c.getInt(c.getColumnIndex(DbHelper.TRIG_TYPE)), 
-								c.getInt(c.getColumnIndex(DbHelper.TRIG_LOGGED))));
+						oi.setMarker(getIcon(Trig.Physical.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_TYPE))), 
+								Condition.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_LOGGED)))));
 						break;
 					default:
-						oi.setMarker(getIcon(c.getInt(c.getColumnIndex(DbHelper.TRIG_TYPE))));
+						oi.setMarker(getIcon(Trig.Physical.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_TYPE)))));
 					}
 					oi.setMarkerHotspot(HotspotPlace.CENTER);
 					newitems.add(oi);
@@ -405,54 +405,54 @@ public class MapActivity extends Activity implements MapListener {
 		mMapView.invalidate();
 	}
 	
-	private Drawable getIcon(int physicalType) {
-		switch (physicalType) {
-		case 13:
+	private Drawable getIcon(Trig.Physical type) {
+		switch (type) {
+		case PILLAR:
 			return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_green);
-		case 9:
+		case FBM:
 			return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_green);
 		default:
 			return this.getResources().getDrawable(R.drawable.mapicon_02_passive_green);
 		}
 	}
 	
-	private Drawable getIcon(int physicalType, int logged) {
-		switch (physicalType) {
-		case Trig.PHYSICAL_PILLAR:
+	private Drawable getIcon(Trig.Physical type, Condition logged) {
+		switch (type) {
+		case PILLAR:
 			switch (logged) {
-			case Trig.CONDITION_U_UNKNOWN: 
-			case Trig.CONDITION_N_NOTLOGGED:
+			case UNKNOWN: 
+			case NOTLOGGED:
 				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_grey);
-			case Trig.CONDITION_G_GOOD:
-			case Trig.CONDITION_S_SLIGTLYDAMAGED:
-			case Trig.CONDITION_D_DAMAGED:
-			case Trig.CONDITION_T_TOPPLED:
+			case GOOD:
+			case SLIGHTLYDAMAGED:
+			case DAMAGED:
+			case TOPPLED:
 				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_green);
-			case Trig.CONDITION_V_UNREACHABLEBUTVISIBLE:
+			case VISIBLE:
 				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_yellow);
-			case Trig.CONDITION_Q_POSSIBLYMISSING:
-			case Trig.CONDITION_X_DEFINITELYMISSING:
-			case Trig.CONDITION_P_TOTALLYUNREACHABLE:
+			case POSSIBLYMISSING:
+			case MISSING:
+			case INACCESSIBLE:
 				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_red);
 			default:
 				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_grey);
 			}	
 			
-		case Trig.PHYSICAL_FBM:
+		case FBM:
 			switch (logged) {
-			case Trig.CONDITION_U_UNKNOWN: 
-			case Trig.CONDITION_N_NOTLOGGED:
+			case UNKNOWN: 
+			case NOTLOGGED:
 				return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_grey);
-			case Trig.CONDITION_G_GOOD:
-			case Trig.CONDITION_S_SLIGTLYDAMAGED:
-			case Trig.CONDITION_D_DAMAGED:
-			case Trig.CONDITION_T_TOPPLED:
+			case GOOD:
+			case SLIGHTLYDAMAGED:
+			case DAMAGED:
+			case TOPPLED:
 				return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_green);
-			case Trig.CONDITION_V_UNREACHABLEBUTVISIBLE:
+			case VISIBLE:
 				return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_yellow);
-			case Trig.CONDITION_Q_POSSIBLYMISSING:
-			case Trig.CONDITION_X_DEFINITELYMISSING:
-			case Trig.CONDITION_P_TOTALLYUNREACHABLE:
+			case POSSIBLYMISSING:
+			case MISSING:
+			case INACCESSIBLE:
 				return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_red);
 			default:
 				return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_grey);
@@ -460,19 +460,19 @@ public class MapActivity extends Activity implements MapListener {
 
 		default:
 			switch (logged) {
-			case Trig.CONDITION_U_UNKNOWN: 
-			case Trig.CONDITION_N_NOTLOGGED:
+			case UNKNOWN: 
+			case NOTLOGGED:
 				return this.getResources().getDrawable(R.drawable.mapicon_02_passive_grey);
-			case Trig.CONDITION_G_GOOD:
-			case Trig.CONDITION_S_SLIGTLYDAMAGED:
-			case Trig.CONDITION_D_DAMAGED:
-			case Trig.CONDITION_T_TOPPLED:
+			case GOOD:
+			case SLIGHTLYDAMAGED:
+			case DAMAGED:
+			case TOPPLED:
 				return this.getResources().getDrawable(R.drawable.mapicon_02_passive_green);
-			case Trig.CONDITION_V_UNREACHABLEBUTVISIBLE:
+			case VISIBLE:
 				return this.getResources().getDrawable(R.drawable.mapicon_02_passive_yellow);
-			case Trig.CONDITION_Q_POSSIBLYMISSING:
-			case Trig.CONDITION_X_DEFINITELYMISSING:
-			case Trig.CONDITION_P_TOTALLYUNREACHABLE:
+			case POSSIBLYMISSING:
+			case MISSING:
+			case INACCESSIBLE:
 				return this.getResources().getDrawable(R.drawable.mapicon_02_passive_red);
 			default:
 				return this.getResources().getDrawable(R.drawable.mapicon_02_passive_grey);

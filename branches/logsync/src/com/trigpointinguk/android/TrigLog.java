@@ -1,17 +1,17 @@
 package com.trigpointinguk.android;
 
 public class TrigLog {
-	private String date;
-	private String username;
-	private String text;
-	private int    condition;
+	private String 		date;
+	private String 		username;
+	private String 		text;
+	private Condition   condition;
 	
 	
-	public TrigLog(String username, String date, String condition, String text) {
+	public TrigLog(String username, String date, Condition condition, String text) {
 		super();
 		this.username = username;
 		this.date = date;
-		this.condition = Integer.parseInt(condition); 
+		this.condition = condition; 
 		this.text = text;
 	}
 	
@@ -34,11 +34,10 @@ public class TrigLog {
 		this.text = text;
 	}
 
-	public void setCondition(int condition) {
+	public void setCondition(Condition condition) {
 		this.condition = condition;
 	}
-
-	public int getCondition() {
+	public Condition getCondition() {
 		return condition;
 	}
 }

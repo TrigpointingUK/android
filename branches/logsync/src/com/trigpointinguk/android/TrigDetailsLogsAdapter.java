@@ -53,7 +53,7 @@ public class TrigDetailsLogsAdapter extends ArrayAdapter<TrigLog> {
 		}
 			
 		tu.setText(tl.getDate()+"   "+tl.getUsername());
-		tc.setImageResource(R.drawable.c0_unknown + tl.getCondition());
+		tc.setImageResource(tl.getCondition().icon());
 		
 		return row;
 	}

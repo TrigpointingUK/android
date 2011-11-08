@@ -80,17 +80,17 @@ public class DownloadTrigsActivity extends Activity {
 				while ((strLine = br.readLine()) != null && !strLine.trim().equals(""))   {
 					Log.i(TAG,strLine);
 					String[] csv=strLine.split("\t");
-					int id			= Integer.valueOf(csv[0]);
-					String waypoint	= csv[1];
-					String name		= csv[2];
-					double lat		= Double.valueOf(csv[3]);
-					double lon		= Double.valueOf(csv[4]);
-					int type		= Integer.valueOf(csv[5]);
-					String fb		= csv[6];
-					int condition	= Integer.valueOf(csv[7]);
-					int logged		= Trig.CONDITION_N_NOTLOGGED;
-					int current		= Integer.valueOf(csv[8]);
-					int historic	= Integer.valueOf(csv[9]);
+					int id						= Integer.valueOf(csv[0]);
+					String waypoint				= csv[1];
+					String name					= csv[2];
+					double lat					= Double.valueOf(csv[3]);
+					double lon					= Double.valueOf(csv[4]);
+					Trig.Physical type			= Trig.Physical.fromCode(csv[5]);
+					String fb					= csv[6];
+					Condition condition			= Condition.fromCode(csv[7]);
+					Condition logged			= Condition.NOTLOGGED;
+					Trig.Current current		= Trig.Current.fromCode(csv[8]);
+					Trig.Historic historic		= Trig.Historic.fromCode(csv[9]);
 					db.createTrig(id, name, waypoint, lat, lon, type, condition, logged, current, historic, fb);
 					if (i++%10==9){
 						if (isCancelled()) {

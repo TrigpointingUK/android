@@ -50,8 +50,9 @@ public class NearestCursorAdapter extends SimpleCursorAdapter {
 		ImageView tl = (ImageView) view.findViewById(R.id.trigLogged);
 		
 		tn.setText(cursor.getString(mNameIndex));
-		tc.setImageResource(R.drawable.c0_unknown + cursor.getInt(mConditionIndex));
-		tl.setImageResource(R.drawable.c0_unknown + cursor.getInt(mLoggedIndex));
+		tc.setImageResource(Condition.fromCode(cursor.getString(mConditionIndex)).icon());
+		tl.setImageResource(Condition.fromCode(cursor.getString(mLoggedIndex)).icon());
+
 		if (mCurrentLocation != null) {
 			LatLon l = new LatLon(cursor.getDouble(mLatIndex), cursor.getDouble(mLonIndex));			
 			td.setText(String.format("%3.1f", l.distanceTo(mCurrentLocation)));
