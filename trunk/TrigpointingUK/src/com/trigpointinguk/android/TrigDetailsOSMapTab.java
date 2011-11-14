@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Gallery;
-import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
 public class TrigDetailsOSMapTab extends Activity {
@@ -18,7 +18,7 @@ public class TrigDetailsOSMapTab extends Activity {
 
 	private long mTrigId;
 	private DbHelper mDb;
-
+	String[] mUrls;
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -35,17 +35,20 @@ public class TrigDetailsOSMapTab extends Activity {
 		mDb.open();		
 		Cursor c = mDb.fetchTrigInfo(mTrigId);
 		c.moveToFirst();
-		String[] urls = getURLs(mTrigId, c);
+		mUrls = getURLs(mTrigId, c);
 		c.close();
 		
 	    Gallery gallery = (Gallery) findViewById(R.id.trigosgallery);
-	    gallery.setAdapter(new TrigDetailsOSMapAdapter(this, urls));
+	    gallery.setAdapter(new TrigDetailsOSMapAdapter(this, mUrls));
 
 	    
 	    
 	    gallery.setOnItemClickListener(new OnItemClickListener() {
 	        public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-	            Toast.makeText(TrigDetailsOSMapTab.this, "" + position, Toast.LENGTH_SHORT).show();
+	            Intent i = new Intent(TrigDetailsOSMapTab.this, DisplayBitmapActivity.class);
+	            i.putExtra("URL", mUrls[position]);
+	            Log.i(TAG, "Clicked OSMap at URL: " +mUrls[position]);
+	            startActivity(i);
 	        }
 	    });
 	}
