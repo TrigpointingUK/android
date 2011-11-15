@@ -51,7 +51,7 @@ public class MapActivity extends Activity implements MapListener {
 	private ScaleBarOverlay    mScaleBarOverlay;  
 
 	private SharedPreferences  mPrefs;
-	private DbHelper       mDb;
+	private DbHelper    	   mDb;
 	
 	private ItemizedIconOverlay<OverlayItem> mTrigOverlay;
 	private BoundingBoxE6      mBigBB         = new BoundingBoxE6(0, 0, 0, 0);
@@ -372,7 +372,7 @@ public class MapActivity extends Activity implements MapListener {
 		if (c != null) {
 			Log.i(TAG, "Found " + c.getCount() + " trigs");
 	
-			if (c.getCount() < Integer.parseInt(mPrefs.getString("mapcount", "400"))) {
+			if (c.getCount() < Integer.parseInt(mPrefs.getString("mapcount", DbHelper.DEFAULT_MAP_COUNT))) {
 				mTooManyTrigs = false;
 				c.moveToFirst();
 				while (c.isAfterLast() == false) {

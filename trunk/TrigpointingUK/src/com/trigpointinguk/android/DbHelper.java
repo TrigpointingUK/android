@@ -30,6 +30,7 @@ public class DbHelper {
 	public 	static final String TRIG_CURRENT		= "current";
 	public 	static final String TRIG_HISTORIC		= "historic";
 	public 	static final String TRIG_FB				= "fb";
+	public  static final String DEFAULT_MAP_COUNT   = "400";
 
 	private static final String TRIG_CREATE = "create table trig (_id integer primary key, "
 		+ "name text not null, waypoint text not null, "
@@ -166,7 +167,7 @@ public class DbHelper {
 	 * @return Cursor 
 	 */
 	public Cursor fetchTrigMapList (BoundingBoxE6 box) {
-		String strOrder = String.format("%s limit %s", TRIG_LAT, mPrefs.getString("mapcount", "80"));	
+		String strOrder = String.format("%s limit %s", TRIG_LAT, mPrefs.getString("mapcount", DEFAULT_MAP_COUNT));	
    
 		String strWhere = String.format("%s between %3.6f and %3.6f  and  %s between %3.6f and %3.6f"
 				, TRIG_LON, box.getLonWestE6()/1000000.0, box.getLonEastE6()/1000000.0, TRIG_LAT, box.getLatSouthE6()/1000000.0, box.getLatNorthE6()/1000000.0); 
