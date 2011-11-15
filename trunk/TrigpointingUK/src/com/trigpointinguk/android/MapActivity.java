@@ -288,6 +288,7 @@ public class MapActivity extends Activity implements MapListener {
 		editor.putInt("east", bb.getLonEastE6());
 		editor.putInt("west", bb.getLonWestE6());
 		editor.putString("iconColouring", mIconColouring.toString());
+		editor.putBoolean("compass", mMyLocationOverlay.isCompassEnabled());
 		editor.commit();
 		super.onPause();
 	}
@@ -326,7 +327,13 @@ public class MapActivity extends Activity implements MapListener {
 			populateTrigOverlay(bb);
 		} catch (ClassCastException e) {
 			// bad coordinates, do nothing
-		}		
+		}	
+		if (mPrefs.getBoolean("compass", false)) {
+			mMyLocationOverlay.enableCompass();
+		} else {
+			mMyLocationOverlay.disableCompass();
+		}
+
 	}
 
 
