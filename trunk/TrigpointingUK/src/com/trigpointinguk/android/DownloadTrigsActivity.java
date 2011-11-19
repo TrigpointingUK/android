@@ -130,14 +130,16 @@ public class DownloadTrigsActivity extends Activity {
 			switch (arg0) {
 			case OK:
 				mStatus.setText("Finished downloading " + mDownloadCount +" trigs");
+				mDownloadBtn.setText(R.string.btnDownloadFinished);
+				mDownloadBtn.setClickable(false);
 				mProgress.setProgress(mProgressMax);
 				break;
 			case ERROR:
 				mStatus.setText("Download failed!");
+				mDownloadBtn.setText(R.string.btnDownload);
 				mProgress.setProgress(0);
 				break;
 			}
-			mDownloadBtn.setText(R.string.btnDownload);
 			mRunning = false;
 		}
 		@Override

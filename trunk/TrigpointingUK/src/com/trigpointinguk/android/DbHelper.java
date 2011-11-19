@@ -16,7 +16,7 @@ import android.util.Log;
 public class DbHelper {
 	private static final String TAG					= "DbHelper";
 
-	private static final int 	DATABASE_VERSION 	= 4;
+	private static final int 	DATABASE_VERSION 	= 5;
 	private static final String DATABASE_NAME		= "trigpointinguk";
 	private static final String TRIG_TABLE			= "trig";
 	public 	static final String TRIG_ID				= "_id";
@@ -30,13 +30,30 @@ public class DbHelper {
 	public 	static final String TRIG_CURRENT		= "current";
 	public 	static final String TRIG_HISTORIC		= "historic";
 	public 	static final String TRIG_FB				= "fb";
+	public 	static final String LOG_ID				= "_id";
+	public 	static final String LOG_DATE			= "logdate";
+	public 	static final String LOG_TIME			= "logtime";
+	public 	static final String LOG_GRIDREF			= "gridref";
+	public 	static final String LOG_FB				= "fb";
+	public 	static final String LOG_CONDITION		= "condition";
+	public  static final String LOG_SCORE   		= "score";
+	public 	static final String LOG_COMMENT			= "comment";
+	public 	static final String LOG_FLAGADMINS		= "flagadmins";
+	public 	static final String LOG_FLAGUSERS		= "flagusers";
 	public  static final String DEFAULT_MAP_COUNT   = "400";
+
 
 	private static final String TRIG_CREATE = "create table trig (_id integer primary key, "
 		+ "name text not null, waypoint text not null, "
 		+ "lat real not null, lon real not null, " 
 		+ "type integer not null, condition char(1) not null, logged condition char(1) not null, "
 		+ "current integer not null, historic integer not null, fb text);";
+
+	private static final String LOG_CREATE = "create table log (_id integer primary key, "
+		+ "date text not null, "
+		+ "time text not null, gridref text, " 
+		+ "fb text, condition char(1) not null, score integer not null, "
+		+ "comment text, flagadmins boolean not null, flagusers boolean not null);";
 
 	private DatabaseHelper mDbHelper;
 	public SQLiteDatabase mDb;
@@ -53,12 +70,14 @@ public class DbHelper {
 		public void onCreate(SQLiteDatabase db) {
 			Log.i(TAG, "Creating database");
 			db.execSQL(TRIG_CREATE);
+			db.execSQL(LOG_CREATE);
 		}
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 			Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
 					+ newVersion + ", which will destroy all old data");
 			db.execSQL("DROP TABLE IF EXISTS trig");
+			db.execSQL("DROP TABLE IF EXISTS log");
 			onCreate(db);
 		}
 	}
