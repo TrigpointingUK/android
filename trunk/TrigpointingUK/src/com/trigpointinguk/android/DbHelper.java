@@ -16,7 +16,7 @@ import android.util.Log;
 public class DbHelper {
 	private static final String TAG					= "DbHelper";
 
-	private static final int 	DATABASE_VERSION 	= 5;
+	private static final int 	DATABASE_VERSION 	= 6;
 	private static final String DATABASE_NAME		= "trigpointinguk";
 	private static final String TRIG_TABLE			= "trig";
 	public 	static final String TRIG_ID				= "_id";
@@ -30,9 +30,13 @@ public class DbHelper {
 	public 	static final String TRIG_CURRENT		= "current";
 	public 	static final String TRIG_HISTORIC		= "historic";
 	public 	static final String TRIG_FB				= "fb";
+	private static final String LOG_TABLE			= "log";
 	public 	static final String LOG_ID				= "_id";
-	public 	static final String LOG_DATE			= "logdate";
-	public 	static final String LOG_TIME			= "logtime";
+	public 	static final String LOG_YEAR			= "year";
+	public 	static final String LOG_MONTH			= "month";
+	public 	static final String LOG_DAY				= "day";
+	public 	static final String LOG_HOUR			= "hour";
+	public 	static final String LOG_MINUTES			= "minutes";
 	public 	static final String LOG_GRIDREF			= "gridref";
 	public 	static final String LOG_FB				= "fb";
 	public 	static final String LOG_CONDITION		= "condition";
@@ -50,10 +54,10 @@ public class DbHelper {
 		+ "current integer not null, historic integer not null, fb text);";
 
 	private static final String LOG_CREATE = "create table log (_id integer primary key, "
-		+ "date text not null, "
-		+ "time text not null, gridref text, " 
+		+ "year integer not null, month integer not null, day integer not null, "
+		+ "hour integer not null, minutes integer not null, gridref text, " 
 		+ "fb text, condition char(1) not null, score integer not null, "
-		+ "comment text, flagadmins boolean not null, flagusers boolean not null);";
+		+ "comment text, flagadmins integer not null, flagusers integer not null);";
 
 	private DatabaseHelper mDbHelper;
 	public SQLiteDatabase mDb;
@@ -115,7 +119,7 @@ public class DbHelper {
 
 
 	/**
-	 * Create a new trig using the title and body provided. If the trig is
+	 * Create a new trig using the data provided. If the trig is
 	 * successfully created return the new rowId, otherwise return
 	 * a -1 to indicate failure.
 	 * 
@@ -139,9 +143,9 @@ public class DbHelper {
 	}
 
 	/**
-	 * Delete all trigs
+	 * Update Trig Log
 	 * 
-	 * @return true if deleted, false otherwise
+	 * @return true if updated, false otherwise
 	 */
 	public boolean updateTrigLog(int id, Condition logged) {
 		ContentValues args = new ContentValues();
@@ -207,5 +211,71 @@ public class DbHelper {
 	}
 	
 
+	
+	/**
+	 * Create a new log.  If the record is
+	 * successfully created return the new rowId, otherwise return
+	 * a -1 to indicate failure.
+	 * 
+	 * @param id
+	 * @return rowId or -1 if failed
+	 */
+	public long createLog(long id, int year, int month, int day, int hour, int minutes, String gridref, String fb, 
+						Condition condition, int score, String comment, int flagadmins, int flagusers) {
+		ContentValues initialValues = new ContentValues();
+		initialValues.put(LOG_ID			, id);
+		initialValues.put(LOG_YEAR			, year);
+		initialValues.put(LOG_MONTH			, month);
+		initialValues.put(LOG_DAY			, day);
+		initialValues.put(LOG_HOUR			, hour);
+		initialValues.put(LOG_MINUTES		, minutes);
+		initialValues.put(LOG_GRIDREF		, gridref);
+		initialValues.put(LOG_FB			, fb);
+		initialValues.put(LOG_CONDITION		, condition.code());
+		initialValues.put(LOG_SCORE			, score);
+		initialValues.put(LOG_COMMENT		, comment);
+		initialValues.put(LOG_FLAGADMINS	, flagadmins);
+		initialValues.put(LOG_FLAGUSERS		, flagusers);
+		return mDb.insert(LOG_TABLE, null, initialValues);
+	}
+
+	
+	
+
+	/**
+	 * Delete individual log
+	 * 
+	 * @return true if deleted, false otherwise
+	 */
+	public boolean deleteLog(long id) {
+		return mDb.delete(LOG_TABLE, LOG_ID + "=" + id, null) > 0;
+	}
+
+
+	/**
+     * Return a Cursor positioned at the log that matches the given id
+     * 
+     * @param id of note to retrieve
+     * @return Cursor positioned to matching log, if found
+     * @throws SQLException if note could not be found/retrieved
+     */
+    public Cursor fetchLog(long id) throws SQLException {
+
+        Cursor mCursor =
+            mDb.query(true, LOG_TABLE, new String[] {LOG_ID, LOG_YEAR, LOG_MONTH, LOG_DAY, 
+            				LOG_HOUR, LOG_MINUTES, LOG_GRIDREF, LOG_FB, LOG_CONDITION, 
+            				LOG_COMMENT, LOG_SCORE, LOG_COMMENT, LOG_FLAGADMINS, LOG_FLAGUSERS}
+                    , LOG_ID + "=" + id, null,
+                    null, null, null, null);
+        if (mCursor != null) {
+            if (! mCursor.moveToFirst()) {
+            	// No log row found
+            	return null;
+            }
+        }
+        return mCursor;
+    }
+
+	
 	
 }

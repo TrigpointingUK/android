@@ -20,36 +20,36 @@ public class Trig extends LatLon {
 	
 	// PHYSICAL TYPE of the trigpoint
 	public enum Physical {
-		ACTIVE	 		("AC", R.string.physical_AC),
-		BERNTSEN		("BE", R.string.physical_BE),
-		BLOCK			("BL", R.string.physical_BL),
-		BOLT			("BO", R.string.physical_BO),
-		BURIEDBLOCK		("BB", R.string.physical_BB),
-		CANNON			("CA", R.string.physical_CA),
-		CENTRE			("CE", R.string.physical_CE),
-		CONCRETERING	("CR", R.string.physical_CR),
-		CURRYSTOOL		("CS", R.string.physical_CS),
-		FBM				("FB", R.string.physical_FB),
-		FENOMARK		("FE", R.string.physical_FE),
-		MONUMENT		("MO", R.string.physical_MO),
-		OTHER			("OT", R.string.physical_OT),
-		PILLAR			("PI", R.string.physical_PI),
-		RIVET			("RI", R.string.physical_RI),
-		SPIDER			("SP", R.string.physical_SP),
-		SURFACEBLOCK	("SB", R.string.physical_SB),
-		USERADDED		("UA", R.string.physical_UA)
+		ACTIVE	 		("AC", "Active"),
+		BERNTSEN		("BE", "Berntsen"),
+		BLOCK			("BL", "Block"),
+		BOLT			("BO", "Bolt"),
+		BURIEDBLOCK		("BB", "Buried Block"),
+		CANNON			("CA", "Cannon"),
+		CENTRE			("CE", "Centre"),
+		CONCRETERING	("CR", "Concrete Ring"),
+		CURRYSTOOL		("CS", "Curry Stool"),
+		FBM				("FB", "FBM"),
+		FENOMARK		("FE", "Fenomark"),
+		MONUMENT		("MO", "Monument"),
+		OTHER			("OT", "Other"),
+		PILLAR			("PI", "Pillar"),
+		RIVET			("RI", "Rivet"),
+		SPIDER			("SP", "Spider"),
+		SURFACEBLOCK	("SB", "Surface Block"),
+		USERADDED		("UA", "Unknown - User Added"),
 		;
 
 		private final String   code;
-		private final int	   descr;	
-		Physical (String code, int descr) {
+		private final String   descr;	
+		Physical (String code, String descr) {
 			this.code = code;
 			this.descr  = descr;
 		}
 		public String code() {
 			return code;
 		}
-		public int descr() {
+		public String toString() {
 			return descr;
 		}
 		public static Physical fromCode(String code) {  
@@ -66,22 +66,22 @@ public class Trig extends LatLon {
 
 	// CURRENT USE of the trigpoint
 	public enum Current {
-		ACTIVE	 		("A", R.string.current_A),
-		PASSIVE			("P", R.string.current_P),
-		NONE			("N", R.string.current_N),
-		USERADDED		("U", R.string.current_U)
+		ACTIVE	 		("A", "Active"),
+		PASSIVE			("P", "Passive"),
+		NONE			("N", "None"),
+		USERADDED		("U", "Unknown - User Added"),
 		;
 
 		private final String   code;
-		private final int	   descr;	
-		Current (String code, int descr) {
+		private final String   descr;	
+		Current (String code, String descr) {
 			this.code = code;
 			this.descr  = descr;
 		}
 		public String code() {
 			return code;
 		}
-		public int descr() {
+		public String toString() {
 			return descr;
 		}
 		public static Current fromCode(String code) {  
@@ -99,31 +99,31 @@ public class Trig extends LatLon {
 	
 	// HISTORIC USE of the trigpoint
 	public enum Historic {
-		PRIMARY	 		("1", R.string.historic_1),
-		SECONDARY		("2", R.string.historic_2),
-		THIRDORDER		("3", R.string.historic_3),
-		FOURTHORDER		("4", R.string.historic_4),
-		FBM				("F", R.string.historic_F),
-		GREATGLEN		("G", R.string.historic_G),
-		HYDROGRAPHIC	("H", R.string.historic_H),
-		NONE			("N", R.string.historic_N),
-		OTHER			("O", R.string.historic_O),
-		PASSIVE			("P", R.string.historic_P),
-		EMILY			("E", R.string.historic_E),
-		UNKNOWN			("Q", R.string.historic_Q),
-		USERADDED		("U", R.string.historic_U)
+		PRIMARY	 		("1", "Primary"),
+		SECONDARY		("2", "Secondary"),
+		THIRDORDER		("3", "3rd order"),
+		FOURTHORDER		("4", "4th order"),
+		FBM				("F", "Fundamental Benchmark"),
+		GREATGLEN		("G", "Great Glen Project"),
+		HYDROGRAPHIC	("H", "Hydrographic Survey Pillar"),
+		NONE			("N", "None"),
+		OTHER			("O", "Other"),
+		PASSIVE			("P", "Passive"),
+		EMILY			("E", "Project Emily"),
+		UNKNOWN			("Q", "Unknown"),
+		USERADDED		("U", "Unknown - User Added")
 		;
 
 		private final String   code;
-		private final int	   descr;	
-		Historic (String code, int descr) {
+		private final String   descr;	
+		Historic (String code, String descr) {
 			this.code = code;
 			this.descr  = descr;
 		}
 		public String code() {
 			return code;
 		}
-		public int descr() {
+		public String toString() {
 			return descr;
 		}
 		public static Historic fromCode(String code) {  

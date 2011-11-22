@@ -42,7 +42,7 @@ public class TrigDetailsInfoTab extends Activity {
 		iv.setImageResource(Condition.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_CONDITION))).icon());
 
 		tv = (TextView) findViewById(R.id.triginfo_condition);
-		tv.setText(Condition.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_CONDITION))).descr());
+		tv.setText(Condition.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_CONDITION))).toString());
 
 		LatLon ll = new LatLon(c.getDouble(c.getColumnIndex(DbHelper.TRIG_LAT)), c.getDouble(c.getColumnIndex(DbHelper.TRIG_LON)));
 
@@ -53,13 +53,13 @@ public class TrigDetailsInfoTab extends Activity {
 		tv.setText(ll.getWGS());
 		
 		tv = (TextView) findViewById(R.id.triginfo_current);
-		tv.setText(Trig.Current.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_CURRENT))).descr());
+		tv.setText(Trig.Current.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_CURRENT))).toString());
 
 		tv = (TextView) findViewById(R.id.triginfo_historic);
-		tv.setText(Trig.Historic.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_HISTORIC))).descr());
+		tv.setText(Trig.Historic.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_HISTORIC))).toString());
 
 		tv = (TextView) findViewById(R.id.triginfo_type);
-		tv.setText(Trig.Physical.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_TYPE))).descr());
+		tv.setText(Trig.Physical.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_TYPE))).toString());
 
 		tv = (TextView) findViewById(R.id.triginfo_fb);
 		tv.setText(c.getString(c.getColumnIndex(DbHelper.TRIG_FB)));

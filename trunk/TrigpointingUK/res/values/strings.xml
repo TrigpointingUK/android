@@ -101,67 +101,6 @@
         <item>10000</item>
     </string-array>
     <string name="DefaultName">Username</string>
-	<string-array name="logConditionList">
-		<item></item>
-		<item>Good</item>
-		<item>Slightly Damaged</item>
-		<item>Damaged</item>
-		<item>Toppled or Moved</item>
-		<item>Possibly Missing</item>
-		<item>Definitely Missing</item>
-		<item>Couldn\'t find it</item>
-		<item>Unreachable but visible</item>
-		<item>Totally unreachable</item>
-	</string-array>
-	<string name="condition_U">Unknown</string>
-	<string name="condition_G">Good</string>
-	<string name="condition_S">Slightly Damaged</string>
-	<string name="condition_D">Damaged</string>
-	<string name="condition_R">Remains</string>
-	<string name="condition_T">Toppled</string>
-	<string name="condition_C">Converted</string>
-	<string name="condition_M">Moved</string>
-	<string name="condition_Q">Possibly Missing</string>
-	<string name="condition_X">Definitely Missing</string>
-	<string name="condition_V">Unreachable but Visible</string>
-	<string name="condition_P">Inaccessible</string>
-	<string name="condition_N">Not Logged</string>
-	<string name="current_U">Unknown - user added</string>
-	<string name="current_P">Passive station</string>
-	<string name="current_A">Active station</string>
-	<string name="current_N">None</string>
-	<string name="historic_3">3rd order</string>
-	<string name="historic_4">4th order</string>
-	<string name="historic_A">Active station</string>
-	<string name="historic_F">Fundamental Benchmark</string>
-	<string name="historic_G">Great Glen Project</string>
-	<string name="historic_H">Hydrographic Survey Pillar</string>
-	<string name="historic_N">None</string>
-	<string name="historic_O">Other</string>
-	<string name="historic_P">Passive Station</string>
-	<string name="historic_1">Primary</string>
-	<string name="historic_E">Project Emily</string>
-	<string name="historic_2">Secondary</string>
-	<string name="historic_Q">Unknown</string>
-	<string name="historic_U">Unknown - user added</string>
-	<string name="physical_AC">Active Station</string>
-	<string name="physical_BE">Berntsen</string>
-	<string name="physical_BL">Block</string>
-	<string name="physical_BO">Bolt</string>
-	<string name="physical_BB">Buried Block</string>
-	<string name="physical_CA">Cannon</string>
-	<string name="physical_CE">Centre</string>
-	<string name="physical_CR">Concrete Ring</string>
-	<string name="physical_CS">Curry Stool</string>
-	<string name="physical_FB">FBM</string>
-	<string name="physical_FE">Fenomark</string>
-	<string name="physical_MO">Monument</string>
-	<string name="physical_OT">Other</string>
-	<string name="physical_PI">Pillar</string>
-	<string name="physical_RI">Rivet</string>
-	<string name="physical_SP">Spider</string>
-	<string name="physical_SB">Surface Block</string>
-	<string name="physical_UA">Unknown - user added</string>
 	<string name="logDate">Date:</string>
 	<string name="logTime">Time:</string>
 	<string name="logScore">Score:</string>
