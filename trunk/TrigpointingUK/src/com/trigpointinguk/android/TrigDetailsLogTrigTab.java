@@ -1,13 +1,14 @@
 package com.trigpointinguk.android;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
-import java.util.List;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
@@ -58,13 +59,11 @@ public class TrigDetailsLogTrigTab extends Activity implements ImageEventListene
 		
 		// Get trig_id from extras 
 		Bundle extras = getIntent().getExtras();
-		if (extras == null) {
-			mTrigId = 0L;
-		} else {
+		if (extras != null) {
 			mTrigId = extras.getLong(DbHelper.TRIG_ID);
-			if (mTrigId == null) {mTrigId=0L;}
 		}
-		Log.i("TrigInfo", "Trig_id = "+mTrigId);
+		if (mTrigId == null) {mTrigId=0L;}
+		Log.i(TAG, "Trig_id = "+mTrigId);
 		
 		// Get references to various views and form elements
 		mSwitcher 	= (ViewSwitcher)	findViewById(R.id.logswitcher);
@@ -82,6 +81,12 @@ public class TrigDetailsLogTrigTab extends Activity implements ImageEventListene
     	// Setup time picker options which cannot be set in the config xml
  		mTime.setIs24HourView(true);
 
+		// Setup condition spinner
+		ArrayAdapter<Condition> adapter = new ArrayAdapter<Condition> (this, android.R.layout.simple_spinner_item, Condition.values());
+		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		mCondition.setAdapter(adapter);
+	
+
 		// Class to listen for new photos appearing on the external storage
 		mIem = new ImageEventManager(TrigDetailsLogTrigTab.this,TrigDetailsLogTrigTab.this);
 		
@@ -91,7 +96,6 @@ public class TrigDetailsLogTrigTab extends Activity implements ImageEventListene
 		
 		// Check to see whether log already exists
 		if (mDb.fetchLog(mTrigId) != null) {
-			populateFields();
 			mSwitcher.showNext();
 		}
 		
@@ -137,16 +141,15 @@ public class TrigDetailsLogTrigTab extends Activity implements ImageEventListene
 			}
 		});	
 
-		// Setup condition spinner
-		List<Condition> clist = new ArrayList<Condition>();
-		clist.add(Condition.NOTLOGGED);
-		clist.add(Condition.DAMAGED);
-		clist.add(Condition.MISSING);
+		// Setup button to upload the log
+		Button uploadBtn = (Button) findViewById(R.id.logUploadNow);
+		uploadBtn.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+	        	uploadLog();
+			}
+		});	
 
-		ArrayAdapter<Condition> adapter = new ArrayAdapter<Condition> (this, android.R.layout.simple_spinner_item, Condition.values());
-		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		mCondition.setAdapter(adapter);
-	
 	}
 
 	@Override
@@ -230,6 +233,7 @@ public class TrigDetailsLogTrigTab extends Activity implements ImageEventListene
     }
     
     private void populateFields() {
+    	Log.i(TAG, "populateFields");
     	Cursor c = mDb.fetchLog(mTrigId);
     	if (c == null) {return;}
     	startManagingCursor(c);
@@ -258,13 +262,27 @@ public class TrigDetailsLogTrigTab extends Activity implements ImageEventListene
     	
     	// set Condition
     	Condition cond = Condition.fromCode(c.getString(c.getColumnIndex(DbHelper.LOG_CONDITION)));
-    	//mCondition.setSelection (cond.ordinal());
-    	
+    	mCondition.setSelection (Arrays.asList(Condition.values()).indexOf(cond));
+
     	c.close();
     }
     
     private void saveLog() {
-    	
+    	Log.i(TAG, "saveLog");
+    	try {
+    		mDb.mDb.beginTransaction();
+    		mDb.deleteLog(mTrigId);
+    		mDb.createLog(mTrigId, mDate.getYear(), mDate.getMonth(), mDate.getDayOfMonth(), 
+				mTime.getCurrentHour(), mTime.getCurrentMinute(), mGridref.getText().toString(), mFb.getText().toString(), 
+				(Condition) mCondition.getSelectedItem(), (int) mScore.getRating(), 
+				mComment.getText().toString(), mAdminFlag.isChecked()?1:0, mUserFlag.isChecked()?1:0);
+    		mDb.mDb.setTransactionSuccessful();
+        	Log.i(TAG, "Transaction Successful");
+    	} catch (Exception e) {
+    		Log.i(TAG, "Transaction rolled back");
+    	} finally {
+    		mDb.mDb.endTransaction();
+    	}
     }
 
 
@@ -279,12 +297,37 @@ public class TrigDetailsLogTrigTab extends Activity implements ImageEventListene
     	mDb.deleteLog(mTrigId);
     }
 
-	@Override
-	public void onDateChanged(DatePicker arg0, int arg1, int arg2, int arg3) {
-		// TODO Auto-generated method stub
-		
-	}
+    
+    
+    private void uploadLog() {
+    	Log.i(TAG, "uploadLog");
+    	
+    	// check for login credentials in prefs
+    	SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		if (prefs.getString("username", "").equals("")) {
+			Toast.makeText(this, "Please add username to preferences!", Toast.LENGTH_LONG).show();
+			return;
+		} 
+		if (prefs.getString("plaintextpassword", "").equals("")) {
+			Toast.makeText(this, "Please add password to preferences!", Toast.LENGTH_LONG).show();
+			return;
+		} 
+    	Toast.makeText(this, "Uploading log to server", Toast.LENGTH_SHORT).show();    	
+    }
 
+	@Override
+	public void onDateChanged(DatePicker view, int pYear, int pMonth, int pDay) {
+		Log.i(TAG, "Date changed");
+		Calendar cal = Calendar.getInstance();
+		int day = cal.get(Calendar.DATE);
+		int month = cal.get(Calendar.MONTH);
+		int year = cal.get(Calendar.YEAR);
+		if ( pYear  > year
+		|| ( pYear == year && pMonth  > month)
+		|| ( pYear == year && pMonth == month && pDay > day) ) {
+			view.updateDate(year, month, day);
+		}
+	}
 }
 
 

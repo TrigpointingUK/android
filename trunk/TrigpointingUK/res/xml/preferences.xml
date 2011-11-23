@@ -10,7 +10,7 @@
 	             
 	    
 	    <EditTextPreference android:summary="@string/PrefsUsernameDetails" android:key="username" android:title="@string/prefsUsername" android:dialogTitle="@string/prefsUsername"></EditTextPreference>
-	    <EditTextPreference android:summary="@string/PrefsPasswordDetails" android:key="password" android:title="@string/prefsPassword" android:dialogTitle="@string/prefsPassword"></EditTextPreference>
+	    <EditTextPreference android:summary="@string/PrefsPasswordDetails" android:title="@string/prefsPassword" android:dialogTitle="@string/prefsPassword" android:key="password"></EditTextPreference>
 </PreferenceCategory>
  
 	    <PreferenceCategory
