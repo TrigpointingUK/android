@@ -210,7 +210,20 @@ public class DbHelper {
 		return mDb.query(TRIG_TABLE, new String[] {TRIG_ID, TRIG_NAME, TRIG_LAT, TRIG_LON, TRIG_TYPE, TRIG_CONDITION, TRIG_LOGGED, TRIG_CURRENT, TRIG_HISTORIC, TRIG_FB}, TRIG_ID + "="+id, null, null, null, null);
 	}
 	
+	/**
+	 * Returns whether the trig table contains data
+	 * 
+	 * @return int 
+	 */
+	public Boolean isTrigTablePopulated () {
+		Cursor c =  mDb.query(TRIG_TABLE, new String[] {TRIG_ID}, null, null, null, null, null);
+		if (c.getCount() == 0 ) {
+			return false;
+		}
+		return true;
+	}
 
+	
 	
 	/**
 	 * Create a new log.  If the record is
@@ -222,6 +235,8 @@ public class DbHelper {
 	 */
 	public long createLog(long id, int year, int month, int day, int hour, int minutes, String gridref, String fb, 
 						Condition condition, int score, String comment, int flagadmins, int flagusers) {
+		Log.i(TAG, "createLog - " + id);
+		
 		ContentValues initialValues = new ContentValues();
 		initialValues.put(LOG_ID			, id);
 		initialValues.put(LOG_YEAR			, year);

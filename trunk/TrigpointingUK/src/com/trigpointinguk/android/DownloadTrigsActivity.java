@@ -131,8 +131,13 @@ public class DownloadTrigsActivity extends Activity {
 			case OK:
 				mStatus.setText("Finished downloading " + mDownloadCount +" trigs");
 				mDownloadBtn.setText(R.string.btnDownloadFinished);
-				mDownloadBtn.setClickable(false);
 				mProgress.setProgress(mProgressMax);
+				mDownloadBtn.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View arg0) {
+							DownloadTrigsActivity.this.finish();
+					}
+				});       
 				break;
 			case ERROR:
 				mStatus.setText("Download failed!");

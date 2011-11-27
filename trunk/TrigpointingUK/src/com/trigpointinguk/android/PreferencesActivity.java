@@ -23,12 +23,14 @@ public class PreferencesActivity extends PreferenceActivity {
 		super.onPause();
 
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-		Editor editor = prefs.edit();
 		
 		String plaintext = prefs.getString("password", "");
-		editor.putString("plaintextpassword", plaintext);
-		editor.remove("password");
-		editor.commit();
+		if (!plaintext.equals("")) {
+			Editor editor = prefs.edit();
+			editor.putString("plaintextpassword", plaintext);
+			editor.remove("password");
+			editor.commit();
+		}
 	}
 	
 	

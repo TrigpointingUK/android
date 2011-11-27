@@ -24,10 +24,12 @@ public class FileCache {
 		return f;
 	}
 
-	public void clear(){
+	public int clear(){
 		File[] files=cacheDir.listFiles();
-		for(File f:files)
+		for(File f:files) {
 			f.delete();
+		}
+		return files.length;
 	}
 
 }

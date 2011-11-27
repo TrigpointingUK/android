@@ -1,6 +1,9 @@
 package com.trigpointinguk.android;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -13,7 +16,8 @@ import android.widget.Button;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
-    public static final String TAG 				="MainActivity";
+    public static final String TAG ="MainActivity";
+    public static final int NOTRIGS = 1;
     private SharedPreferences mPrefs;
     
  	@Override
@@ -22,8 +26,17 @@ public class MainActivity extends Activity {
         setContentView(R.layout.main);
         mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
+        // Add user's name to view
         TextView user = (TextView) findViewById(R.id.txtUserName);
-        user.setText(mPrefs.getString("username", ""));
+        user.setText(mPrefs.getString("username", getResources().getText(R.string.noUser).toString()));
+        
+        // check for empty trig database
+        DbHelper db = new DbHelper(this);
+        db.open();
+        if (! db.isTrigTablePopulated()) {
+        	showDialog(NOTRIGS);
+        }
+        db.close();
         
         final Button btnNearest = (Button) findViewById(R.id.btnNearest);
         btnNearest.setOnClickListener(new OnClickListener() {
@@ -66,6 +79,35 @@ public class MainActivity extends Activity {
 
  	
  	@Override
+	protected Dialog onCreateDialog(int id) {
+ 	    Dialog dialog;
+ 	    switch(id) {
+ 	    case NOTRIGS:
+ 	    	AlertDialog.Builder builder = new AlertDialog.Builder(this);
+ 	    	builder.setMessage(R.string.dlgNoTrigs)
+ 	    	       .setCancelable(true)
+ 	    	       .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+ 	    	           public void onClick(DialogInterface dialog, int id) {
+ 	    	        	   dialog.cancel();
+ 	    	        	   Intent i = new Intent(MainActivity.this, DownloadTrigsActivity.class);
+ 	    	        	   startActivity(i);
+ 	    	           }
+ 	    	       })
+ 	    	       .setNegativeButton("No", new DialogInterface.OnClickListener() {
+ 	    	    	   public void onClick(DialogInterface dialog, int id) {
+ 	    	    		   dialog.cancel();
+ 	    	    	   }
+ 	    	       });
+ 	    	dialog = builder.create();
+ 	        break;
+ 	    default:
+ 	        dialog = null;
+ 	    }
+ 	    return dialog;
+	}
+
+
+	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
         boolean result = super.onCreateOptionsMenu(menu);
 		getMenuInflater().inflate(R.menu.mainmenu, menu);
@@ -94,6 +136,9 @@ public class MainActivity extends Activity {
             i = new Intent(MainActivity.this, HelpPageActivity.class);
             i.putExtra(HelpPageActivity.PAGE, "about.html");
             startActivity(i);
+            return true;
+        case R.id.clearcache:
+			new ClearCacheTask(MainActivity.this).execute();        	
             return true;
         }
 		return super.onOptionsItemSelected(item);

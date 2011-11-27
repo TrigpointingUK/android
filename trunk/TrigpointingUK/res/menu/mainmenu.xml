@@ -4,5 +4,6 @@
     <item android:id="@+id/downloadtrigs" android:title="@string/downTrigs" android:icon="@drawable/ic_menu_more"></item>
     <item android:id="@+id/downloadmaps" android:title="@string/downMaps" android:icon="@drawable/ic_menu_more" android:enabled="false" android:visible="false"></item>
     <item android:id="@+id/prefs" android:title="@string/prefs" android:icon="@drawable/ic_menu_preferences"></item>
-    <item android:id="@+id/about" android:title="@string/help_about" android:icon="@drawable/ic_menu_info_details"></item>    
+    <item android:id="@+id/about" android:title="@string/help_about" android:icon="@drawable/ic_menu_info_details"></item>
+    <item android:id="@+id/clearcache" android:icon="@drawable/ic_menu_delete" android:title="@string/clearCache"></item>    
 </menu>

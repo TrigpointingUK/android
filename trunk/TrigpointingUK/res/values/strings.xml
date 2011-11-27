@@ -2,6 +2,8 @@
 <resources>
     <string name="hello">Hello, Android! T:UK string resource!</string>
     <string name="app_name">TrigpointingUK</string>
+	<string name="dlgNoTrigs">No trigpoint database!  Download now?</string>
+	<string name="noUser">Please set username in preferences</string>
 	<string name="btnNearest">Nearest</string>
 	<string name="btnMap">Map</string>
 	<string name="btnSearch">Search</string>
@@ -13,6 +15,7 @@
 	<string name="downTrigs">Download Trig Database</string>
 	<string name="syncLogs">Sync Logs</string>
 	<string name="btnSync">Sync Logs</string>
+	<string name="clearCache">Clear Cache</string>
 	<string name="downloadTitle">Download Trigpoint Database</string>
 	<string name="downloadBlurb">When you first install this app, and every now and then afterwards, you need to download a full set of trigpoint data from the TrigpointingUK.com server.  This data is stored on your phone, so that you can search for trigpoints even when out of phone reception.</string>
 	<string name="downloadStatus">Status: </string>

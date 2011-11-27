@@ -48,6 +48,7 @@ public class TrigDetailsLogTrigTab extends Activity implements ImageEventListene
     
     private ImageEventManager 	mIem;    
     private DbHelper 			mDb;
+    private boolean				mHaveLog;
 
     
 	
@@ -95,7 +96,8 @@ public class TrigDetailsLogTrigTab extends Activity implements ImageEventListene
 		mDb.open();
 		
 		// Check to see whether log already exists
-		if (mDb.fetchLog(mTrigId) != null) {
+		mHaveLog = (mDb.fetchLog(mTrigId) != null);
+		if (mHaveLog) {
 			mSwitcher.showNext();
 		}
 		
@@ -118,6 +120,7 @@ public class TrigDetailsLogTrigTab extends Activity implements ImageEventListene
 	        	createNewLog();
 				populateFields();
 	        	mSwitcher.showNext();
+	        	mHaveLog = true;
 			}
 		});	
 
@@ -129,6 +132,7 @@ public class TrigDetailsLogTrigTab extends Activity implements ImageEventListene
 	        	Log.i(TAG, "Delete Log");
 	        	deleteLog();
 	        	mSwitcher.showNext();
+	        	mHaveLog = false;
 			}
 		});	
 
@@ -269,6 +273,11 @@ public class TrigDetailsLogTrigTab extends Activity implements ImageEventListene
     
     private void saveLog() {
     	Log.i(TAG, "saveLog");
+    	
+    	// Only save the log if one already exists
+    	if (!mHaveLog) {return;}
+    	
+    	// Save the changes to the database
     	try {
     		mDb.mDb.beginTransaction();
     		mDb.deleteLog(mTrigId);
