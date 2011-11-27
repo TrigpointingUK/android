@@ -66,7 +66,7 @@ public class MainActivity extends Activity {
         btnSearch.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				Intent i = new Intent(MainActivity.this, TrigDetailsLogTrigTab.class);
+				Intent i = new Intent(MainActivity.this, LogTrigActivity.class);
 				startActivity(i);
 			}
 		});

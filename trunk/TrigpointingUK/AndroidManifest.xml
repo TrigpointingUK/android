@@ -32,6 +32,6 @@
         <meta-data android:value="AmX-6eFz_aE2rrhkXUprU3HRV2BNMrCYQoKodIFdfNEcZosjAEbsNetB00GFktP5" android:name="BING_KEY"></meta-data>
         <activity android:name="HelpPageActivity"></activity>
         <activity android:name="DisplayBitmapActivity"></activity>
-        <activity android:name="TrigDetailsLogTrigTab"></activity>
+        <activity android:name=".LogTrigActivity"></activity>
     </application>
 </manifest>

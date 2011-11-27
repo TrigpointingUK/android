@@ -30,8 +30,8 @@ import android.widget.DatePicker.OnDateChangedListener;
 import com.trigpointinguk.android.common.ImageEventListener;
 import com.trigpointinguk.android.common.ImageEventManager;
 
-public class TrigDetailsLogTrigTab extends Activity implements ImageEventListener, OnDateChangedListener {
-	private static final String TAG			= "TrigDetailsLogTrigTab";
+public class LogTrigActivity extends Activity implements ImageEventListener, OnDateChangedListener {
+	private static final String TAG			= "LogTrigActivity";
     private static final int    TAKE_PHOTO  = 1;
     
 	private Long 				mTrigId;
@@ -89,7 +89,7 @@ public class TrigDetailsLogTrigTab extends Activity implements ImageEventListene
 	
 
 		// Class to listen for new photos appearing on the external storage
-		mIem = new ImageEventManager(TrigDetailsLogTrigTab.this,TrigDetailsLogTrigTab.this);
+		mIem = new ImageEventManager(LogTrigActivity.this,LogTrigActivity.this);
 		
 		// Connect to database
 		mDb = new DbHelper(this);
