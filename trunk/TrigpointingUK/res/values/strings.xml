@@ -11,6 +11,10 @@
 	<string name="noPhotos">Downloading photo album</string>
 	<string name="noLogs">Downloading logs</string>
 	<string name="reset">Reset</string>
+	<string name="refresh">Refresh</string>
+	<string name="directions">Get Directions</string>
+	<string name="navigate">Compass Mode</string>
+	<string name="browser">Open in Browser</string>
 	<string name="siteName">TrigpointingUK</string>
 	<string name="downTrigs">Download Trig Database</string>
 	<string name="syncLogs">Sync Logs</string>

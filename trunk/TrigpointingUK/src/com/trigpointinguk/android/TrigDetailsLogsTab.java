@@ -6,6 +6,8 @@ import android.app.ListActivity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 
 import com.trigpointinguk.android.common.StringLoader;
 
@@ -33,22 +35,41 @@ public class TrigDetailsLogsTab extends ListActivity {
 		setListAdapter(mTrigLogsAdapter);
 
 		// get list of photos
-        new PopulatePhotosTask().execute();
+        new PopulateLogsTask().execute(false);
     }
     
     
-    
-    
-    
-    
-    
-	private class PopulatePhotosTask extends AsyncTask<Void, Integer, Integer> {
-		protected Integer doInBackground(Void... arg0) {
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		boolean result = super.onCreateOptionsMenu(menu);
+		getMenuInflater().inflate(R.menu.trigdetailsmenu, menu);
+		return result;
+	}
+
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+	       switch (item.getItemId()) {
+	        // refresh the trig logs
+	        case R.id.refresh:
+	        	Log.i(TAG, "refresh");
+	            new PopulateLogsTask().execute(true);
+	            return true;
+	        }
+			return super.onOptionsItemSelected(item);
+	}
+
+
+
+
+	private class PopulateLogsTask extends AsyncTask<Boolean, Integer, Integer> {
+		protected Integer doInBackground(Boolean... arg0) {
 			int count=0;
 			mTrigLogs.clear();
 			
+			// get triglogs from T:UK, refresh if requested
 	        String url = String.format("http://www.trigpointinguk.com/trigs/down-android-triglogs.php?t=%d", mTrigId);
-	        String list = mStrLoader.getString(url, false);
+	        String list = mStrLoader.getString(url, arg0[0]);
 	        if (list == null || list.trim().length()==0) {
 	    		Log.i(TAG, "No logs for "+mTrigId);        	
 	    		return count;
@@ -64,7 +85,7 @@ public class TrigDetailsLogsTab extends ListActivity {
 	        for (String line : lines) {
 	        	if (!(line.trim().equals(""))) { 
 	        		String[] csv = line.split("\t");
-	        		System.out.println(java.util.Arrays.toString(csv));
+	        		//System.out.println(java.util.Arrays.toString(csv));
 	        		try {
 	        			tl= new TrigLog(
 	        					csv[3],							//username 

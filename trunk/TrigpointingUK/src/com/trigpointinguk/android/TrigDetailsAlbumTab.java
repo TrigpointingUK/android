@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 
@@ -35,7 +37,7 @@ public class TrigDetailsAlbumTab extends ListActivity {
 		setListAdapter(mTrigAlbumAdapter);
 
 		// get list of photos
-        new PopulatePhotosTask().execute();	    
+        new PopulatePhotosTask().execute(false);	    
     }
     
     
@@ -48,17 +50,36 @@ public class TrigDetailsAlbumTab extends ListActivity {
         startActivity(i);
     }
 	
-	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		boolean result = super.onCreateOptionsMenu(menu);
+		getMenuInflater().inflate(R.menu.trigdetailsmenu, menu);
+		return result;
+	}
+
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+	       switch (item.getItemId()) {
+	        // refresh the trig logs
+	        case R.id.refresh:
+	        	Log.i(TAG, "refresh");
+	            new PopulatePhotosTask().execute(true);
+	            return true;
+	        }
+			return super.onOptionsItemSelected(item);
+	}
+
     
     
     
-	private class PopulatePhotosTask extends AsyncTask<Void, Integer, Integer> {
-		protected Integer doInBackground(Void... arg0) {
+	private class PopulatePhotosTask extends AsyncTask<Boolean, Integer, Integer> {
+		protected Integer doInBackground(Boolean... arg0) {
 			int count=0;
 			mTrigPhotos.clear();
 			
 	        String url = String.format("http://www.trigpointinguk.com/trigs/down-android-trigphotos.php?t=%d", mTrigId);
-	        String list = mStrLoader.getString(url, false);
+	        String list = mStrLoader.getString(url, arg0[0]);
 	        if (list == null || list.trim().length()==0) {
 	    		Log.i(TAG, "No photos for "+mTrigId);        	
 	    		return count;

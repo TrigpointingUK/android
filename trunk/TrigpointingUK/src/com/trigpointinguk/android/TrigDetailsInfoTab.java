@@ -1,17 +1,27 @@
 package com.trigpointinguk.android;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.database.Cursor;
+import android.location.GpsStatus.NmeaListener;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.trigpointinguk.android.common.LatLon;
 
 public class TrigDetailsInfoTab extends Activity {
+	private static final String TAG="TrigDetailsInfoTab";
 	private long mTrigId;
 	private DbHelper mDb;
+	private Uri 	mTUKUrl;
+	private Uri 	mNavUrl;
 
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -28,13 +38,25 @@ public class TrigDetailsInfoTab extends Activity {
 		mDb.open();		
 		Cursor c = mDb.fetchTrigInfo(mTrigId);
 		c.moveToFirst();
+
+		
+		mTUKUrl = Uri.parse( "http://www.trigpointinguk.com/trigs/trig-details.php?t="+c.getLong(c.getColumnIndex(DbHelper.TRIG_ID)) );
+		mNavUrl = Uri.parse( "google.navigation:q=New+York+NY");
+		
 		
 		TextView tv;
 		ImageView iv;
 		
 		tv = (TextView)  findViewById(R.id.triginfo_name);
 		tv.setText(c.getString(c.getColumnIndex(DbHelper.TRIG_NAME)));
-		
+
+		tv.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+				startActivity( new Intent( Intent.ACTION_VIEW, mTUKUrl ) );
+			}
+		});
+
 		tv = (TextView)  findViewById(R.id.triginfo_waypoint);
 		tv.setText(String.format("TP%04d", c.getLong(c.getColumnIndex(DbHelper.TRIG_ID))));
 		
@@ -67,4 +89,29 @@ public class TrigDetailsInfoTab extends Activity {
 		c.close();
 		mDb.close();
     }
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		boolean result = super.onCreateOptionsMenu(menu);
+		getMenuInflater().inflate(R.menu.trigdetailsinfomenu, menu);
+		return result;
+	}
+
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+	       switch (item.getItemId()) {
+	        // refresh the trig logs
+	        case R.id.navigate:
+	        	Log.i(TAG, "navigate");
+				startActivity( new Intent( Intent.ACTION_VIEW, mNavUrl ) );
+	        	return true;
+	        case R.id.browser:
+	        	Log.i(TAG, "browser");
+				startActivity( new Intent( Intent.ACTION_VIEW, mTUKUrl ) );
+	        	return true;
+	        }
+			return super.onOptionsItemSelected(item);
+	}
+	
 }
