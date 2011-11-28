@@ -23,7 +23,8 @@ public class TrigDetailsInfoTab extends Activity {
 	private Uri 	 mNavUrl;
 	private double   mLatitude;
 	private double   mLongitude;
-
+	private String   mWaypoint;
+	
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.triginfo);
@@ -45,7 +46,7 @@ public class TrigDetailsInfoTab extends Activity {
 		
 		mTUKUrl   = Uri.parse( "http://www.trigpointinguk.com/trigs/trig-details.php?t="+c.getLong(c.getColumnIndex(DbHelper.TRIG_ID)) );
 		mNavUrl   = Uri.parse( String.format("google.navigation:ll=%3.5f,%3.5f",mLatitude, mLongitude)); 
-		
+		mWaypoint = String.format("TP%04d", c.getLong(c.getColumnIndex(DbHelper.TRIG_ID)));
 		
 		TextView tv;
 		ImageView iv;
@@ -54,7 +55,7 @@ public class TrigDetailsInfoTab extends Activity {
 		tv.setText(c.getString(c.getColumnIndex(DbHelper.TRIG_NAME)));
 
 		tv = (TextView)  findViewById(R.id.triginfo_waypoint);
-		tv.setText(String.format("TP%04d", c.getLong(c.getColumnIndex(DbHelper.TRIG_ID))));
+		tv.setText(mWaypoint);
 		
 		iv = (ImageView) findViewById(R.id.triginfo_condition_icon);
 		iv.setImageResource(Condition.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_CONDITION))).icon());
@@ -120,6 +121,7 @@ public class TrigDetailsInfoTab extends Activity {
 	        		Intent i = new Intent("com.google.android.radar.SHOW_RADAR") ;
 	        		i.putExtra("latitude",  (float) mLatitude);
 	        		i.putExtra("longitude", (float) mLongitude);
+	        		i.putExtra("name", mWaypoint);
 	        		startActivity(i);
 	        	} catch (ActivityNotFoundException e) {
 					Toast.makeText(this, "Unable to launch radar", Toast.LENGTH_LONG).show();
