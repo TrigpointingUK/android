@@ -15,5 +15,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="gen"/>
+	<classpathentry kind="lib" path="/home/ianh/development/Android/android-sdk-linux_x86/add-ons/addon_google_apis_google_inc_7/libs/maps.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

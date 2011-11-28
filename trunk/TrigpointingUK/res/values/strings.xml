@@ -13,7 +13,7 @@
 	<string name="reset">Reset</string>
 	<string name="refresh">Refresh</string>
 	<string name="directions">Get Directions</string>
-	<string name="navigate">Compass Mode</string>
+	<string name="radar">Radar Mode</string>
 	<string name="browser">Open in Browser</string>
 	<string name="siteName">TrigpointingUK</string>
 	<string name="downTrigs">Download Trig Database</string>

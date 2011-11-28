@@ -1,27 +1,28 @@
 package com.trigpointinguk.android;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.database.Cursor;
-import android.location.GpsStatus.NmeaListener;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.trigpointinguk.android.common.LatLon;
 
 public class TrigDetailsInfoTab extends Activity {
 	private static final String TAG="TrigDetailsInfoTab";
-	private long mTrigId;
+	private long     mTrigId;
 	private DbHelper mDb;
-	private Uri 	mTUKUrl;
-	private Uri 	mNavUrl;
+	private Uri 	 mTUKUrl;
+	private Uri 	 mNavUrl;
+	private double   mLatitude;
+	private double   mLongitude;
 
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,9 +40,11 @@ public class TrigDetailsInfoTab extends Activity {
 		Cursor c = mDb.fetchTrigInfo(mTrigId);
 		c.moveToFirst();
 
+		mLatitude  = c.getDouble(c.getColumnIndex(DbHelper.TRIG_LAT));
+		mLongitude = c.getDouble(c.getColumnIndex(DbHelper.TRIG_LON));
 		
-		mTUKUrl = Uri.parse( "http://www.trigpointinguk.com/trigs/trig-details.php?t="+c.getLong(c.getColumnIndex(DbHelper.TRIG_ID)) );
-		mNavUrl = Uri.parse( "google.navigation:q=New+York+NY");
+		mTUKUrl   = Uri.parse( "http://www.trigpointinguk.com/trigs/trig-details.php?t="+c.getLong(c.getColumnIndex(DbHelper.TRIG_ID)) );
+		mNavUrl   = Uri.parse( String.format("google.navigation:ll=%3.5f,%3.5f",mLatitude, mLongitude)); 
 		
 		
 		TextView tv;
@@ -49,13 +52,6 @@ public class TrigDetailsInfoTab extends Activity {
 		
 		tv = (TextView)  findViewById(R.id.triginfo_name);
 		tv.setText(c.getString(c.getColumnIndex(DbHelper.TRIG_NAME)));
-
-		tv.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View arg0) {
-				startActivity( new Intent( Intent.ACTION_VIEW, mTUKUrl ) );
-			}
-		});
 
 		tv = (TextView)  findViewById(R.id.triginfo_waypoint);
 		tv.setText(String.format("TP%04d", c.getLong(c.getColumnIndex(DbHelper.TRIG_ID))));
@@ -102,14 +98,33 @@ public class TrigDetailsInfoTab extends Activity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 	       switch (item.getItemId()) {
 	        // refresh the trig logs
-	        case R.id.navigate:
-	        	Log.i(TAG, "navigate");
-				startActivity( new Intent( Intent.ACTION_VIEW, mNavUrl ) );
-	        	return true;
+	        case R.id.directions:
+	        	Log.i(TAG, "directions");
+	        	try {
+	        		startActivity( new Intent( Intent.ACTION_VIEW, mNavUrl ) );
+	        	} catch (ActivityNotFoundException e) {
+					Toast.makeText(this, "Unable to launch navigator", Toast.LENGTH_LONG).show();
+	        	} 
+        		return true;
 	        case R.id.browser:
 	        	Log.i(TAG, "browser");
-				startActivity( new Intent( Intent.ACTION_VIEW, mTUKUrl ) );
+	        	try {
+	        		startActivity( new Intent( Intent.ACTION_VIEW, mTUKUrl ) );
+	        	} catch (ActivityNotFoundException e) {
+					Toast.makeText(this, "Unable to launch browser", Toast.LENGTH_LONG).show();
+	        	}
 	        	return true;
+	        case R.id.radar:
+	        	Log.i(TAG, "radar");
+	        	try {
+	        		Intent i = new Intent("com.google.android.radar.SHOW_RADAR") ;
+	        		i.putExtra("latitude",  (float) mLatitude);
+	        		i.putExtra("longitude", (float) mLongitude);
+	        		startActivity(i);
+	        	} catch (ActivityNotFoundException e) {
+					Toast.makeText(this, "Unable to launch radar", Toast.LENGTH_LONG).show();
+	        	} 
+	        	return true;	     
 	        }
 			return super.onOptionsItemSelected(item);
 	}
