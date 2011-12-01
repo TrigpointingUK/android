@@ -25,6 +25,7 @@ public class SyncTask extends AsyncTask<Void, Integer, Integer> {
 	private Context mCtx;
 	private SharedPreferences mPrefs;
     private ProgressDialog mProgressDialog;
+    private static boolean mLock = false;
 
 	
 	SyncTask(Context pCtx) {
@@ -35,10 +36,10 @@ public class SyncTask extends AsyncTask<Void, Integer, Integer> {
 		Log.d(TAG, "doInBackground");
 		if (isCancelled()){return 0;}
 		
-		DbHelper db = new DbHelper(mCtx);
         String strLine;                
 		int i=0;
 		String strUser;
+		DbHelper db = null;
 		
 		try {
 			strUser = URLEncoder.encode(mPrefs.getString("username", ""), "utf8");
@@ -49,13 +50,28 @@ public class SyncTask extends AsyncTask<Void, Integer, Integer> {
 		if (strUser.equals("")) {return 0;}
         
 		try {
-			db.open();
-			db.mDb.beginTransaction();
 			URL url = new URL("http://www.trigpointinguk.com/trigs/down-android-mylogs.php?username="+strUser);
+			Log.d(TAG, "Getting " + url);
             URLConnection ucon = url.openConnection();
             InputStream is = ucon.getInputStream();
             GZIPInputStream zis = new GZIPInputStream(new BufferedInputStream(is));
             BufferedReader br = new BufferedReader(new InputStreamReader(zis));
+
+    		if (isCancelled()){return 0;}
+
+    		
+    		// Make sure only one SyncTask runs at a time
+    		if (mLock) {
+    			Log.i(TAG, "SyncTask already running");
+    			this.cancel(true);
+    			return 0;
+    		}
+    		mLock = true;
+
+    		
+    		db = new DbHelper(mCtx);
+            db.open();
+			db.mDb.beginTransaction();
             
             while ((strLine = br.readLine()) != null && !strLine.trim().equals(""))   {
             	//Log.i(TAG,strLine);
@@ -64,22 +80,27 @@ public class SyncTask extends AsyncTask<Void, Integer, Integer> {
 				int id					= Integer.valueOf(csv[1]);
 				db.updateTrigLog(id, logged);
 				i++;
+				if (isCancelled()){return 0;}
             }
 			db.mDb.setTransactionSuccessful();
         } catch (Exception e) {
         	Log.d(TAG, "Error: " + e);
         	i=-1;
         } finally {
-        	db.mDb.endTransaction();
-        	db.close();
+        	if (db != null) {
+        		db.mDb.endTransaction();
+            	db.close();
+        		mLock = false;
+        	}
         }
         
 		return i;
 	}
     protected void onPreExecute() {
 		Log.d(TAG, "onPreExecute");
+		
+		// Check that we have a username, so that we can sync existing logs
 		mPrefs = PreferenceManager.getDefaultSharedPreferences(mCtx);
-
 		if (mPrefs.getString("username", "").equals("")) {
 			Toast.makeText(mCtx, "Please add username to preferences!", Toast.LENGTH_LONG).show();
 			this.cancel(true);
@@ -87,7 +108,7 @@ public class SyncTask extends AsyncTask<Void, Integer, Integer> {
 			mProgressDialog = new ProgressDialog(mCtx);
 			mProgressDialog.setMessage("Syncing with T:UK...");
 			mProgressDialog.setIndeterminate(true);
-			mProgressDialog.setCancelable(false);
+			mProgressDialog.setCancelable(true);
 			mProgressDialog.show();
 		}
     }
@@ -97,10 +118,13 @@ public class SyncTask extends AsyncTask<Void, Integer, Integer> {
 		Log.d(TAG, "onPostExecute " + arg0);
 		if (!isCancelled()) {
 			if (arg0 >= 0) {
-				Toast.makeText(mCtx, "Synced " + arg0 + " logs", Toast.LENGTH_LONG).show();
+				Toast.makeText(mCtx, "Synced " + arg0 + " logs", Toast.LENGTH_SHORT).show();
 			} else {
-				Toast.makeText(mCtx, "Error retrieving logs", Toast.LENGTH_LONG).show();					
+				Toast.makeText(mCtx, "Error retrieving logs", Toast.LENGTH_SHORT).show();					
 			}
+		} else {
+			Log.d(TAG, "cancelled " + arg0);
+			Toast.makeText(mCtx, "Sync cancelled", Toast.LENGTH_SHORT).show();			
 		}
 		if (mProgressDialog != null) {mProgressDialog.dismiss();}
     }

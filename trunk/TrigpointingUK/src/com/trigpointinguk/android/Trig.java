@@ -20,34 +20,39 @@ public class Trig extends LatLon {
 	
 	// PHYSICAL TYPE of the trigpoint
 	public enum Physical {
-		ACTIVE	 		("AC", "Active"),
-		BERNTSEN		("BE", "Berntsen"),
-		BLOCK			("BL", "Block"),
-		BOLT			("BO", "Bolt"),
-		BURIEDBLOCK		("BB", "Buried Block"),
-		CANNON			("CA", "Cannon"),
-		CENTRE			("CE", "Centre"),
-		CONCRETERING	("CR", "Concrete Ring"),
-		CURRYSTOOL		("CS", "Curry Stool"),
-		FBM				("FB", "FBM"),
-		FENOMARK		("FE", "Fenomark"),
-		MONUMENT		("MO", "Monument"),
-		OTHER			("OT", "Other"),
-		PILLAR			("PI", "Pillar"),
-		RIVET			("RI", "Rivet"),
-		SPIDER			("SP", "Spider"),
-		SURFACEBLOCK	("SB", "Surface Block"),
-		USERADDED		("UA", "Unknown - User Added"),
+		ACTIVE	 		("AC", R.drawable.t_passive, "Active"),
+		BERNTSEN		("BE", R.drawable.t_passive, "Berntsen"),
+		BLOCK			("BL", R.drawable.t_passive, "Block"),
+		BOLT			("BO", R.drawable.t_passive, "Bolt"),
+		BURIEDBLOCK		("BB", R.drawable.t_passive, "Buried Block"),
+		CANNON			("CA", R.drawable.t_passive, "Cannon"),
+		CENTRE			("CE", R.drawable.t_passive, "Centre"),
+		CONCRETERING	("CR", R.drawable.t_passive, "Concrete Ring"),
+		CURRYSTOOL		("CS", R.drawable.t_passive, "Curry Stool"),
+		FBM				("FB", R.drawable.t_fbm, "FBM"),
+		FENOMARK		("FE", R.drawable.t_passive, "Fenomark"),
+		MONUMENT		("MO", R.drawable.t_passive, "Monument"),
+		OTHER			("OT", R.drawable.t_passive, "Other"),
+		PILLAR			("PI", R.drawable.t_pillar, "Pillar"),
+		RIVET			("RI", R.drawable.t_passive, "Rivet"),
+		SPIDER			("SP", R.drawable.t_passive, "Spider"),
+		SURFACEBLOCK	("SB", R.drawable.t_passive, "Surface Block"),
+		USERADDED		("UA", R.drawable.t_passive, "Unknown - User Added"),
 		;
 
 		private final String   code;
 		private final String   descr;	
-		Physical (String code, String descr) {
+		private final int      icon;	
+		Physical (String code, int icon, String descr) {
 			this.code = code;
+			this.icon = icon;
 			this.descr  = descr;
 		}
 		public String code() {
 			return code;
+		}
+		public int icon() {
+			return icon;
 		}
 		public String toString() {
 			return descr;
