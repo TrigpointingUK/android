@@ -153,6 +153,11 @@ public class NearestActivity extends ListActivity {
 			// A new location is always better than no location
 			return true;
 		}
+		
+		if (location == null) {
+			// A null location is never better than anything
+			return false;
+		}
 
 		// Check whether the new location fix is newer or older
 		long timeDelta = location.getTime() - currentBestLocation.getTime();
