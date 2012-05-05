@@ -22,6 +22,7 @@ public class TrigDetailsLogsTab extends ListActivity {
 	
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.triglogs);
         
         // get trig_id from extras
         Bundle extras = getIntent().getExtras();
