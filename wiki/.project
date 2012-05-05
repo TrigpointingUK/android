@@ -3,6 +3,7 @@
 	<name>TrigpointingUK_Wiki</name>
 	<comment></comment>
 	<projects>
+		<project>TrigpointingUK</project>
 	</projects>
 	<buildSpec>
 	</buildSpec>
