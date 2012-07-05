@@ -123,4 +123,6 @@
 	<string name="logDelete">Delete Log</string>
 	<string name="logUserFlag">Flag log to warn other T:UK users</string>
 	<string name="addLog">Log this trigpoint</string>
+	<string name="prefsExperimental">Experimental</string>
+	<string name="prefsExperimentalDetails">Enable experimental features (unstable)</string>
 </resources>

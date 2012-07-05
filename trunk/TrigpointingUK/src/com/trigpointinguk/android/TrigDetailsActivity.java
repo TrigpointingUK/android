@@ -2,26 +2,32 @@ package com.trigpointinguk.android;
 
 import android.app.TabActivity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.TabHost;
 
 public class TrigDetailsActivity extends TabActivity {
 
 	private static final String TAG="TrigDetailsActivity";
+    private SharedPreferences mPrefs;
 	
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
 	    setContentView(R.layout.trigdetails);
 
 		Bundle extras = getIntent().getExtras();
+       mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+
 	    
 	    Resources res = getResources();
 	    TabHost tabHost = getTabHost();
 	    TabHost.TabSpec spec;
 	    Intent intent;
+	    
 
 	    intent = new Intent().setClass(this, TrigDetailsInfoTab.class);
 	    intent.putExtras(extras);
@@ -51,13 +57,14 @@ public class TrigDetailsActivity extends TabActivity {
 	                  .setContent(intent);
 	    tabHost.addTab(spec);
 
-	    intent = new Intent().setClass(this, LogTrigActivity.class);
-	    intent.putExtras(extras);
-	    spec = tabHost.newTabSpec("mylog").setIndicator("",
-	                      res.getDrawable(android.R.drawable.ic_menu_edit))
-	                  .setContent(intent);
-	    tabHost.addTab(spec);
-
+	    if (mPrefs.getBoolean("experimental", false)) {
+		    intent = new Intent().setClass(this, LogTrigActivity.class);
+		    intent.putExtras(extras);
+		    spec = tabHost.newTabSpec("mylog").setIndicator("",
+		                      res.getDrawable(android.R.drawable.ic_menu_edit))
+		                  .setContent(intent);
+		    tabHost.addTab(spec);
+	    }
 	    
 	    tabHost.setCurrentTab(0);
 	    

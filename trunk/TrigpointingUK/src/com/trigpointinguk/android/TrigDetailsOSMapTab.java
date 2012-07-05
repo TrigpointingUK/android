@@ -55,6 +55,20 @@ public class TrigDetailsOSMapTab extends Activity {
 	
 	
 	
+	
+	
+	@Override
+	protected void onDestroy() {
+		if (mDb != null) {
+			mDb.close();
+		}
+		super.onDestroy();
+	}
+
+
+
+
+
 	public String[] getURLs (Long trigid, Cursor c) {
 		String url;
 		List<String> URLs = new ArrayList<String>();
@@ -107,4 +121,5 @@ public class TrigDetailsOSMapTab extends Activity {
 		
 		return URLs.toArray(new String[URLs.size()]);
 	}
+	
 }

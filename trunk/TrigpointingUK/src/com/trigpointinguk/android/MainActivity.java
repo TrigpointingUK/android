@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
     public static final String TAG ="MainActivity";
@@ -75,6 +76,13 @@ public class MainActivity extends Activity {
         if (mPrefs.getBoolean("autosync", false)) {
 			new SyncTask(MainActivity.this).execute();        	
         }   
+        
+        //Experimental
+        if (mPrefs.getBoolean("experimental", false)) {
+        	Toast.makeText(this, "Running in experimental mode", Toast.LENGTH_LONG).show();
+        } else {
+        	btnSearch.setEnabled(false);
+        }
     }
 
  	

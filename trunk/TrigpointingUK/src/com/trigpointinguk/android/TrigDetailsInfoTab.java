@@ -131,4 +131,14 @@ public class TrigDetailsInfoTab extends Activity {
 			return super.onOptionsItemSelected(item);
 	}
 	
+	@Override
+	protected void onDestroy() {
+		if (mDb != null) {
+			mDb.close();
+		}
+		super.onDestroy();
+	}
+
+
+	
 }
