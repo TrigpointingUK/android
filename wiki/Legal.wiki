@@ -1,0 +1,73 @@
+= Legal =
+
+== Cookie Policy ==
+Cookies are used on the T:UK website in order to allow user sessions to persist, without requiring users to log in every time.  This behaviour can be switched
+off by unticking the "Remember me" box on the login screen.
+
+
+== Advertising Policy ==
+Any advertising on T:UK is explicitly chosen by the admins as being relevant to the trigpointing community.  No payments are received by T:UK admins for the
+placement of any such ads.  
+
+Any advertising is displayed to all users of the site, independent of their previous activity.
+
+There is currently no advertising, or marketing of any kind, on the android application.
+
+== Privacy Policy ==
+
+This application is not intended to invade its users' privacy.  The developer has no ulterior motives, nor any wish to explicitly collect personal information 
+about users.  There is no user-targetted advertising on T:UK.  
+
+All source code is freely available, enabling this claim to be verified (if you trust that the published app was compiled from this code).
+
+However, it is a location-enabled application, with immature code, and still in alpha test phase.  There are therefore potential privacy breaches, both 
+explicit and implicit, which users should be aware of.
+
+=== Collection of personal data ===
+An account on TrigpointingUK is not required to use this app.  However, it is expected that most users will provide one, as it will unlock greater functionality.
+Providing this will enable the T:UK admins to link your activity on this app with your personal data and activities held on the T:UK website.  This includes, but
+is not limited to, your name and email address registered on T:UK.
+
+The application does not explicitly track your location history on the T:UK website.  For example, the "Nearest" screen works from a database stored locally and
+does not continually tell the website where you are.  However, implicit information, such as which trigpoints you look at, or which map tiles you request, may 
+enable your movements to be pieced together.  And, obviously, if you log a visit to a particular trigpoint at a particular time...!
+
+The app does not (knowingly) obtain or record your phone number.
+
+=== Crash reports ===
+While the application is in the alpha test phase, it is expected that there will be widespread bugs in the code.  In order to help the developer fix these as
+easily as possible, users' privacy has been compromised somewhat.  In particular, in the preferences screen, there are various options for sending reports
+to the developers whenever the application crashes.  These contain as much information about your phone as the application can find, including location, network
+names etc.  These reports may also include debug logs from other apps which may, in turn, contain additional personal data beyond the control of T:UK.
+
+Crash reports are stored in Google Docs, and are available only to T:UK admins.
+
+
+Eventually crash reporting will be switched off by default.  However, during the testing phase, users especially concerned with their privacy should switch
+them off in the preferences screen and restart the application.  Users who are somewhat concerned with their privacy, but who wish to help the developers
+fix bugs, may wish to leave crash reporting enabled, but switch off "Include syslog", to prevent the possibility of non-T:UK data being exposed.
+
+=== Android Permissions Required ===
+In order to install this app, the following permissions are sought from users:
+  * Coarse Network Location
+  	This shows roughly where you are, based on the mobile phone coverage.
+  	
+  * Fine Network Location
+    This shows exactly where you are, based on the GPS in your phone.
+    
+  * Full Internet Access
+  	This is used to download trigpoint information from www.trigpointinguk.com, and mapping information from OSM and Bing.
+  	
+  * Modify/delete USB storage contents modify/delete SD card contents
+    This enables the app to cache trigpoint information and map tiles.
+    
+  * Control vibrator
+  	Provides haptic feedback during single-finger zooming of photos
+  	
+  * View Wi-Fi state
+  
+  * View network state
+	
+
+
+        

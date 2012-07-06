@@ -4,12 +4,24 @@
 
 This application helps users of TrigpointingUK to find and log trigpoints using their mobile phone.
 
+Right now, the code is immature and incomplete.  It is suitable for users to install, but please expect missing key functionality and crashes.
+
 
 = Installation =
 
-Right now, this code is very much pre-alpha, and not ready for end users to install.  If you want to run it, you'll need to ckeck it out of SVN and build it yourself.
+The application can be installed in a number of ways.
 
-
-http://trigpointinguk.googlecode.com/svn/wiki/img/nearest.png  http://trigpointinguk.googlecode.com/svn/wiki/img/map.png
-
-http://trigpointinguk.googlecode.com/svn/wiki/img/info.png http://trigpointinguk.googlecode.com/svn/wiki/img/osmap.png
+  * Using Google Play
+  The easiest way to install the app is by using Google Play.  
+  Either search for something like 'trigpoint' on your android, or visit https://play.google.com/store/apps/details?id=com.trigpointinguk.android,
+  or scan the QR code on this project's home page.
+  
+  * From this website
+  If you don't want to use Google Play, or you need to install a previous version (or a development version uploaded by the developers), you can do so.
+  Click on the "Downloads" link in the menu above, then click on the file (of type "Android") that you wish to install.  
+  Then scan the QR code with your phone.  (Alternatively, use your phone's web browser to navigate this site to download the file).
+  
+  
+  * From the source code
+  You know who you are if you want to do this!  All source code for this project is available under the GPL and can be checked out via svn.
+   
