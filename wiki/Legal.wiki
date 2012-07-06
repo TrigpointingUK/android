@@ -67,5 +67,26 @@ In order to install this app, the following permissions are sought from users:
   * View network state
 	
 
+= Accuracy of information =
+The data in this site were put together from a number of sources, each of which were themselves inaccurate or incomplete. In addition, this site allows 
+people to update the database with new locations. We have no way of vetting people's integrity, so these locations should be treated with extra suspicion. 
+Existance of an entry in this database does not mean that anything remains at the location, or indeed, that anything ever was there!
+
+= Dangerous locations =
+Trigpoints, by their very nature, are often located at the most elevated and exposed locations in the vicinity. Especially in upland areas, this in 
+itself represents a danger. Before attempting to visit any location, you must ensure that you have both the necessary skills and equipment for the 
+terrain you must cross. Land use also changes, so what once was home to a triangulation pillar may now be a chemical factory, or worse. 
+Existance of an entry in this database does not mean that it is safe to approach that location!
+
+= Private land =
+Many trigpoints are located on private land. Often permission must be obtained before entering this land. You must seek permission from any land owner 
+whose land you cross.  Where information is available to us, we will indicate when access permission is required.  However we only have this information 
+for a small fraction of the database, so you must take responsibility for finding the land owner and gaining permission. 
+Existance of an entry in this database does not imply that you have permission to approach that location!
+
+= Copyright =
+Much of the data on this website came from the Ordnance Survey, and remains under Crown Copyright. It is a condition of use of this site that, apart from photos, all data entered by users may be used by the site administrators for any purpose they choose. This may include, but not be limited to: informing the Ordnance Survey and other trigpoint enthusiasts of the contents, both statistical and detailed, of people's logs; and providing bulk downloads of sections of the database to people who run similar sites.
+
+Photographs uploaded by users of this site remain under their copyright, though there is a checkbox to allow them to be placed in the public domain. If photos are placed in the public domain, they may be used by anyone at all for any purpose they choose. This may include, but not be limited to: forwarding photos of passive stations to the Ordnance Survey for use in their passive station database. 
 
         
