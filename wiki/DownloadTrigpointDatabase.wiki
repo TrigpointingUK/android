@@ -1,0 +1,18 @@
+= Downloading Trigpoint Database =
+
+When you first install the application, you will be prompted to download the trigpoint database.  This database contains the locations of all 
+the trigpoints listed on TrigpointingUK.
+
+The application does not currently keep this database up to date automatically.
+So you will therefore need to periodically refresh it, in order to pick up 
+new trigpoints added to the database.
+
+To manually refresh the database, select the "Download Trig Database" option 
+from the main menu.
+
+
+http://trigpointinguk.googlecode.com/svn/wiki/img/DownloadDatabase_01_MenuOption.png
+http://trigpointinguk.googlecode.com/svn/wiki/img/DownloadDatabase_02_Page.png
+
+http://trigpointinguk.googlecode.com/svn/wiki/img/DownloadDatabase_03_InProgress.png
+http://trigpointinguk.googlecode.com/svn/wiki/img/DownloadDatabase_04_Done.png
