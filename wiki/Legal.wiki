@@ -1,11 +1,9 @@
-= Legal =
-
-== Cookie Policy ==
+= Cookie Policy =
 Cookies are used on the T:UK website in order to allow user sessions to persist, without requiring users to log in every time.  This behaviour can be switched
 off by unticking the "Remember me" box on the login screen.
 
 
-== Advertising Policy ==
+= Advertising Policy =
 Any advertising on T:UK is explicitly chosen by the admins as being relevant to the trigpointing community.  No payments are received by T:UK admins for the
 placement of any such ads.  
 
@@ -13,7 +11,7 @@ Any advertising is displayed to all users of the site, independent of their prev
 
 There is currently no advertising, or marketing of any kind, on the android application.
 
-== Privacy Policy ==
+= Privacy Policy =
 
 This application is not intended to invade its users' privacy.  The developer has no ulterior motives, nor any wish to explicitly collect personal information 
 about users.  There is no user-targetted advertising on T:UK.  
