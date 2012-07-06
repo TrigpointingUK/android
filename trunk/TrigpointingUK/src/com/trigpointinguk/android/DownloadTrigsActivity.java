@@ -26,7 +26,7 @@ public class DownloadTrigsActivity extends Activity {
 	private Button mDownloadBtn;
 	private Integer mDownloadCount = 0;
 	private boolean mRunning = false;
-	private static final int mProgressMax = 7800;
+	private static int mProgressMax;
 	private static final String TAG = "DownloadTrigsActivity";
 	private enum DownloadStatus {OK, CANCELLED, ERROR};
 	private AsyncTask <Void, Integer, DownloadStatus> mTask;
@@ -35,7 +35,8 @@ public class DownloadTrigsActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.download);
-
+		
+		mProgressMax=Integer.parseInt(getResources().getString(R.string.downloadMaxTrigs));
 		mStatus = (TextView) findViewById(R.id.downloadStatus);
 		mStatus.setText(R.string.downloadIdleStatus);
 		mProgress = (ProgressBar) findViewById(R.id.downloadProgress);

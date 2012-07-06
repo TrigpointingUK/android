@@ -2,24 +2,19 @@
 <PreferenceScreen
   xmlns:android="http://schemas.android.com/apk/res/android">
 
-	<PreferenceCategory 
-		android:key="account_category" android:title="@string/prefsAccount">
-		
-	         
-	           
-	             
-	    
-	    <EditTextPreference android:summary="@string/PrefsUsernameDetails" android:key="username" android:title="@string/prefsUsername" android:dialogTitle="@string/prefsUsername"></EditTextPreference>
+	<PreferenceCategory android:key="account_category" android:title="@string/prefsAccount">
+		<EditTextPreference android:summary="@string/PrefsUsernameDetails" android:key="username" android:title="@string/prefsUsername" android:dialogTitle="@string/prefsUsername"></EditTextPreference>
 	    <EditTextPreference android:summary="@string/PrefsPasswordDetails" android:title="@string/prefsPassword" android:dialogTitle="@string/prefsPassword" android:key="password"></EditTextPreference>
-</PreferenceCategory>
+	</PreferenceCategory>
  
-	    <PreferenceCategory
-	        android:key="behaviour_category" android:title="Application preferences"><CheckBoxPreference android:summary="@string/PrefsAutoSyncDetails" android:key="autosync" android:title="@string/prefsAutoSync" android:defaultValue="false"/><ListPreference android:entries="@array/prefsCountArray" android:entryValues="@array/prefsCountArrayValues" android:summary="@string/prefsCountDetails" android:title="@string/prefsCount" android:key="listentries" android:defaultValue="100"/>
-	        <ListPreference android:entries="@array/prefsMapCountArray" android:entryValues="@array/prefsMapCountArrayValues" android:key="mapcount" android:summary="@string/prefsCountDetails" android:title="@string/prefsMapCount" android:defaultValue="400"></ListPreference>
-	        <CheckBoxPreference android:title="@string/prefsExperimental" android:summary="@string/prefsExperimentalDetails" android:key="experimental"></CheckBoxPreference>
-	 
-	        
-	 
-	    </PreferenceCategory>
+	<PreferenceCategory android:key="behaviour_category" android:title="@string/prefsBehaviour"><CheckBoxPreference android:summary="@string/PrefsAutoSyncDetails" android:key="autosync" android:title="@string/prefsAutoSync" android:defaultValue="false"/><ListPreference android:entries="@array/prefsCountArray" android:entryValues="@array/prefsCountArrayValues" android:summary="@string/prefsCountDetails" android:title="@string/prefsCount" android:key="listentries" android:defaultValue="100"/>
+	    <ListPreference android:entries="@array/prefsMapCountArray" android:entryValues="@array/prefsMapCountArrayValues" android:key="mapcount" android:summary="@string/prefsCountDetails" android:title="@string/prefsMapCount" android:defaultValue="400"></ListPreference>
+	</PreferenceCategory>
+	
+	<PreferenceCategory android:key="development_category" android:title="@string/prefsDevelopment">
+	    <CheckBoxPreference android:title="@string/prefsExperimental" android:summary="@string/prefsExperimentalDetails" android:key="experimental"></CheckBoxPreference>
+		<CheckBoxPreference android:key="acra.enable" android:title="@string/prefsAcra" android:summaryOn="@string/prefsAcraEnabled" android:summaryOff="@string/prefsAcraDisabled" android:defaultValue="true"></CheckBoxPreference>
+	 	<CheckBoxPreference android:key="acra.syslog.enable" android:title="@string/prefsAcraSyslog" android:summaryOn="@string/prefsAcraSyslogEnabled" android:summaryOff="@string/prefsAcraSyslogDisabled" android:defaultValue="true"></CheckBoxPreference>
+	</PreferenceCategory>
     
 </PreferenceScreen>

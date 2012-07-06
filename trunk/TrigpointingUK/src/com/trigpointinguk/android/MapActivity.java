@@ -66,6 +66,7 @@ public class MapActivity extends Activity implements MapListener {
 		setContentView(R.layout.mapview);
 		mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 		mDb = new DbHelper(this);
+		mDb.fetchLog(0);  // deliberate error
 		mDb.open();
 
 		// basic map setup
