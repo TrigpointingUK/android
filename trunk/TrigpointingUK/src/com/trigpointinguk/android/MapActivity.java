@@ -42,7 +42,7 @@ import android.widget.Toast;
 public class MapActivity extends Activity implements MapListener {
 	public static final String TAG = "MapActivity";
 	
-	public enum TileSource 		{NONE, MAPNIK, OSMARENDER, CYCLEMAP, MAPQUEST, CLOUDMADE, BING_AERIAL, BING_ROAD, BING_AERIAL_LABELS};	
+	public enum TileSource 		{NONE, MAPNIK, CYCLEMAP, MAPQUEST, CLOUDMADE, BING_AERIAL, BING_ROAD, BING_AERIAL_LABELS};	
 	public enum IconColouring 	{NONE, BYCONDITION, BYLOGGED};	
 
 	private MapView            mMapView;
@@ -66,7 +66,6 @@ public class MapActivity extends Activity implements MapListener {
 		setContentView(R.layout.mapview);
 		mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 		mDb = new DbHelper(this);
-		mDb.fetchLog(0);  // deliberate error
 		mDb.open();
 
 		// basic map setup
@@ -119,9 +118,6 @@ public class MapActivity extends Activity implements MapListener {
 		case MAPNIK:
 			mMapView.setTileSource(TileSourceFactory.MAPNIK);
 			break;
-		case OSMARENDER:
-			mMapView.setTileSource(TileSourceFactory.OSMARENDER);
-			break;
 		case CYCLEMAP:
 			mMapView.setTileSource(TileSourceFactory.CYCLEMAP);
 			break;
@@ -150,7 +146,9 @@ public class MapActivity extends Activity implements MapListener {
             bingTileSource3.setStyle(BingMapTileSource.IMAGERYSET_ROAD);
 			mMapView.setTileSource(bingTileSource3);
 			break;
-
+		case NONE:
+			mMapView.setTileSource(TileSourceFactory.MAPNIK);
+			break;
 		}
 		// save choice to prefs
 		Editor editor = mPrefs.edit();
@@ -191,9 +189,6 @@ public class MapActivity extends Activity implements MapListener {
 		case CYCLEMAP:
 			menu.findItem(R.id.cyclemap).setChecked(true);
 			break;
-		case OSMARENDER:
-			menu.findItem(R.id.osmarender).setChecked(true);
-			break;
 		case BING_AERIAL:
 			menu.findItem(R.id.bingaerial).setChecked(true);
 			break;
@@ -202,6 +197,9 @@ public class MapActivity extends Activity implements MapListener {
 			break;
 		case BING_ROAD:
 			menu.findItem(R.id.bingroad).setChecked(true);
+			break;
+		case NONE:
+			menu.findItem(R.id.mapnik).setChecked(true);
 			break;
 		}
 		return result;
@@ -223,9 +221,6 @@ public class MapActivity extends Activity implements MapListener {
 			break;
 		case R.id.mapquest:
 			setTileProvider(TileSource.MAPQUEST);
-			break;
-		case R.id.osmarender:
-			setTileProvider(TileSource.OSMARENDER);
 			break;
 		case R.id.bingaerial:
 			setTileProvider(TileSource.BING_AERIAL);

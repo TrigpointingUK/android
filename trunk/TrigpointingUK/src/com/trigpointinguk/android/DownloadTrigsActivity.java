@@ -145,6 +145,11 @@ public class DownloadTrigsActivity extends Activity {
 				mDownloadBtn.setText(R.string.btnDownload);
 				mProgress.setProgress(0);
 				break;
+			case CANCELLED:
+				mStatus.setText("Download Cancelled!");
+				mDownloadBtn.setText(R.string.btnDownload);
+				mProgress.setProgress(0);
+				break;
 			}
 			mRunning = false;
 		}

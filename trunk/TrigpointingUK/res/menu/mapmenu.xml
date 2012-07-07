@@ -7,7 +7,6 @@
             <item android:title="Cloudmade" android:id="@+id/cloudmade"></item>
             <item android:title="Mapnik" android:id="@+id/mapnik"></item>
             <item android:title="Mapquest" android:id="@+id/mapquest"></item>
-            <item android:title="Osmarender" android:id="@+id/osmarender"></item>
             <item android:title="Open Cycle Map" android:id="@+id/cyclemap"></item>
             <item android:title="Bing Aerial" android:id="@+id/bingaerial"></item>
             <item android:title="Bing Aerial with Labels" android:id="@+id/bingaeriallabels"></item>
