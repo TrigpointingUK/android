@@ -1,5 +1,7 @@
 package com.trigpointinguk.android;
 
+import org.acra.ErrorReporter;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -8,6 +10,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -31,6 +34,10 @@ public class MainActivity extends Activity {
         TextView user = (TextView) findViewById(R.id.txtUserName);
         user.setText(mPrefs.getString("username", getResources().getText(R.string.noUser).toString()));
         
+        // Add user info to ACRA
+        ErrorReporter.getInstance().putCustomData("username", mPrefs.getString("username", ""));
+        ErrorReporter.getInstance().putCustomData("prefs", mPrefs.getAll().toString());
+        
         // check for empty trig database
         DbHelper db = new DbHelper(this);
         db.open();
@@ -53,6 +60,13 @@ public class MainActivity extends Activity {
 			public void onClick(View arg0) {
 				//new UpdateTrigLogsTask().execute();
 				new SyncTask(MainActivity.this).execute();
+			}
+		});
+        final Button btnCrash = (Button) findViewById(R.id.btnCrash);
+        btnCrash.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+				Log.e(TAG, "Deliberate error" + 1/0);
 			}
 		});
         final Button btnMap = (Button) findViewById(R.id.btnMap);
@@ -82,6 +96,7 @@ public class MainActivity extends Activity {
         	Toast.makeText(this, "Running in experimental mode", Toast.LENGTH_LONG).show();
         } else {
         	btnSearch.setEnabled(false);
+        	btnCrash.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -161,7 +176,12 @@ public class MainActivity extends Activity {
     	case R.id.prefs:
     		TextView user = (TextView) findViewById(R.id.txtUserName);
     		user.setText(mPrefs.getString("username", ""));
-    	    break;
+    	
+            // Add user details to ACRA
+            ErrorReporter.getInstance().putCustomData("username", mPrefs.getString("username", ""));
+            ErrorReporter.getInstance().putCustomData("prefs", mPrefs.getAll().toString());
+
+    		break;
     	}
     }
 

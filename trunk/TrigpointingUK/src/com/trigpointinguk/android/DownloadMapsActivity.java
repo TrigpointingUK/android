@@ -11,6 +11,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
 
+import org.acra.ErrorReporter;
+
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -136,11 +138,13 @@ public class DownloadMapsActivity extends Activity {
 				} 
 				catch (ZipException e) {
 					Log.w(TAG, "Error: " + e);
+					ErrorReporter.getInstance().handleSilentException(e);
 					mDownloadCount = i;
 					return STATUS_CORRUPT;					
 				}
 				catch (FileNotFoundException e) {
 					Log.w(TAG, "Error: " + e);
+					ErrorReporter.getInstance().handleSilentException(e);
 					mDownloadCount = i;
 					return STATUS_NOTFOUND;										
 				}
@@ -148,6 +152,7 @@ public class DownloadMapsActivity extends Activity {
 					Log.w(TAG, "Error: " + e);
 					Log.w(TAG, "Message: " + e.getMessage());
 					Log.w(TAG, "Cause: " + e.getCause());
+					ErrorReporter.getInstance().handleSilentException(e);
 					mDownloadCount = i;
 					if (e.getMessage().equals("No space left on device")) {
 						return STATUS_NOSPACE;

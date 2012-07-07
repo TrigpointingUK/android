@@ -2,7 +2,8 @@ package com.trigpointinguk.android;
 
 
 public enum Condition {
-	NOTLOGGED		("N", R.drawable.c_nolog					, "Not Logged"),
+	NOTLOGGED		(" ", R.drawable.c_nolog					, "Not Logged"),
+	COULDNTFIND		("N", R.drawable.c_possiblymissing			, "Couldn't Find"),
 	GOOD			("G", R.drawable.c_good						, "Good"),
 	SLIGHTLYDAMAGED	("S", R.drawable.c_slightlydamaged			, "Slightly Damaged"),
 	CONVERTED		("C", R.drawable.c_slightlydamaged			, "Converted"),

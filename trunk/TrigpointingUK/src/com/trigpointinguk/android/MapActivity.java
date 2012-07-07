@@ -424,7 +424,7 @@ public class MapActivity extends Activity implements MapListener {
 		case PILLAR:
 			switch (logged) {
 			case UNKNOWN: 
-			case NOTLOGGED:
+			case NOTLOGGED: 
 				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_grey);
 			case GOOD:
 			case SLIGHTLYDAMAGED:
@@ -436,6 +436,7 @@ public class MapActivity extends Activity implements MapListener {
 			case POSSIBLYMISSING:
 			case MISSING:
 			case INACCESSIBLE:
+			case COULDNTFIND:
 				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_red);
 			default:
 				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_grey);
@@ -456,6 +457,7 @@ public class MapActivity extends Activity implements MapListener {
 			case POSSIBLYMISSING:
 			case MISSING:
 			case INACCESSIBLE:
+			case COULDNTFIND:
 				return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_red);
 			default:
 				return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_grey);
@@ -476,6 +478,7 @@ public class MapActivity extends Activity implements MapListener {
 			case POSSIBLYMISSING:
 			case MISSING:
 			case INACCESSIBLE:
+			case COULDNTFIND:
 				return this.getResources().getDrawable(R.drawable.mapicon_02_passive_red);
 			default:
 				return this.getResources().getDrawable(R.drawable.mapicon_02_passive_grey);

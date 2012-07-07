@@ -21,7 +21,8 @@
         <Button android:id="@+id/btnMap" android:height="100px" android:layout_width="0dp" android:text="@string/btnMap" android:layout_weight="1" android:layout_height="fill_parent"></Button>
         <Button android:id="@+id/btnSearch" android:height="100px" android:layout_width="0dp" android:text="@string/btnSearch" android:layout_weight="1" android:layout_height="fill_parent"></Button>
     </LinearLayout>
-    <LinearLayout android:id="@+id/linearLayout2" android:layout_width="fill_parent" android:layout_weight="0.33" android:layout_height="0dp">
+    <LinearLayout android:id="@+id/linearLayout2" android:orientation="vertical" android:layout_width="fill_parent" android:layout_weight="0.33" android:layout_height="0dp">
         <Button android:layout_height="wrap_content" android:text="@string/btnSync" android:layout_width="fill_parent" android:id="@+id/btnSync"></Button>
-    </LinearLayout>
+        <Button android:layout_height="wrap_content" android:text="@string/btnCrash" android:layout_width="fill_parent" android:id="@+id/btnCrash"></Button>
+        </LinearLayout>
 </LinearLayout>

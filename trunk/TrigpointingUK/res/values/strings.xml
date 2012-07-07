@@ -19,6 +19,7 @@
 	<string name="downTrigs">Download Trig Database</string>
 	<string name="syncLogs">Sync Logs</string>
 	<string name="btnSync">Sync Logs</string>
+	<string name="btnCrash">Crash</string>
 	<string name="clearCache">Clear Cache</string>
 	<string name="downloadTitle">Download Trigpoint Database</string>
 	<string name="downloadBlurb">When you first install this app, and every now and then afterwards, you need to download a full set of trigpoint data from the TrigpointingUK.com server.  This data is stored on your phone, so that you can search for trigpoints even when out of phone reception.</string>
@@ -48,7 +49,7 @@
     </string-array>
     <string-array name="downloadMapsArrayValues">
         <item>http://trigpointinguk.googlecode.com/files/mapnik_ew_f01_z12_v01.zip</item>
-        <item>http://trigpointinguk.googlecode.com/files/mapquest_ew_f01_z10_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_f02_z11_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_f03_z12_f01_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_f04_z12_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_f05_z12_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_f06_z12_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/mapquest_ew_f01_z10_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_f02_z11_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_f03_z12_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_f04_z12_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_f05_z12_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_f06_z12_v01.zip</item>
         <item>http://trigpointinguk.googlecode.com/files/cloudmade_ew_f01_z12_v01.zip</item>
         <item>http://trigpointinguk.googlecode.com/files/mapnik_s_f01_z12_v01.zip</item>
         <item>http://trigpointinguk.googlecode.com/files/mapquest_s_f01_z11_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_s_f02_z12_f01_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_s_f03_z12_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_s_f04_z12_v01.zip</item>
@@ -58,8 +59,6 @@
         <item>7474</item>
         <item>7686</item>
         <item>7686</item>
-        <item>7686</item>
-        <item>7055</item>
         <item>7055</item>
         <item>7055</item>
         <item>7055</item>
