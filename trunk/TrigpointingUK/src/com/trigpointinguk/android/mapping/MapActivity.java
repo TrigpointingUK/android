@@ -1,4 +1,4 @@
-package com.trigpointinguk.android;
+package com.trigpointinguk.android.mapping;
 
 import java.util.ArrayList;
 
@@ -20,6 +20,16 @@ import org.osmdroid.views.overlay.OverlayItem;
 import org.osmdroid.views.overlay.ScaleBarOverlay;
 import org.osmdroid.views.overlay.ItemizedIconOverlay.OnItemGestureListener;
 import org.osmdroid.views.overlay.OverlayItem.HotspotPlace;
+
+import com.trigpointinguk.android.DbHelper;
+import com.trigpointinguk.android.R;
+import com.trigpointinguk.android.R.drawable;
+import com.trigpointinguk.android.R.id;
+import com.trigpointinguk.android.R.layout;
+import com.trigpointinguk.android.R.menu;
+import com.trigpointinguk.android.trigdetails.TrigDetailsActivity;
+import com.trigpointinguk.android.types.Condition;
+import com.trigpointinguk.android.types.Trig;
 
 import android.app.Activity;
 import android.content.Intent;

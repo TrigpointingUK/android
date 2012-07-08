@@ -1,4 +1,4 @@
-package com.trigpointinguk.android;
+package com.trigpointinguk.android.common;
 
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -6,7 +6,6 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.trigpointinguk.android.common.FileCache;
 
 
 public class ClearCacheTask extends AsyncTask<Void, Integer, Integer> {
@@ -15,7 +14,7 @@ public class ClearCacheTask extends AsyncTask<Void, Integer, Integer> {
     private ProgressDialog mProgressDialog;
 
 	
-    ClearCacheTask(Context pCtx) {
+    public ClearCacheTask(Context pCtx) {
 		this.mCtx = pCtx;
 	}
 	

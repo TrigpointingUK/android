@@ -1,4 +1,4 @@
-package com.trigpointinguk.android;
+package com.trigpointinguk.android.trigdetails;
 
 import java.util.ArrayList;
 
@@ -9,15 +9,22 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.trigpointinguk.android.DbHelper;
+import com.trigpointinguk.android.R;
+import com.trigpointinguk.android.R.id;
+import com.trigpointinguk.android.R.layout;
+import com.trigpointinguk.android.R.menu;
 import com.trigpointinguk.android.common.StringLoader;
+import com.trigpointinguk.android.types.Condition;
+import com.trigpointinguk.android.types.TrigLog;
 
-public class TrigDetailsLogsTab extends ListActivity {
-	private static final String TAG="TrigDetailsLogsTab";
+public class TrigDetailsLoglistTab extends ListActivity {
+	private static final String TAG="TrigDetailsLoglistTab";
 	
 	private long mTrigId;
 	private StringLoader mStrLoader;
     private ArrayList<TrigLog> mTrigLogs;
-    private TrigDetailsLogsAdapter mTrigLogsAdapter;
+    private TrigDetailsLoglistAdapter mTrigLogsAdapter;
 
 	
     public void onCreate(Bundle savedInstanceState) {
@@ -32,7 +39,7 @@ public class TrigDetailsLogsTab extends ListActivity {
 
         // attach the array adapter
 		mTrigLogs = new ArrayList<TrigLog>();
-        mTrigLogsAdapter = new TrigDetailsLogsAdapter(TrigDetailsLogsTab.this, R.layout.triglogrow, mTrigLogs); 
+        mTrigLogsAdapter = new TrigDetailsLoglistAdapter(TrigDetailsLoglistTab.this, R.layout.triglogrow, mTrigLogs); 
 		setListAdapter(mTrigLogsAdapter);
 
 		// get list of photos
@@ -104,7 +111,7 @@ public class TrigDetailsLogsTab extends ListActivity {
 		}
 		protected void onPreExecute() {
 			// create string loader class
-	        mStrLoader = new StringLoader(TrigDetailsLogsTab.this);
+	        mStrLoader = new StringLoader(TrigDetailsLoglistTab.this);
 		}
 		protected void onProgressUpdate(Integer... progress) {
 		}

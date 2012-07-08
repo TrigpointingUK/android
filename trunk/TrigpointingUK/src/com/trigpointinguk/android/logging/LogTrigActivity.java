@@ -1,4 +1,4 @@
-package com.trigpointinguk.android;
+package com.trigpointinguk.android.logging;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -27,8 +27,14 @@ import android.widget.Toast;
 import android.widget.ViewSwitcher;
 import android.widget.DatePicker.OnDateChangedListener;
 
+import com.trigpointinguk.android.DbHelper;
+import com.trigpointinguk.android.R;
+import com.trigpointinguk.android.R.id;
+import com.trigpointinguk.android.R.layout;
+import com.trigpointinguk.android.R.menu;
 import com.trigpointinguk.android.common.ImageEventListener;
 import com.trigpointinguk.android.common.ImageEventManager;
+import com.trigpointinguk.android.types.Condition;
 
 public class LogTrigActivity extends Activity implements ImageEventListener, OnDateChangedListener {
 	private static final String TAG			= "LogTrigActivity";

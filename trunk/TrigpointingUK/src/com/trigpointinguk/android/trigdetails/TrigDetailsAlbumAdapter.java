@@ -1,4 +1,4 @@
-package com.trigpointinguk.android;
+package com.trigpointinguk.android.trigdetails;
 
 import java.util.ArrayList;
 
@@ -10,7 +10,11 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.trigpointinguk.android.R;
+import com.trigpointinguk.android.R.id;
+import com.trigpointinguk.android.R.layout;
 import com.trigpointinguk.android.common.LazyImageLoader;
+import com.trigpointinguk.android.types.TrigPhoto;
 
 public class TrigDetailsAlbumAdapter extends ArrayAdapter<TrigPhoto> {
 	private ArrayList<TrigPhoto> mPhotos;

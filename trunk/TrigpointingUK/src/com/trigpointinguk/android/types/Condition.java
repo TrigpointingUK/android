@@ -1,4 +1,7 @@
-package com.trigpointinguk.android;
+package com.trigpointinguk.android.types;
+
+import com.trigpointinguk.android.R;
+import com.trigpointinguk.android.R.drawable;
 
 
 public enum Condition {

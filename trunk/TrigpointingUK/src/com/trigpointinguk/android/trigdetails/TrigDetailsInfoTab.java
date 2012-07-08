@@ -1,4 +1,4 @@
-package com.trigpointinguk.android;
+package com.trigpointinguk.android.trigdetails;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
@@ -13,7 +13,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.trigpointinguk.android.common.LatLon;
+import com.trigpointinguk.android.DbHelper;
+import com.trigpointinguk.android.R;
+import com.trigpointinguk.android.R.id;
+import com.trigpointinguk.android.R.layout;
+import com.trigpointinguk.android.R.menu;
+import com.trigpointinguk.android.types.Condition;
+import com.trigpointinguk.android.types.LatLon;
+import com.trigpointinguk.android.types.Trig;
 
 public class TrigDetailsInfoTab extends Activity {
 	private static final String TAG="TrigDetailsInfoTab";

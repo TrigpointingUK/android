@@ -1,4 +1,9 @@
-package com.trigpointinguk.android;
+package com.trigpointinguk.android.trigdetails;
+
+import com.trigpointinguk.android.DbHelper;
+import com.trigpointinguk.android.R;
+import com.trigpointinguk.android.R.layout;
+import com.trigpointinguk.android.logging.LogTrigActivity;
 
 import android.app.TabActivity;
 import android.content.Intent;
@@ -36,7 +41,7 @@ public class TrigDetailsActivity extends TabActivity {
 	                    .setContent(intent);
 	    tabHost.addTab(spec);
 
-	    intent = new Intent().setClass(this, TrigDetailsLogsTab.class);
+	    intent = new Intent().setClass(this, TrigDetailsLoglistTab.class);
 	    intent.putExtras(extras);
 	    spec = tabHost.newTabSpec("logs").setIndicator("",
 	                      res.getDrawable(android.R.drawable.ic_menu_agenda))

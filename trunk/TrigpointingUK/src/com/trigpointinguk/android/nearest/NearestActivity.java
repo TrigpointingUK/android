@@ -1,6 +1,11 @@
-package com.trigpointinguk.android;
+package com.trigpointinguk.android.nearest;
 
-import com.trigpointinguk.android.common.LatLon;
+import com.trigpointinguk.android.DbHelper;
+import com.trigpointinguk.android.R;
+import com.trigpointinguk.android.R.id;
+import com.trigpointinguk.android.R.layout;
+import com.trigpointinguk.android.trigdetails.TrigDetailsActivity;
+import com.trigpointinguk.android.types.LatLon;
 
 import android.app.ListActivity;
 import android.content.Context;

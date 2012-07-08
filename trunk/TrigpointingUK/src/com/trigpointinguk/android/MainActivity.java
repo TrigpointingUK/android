@@ -2,6 +2,13 @@ package com.trigpointinguk.android;
 
 import org.acra.ErrorReporter;
 
+import com.trigpointinguk.android.common.ClearCacheTask;
+import com.trigpointinguk.android.logging.LogTrigActivity;
+import com.trigpointinguk.android.logging.SyncTask;
+import com.trigpointinguk.android.mapping.DownloadMapsActivity;
+import com.trigpointinguk.android.mapping.MapActivity;
+import com.trigpointinguk.android.nearest.NearestActivity;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -36,7 +43,6 @@ public class MainActivity extends Activity {
         
         // Add user info to ACRA
         ErrorReporter.getInstance().putCustomData("username", mPrefs.getString("username", ""));
-        ErrorReporter.getInstance().putCustomData("prefs", mPrefs.getAll().toString());
         
         // check for empty trig database
         DbHelper db = new DbHelper(this);
@@ -179,7 +185,6 @@ public class MainActivity extends Activity {
     	
             // Add user details to ACRA
             ErrorReporter.getInstance().putCustomData("username", mPrefs.getString("username", ""));
-            ErrorReporter.getInstance().putCustomData("prefs", mPrefs.getAll().toString());
 
     		break;
     	}

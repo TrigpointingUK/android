@@ -1,4 +1,4 @@
-package com.trigpointinguk.android;
+package com.trigpointinguk.android.mapping;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -12,6 +12,12 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
 
 import org.acra.ErrorReporter;
+
+import com.trigpointinguk.android.R;
+import com.trigpointinguk.android.R.array;
+import com.trigpointinguk.android.R.id;
+import com.trigpointinguk.android.R.layout;
+import com.trigpointinguk.android.R.string;
 
 import android.app.Activity;
 import android.os.AsyncTask;

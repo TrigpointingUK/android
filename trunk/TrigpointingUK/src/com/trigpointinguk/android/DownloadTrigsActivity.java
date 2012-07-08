@@ -9,6 +9,9 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.zip.GZIPInputStream;
 
+import com.trigpointinguk.android.types.Condition;
+import com.trigpointinguk.android.types.Trig;
+
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;

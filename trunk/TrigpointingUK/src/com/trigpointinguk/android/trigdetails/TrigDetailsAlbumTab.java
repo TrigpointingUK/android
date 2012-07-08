@@ -1,4 +1,4 @@
-package com.trigpointinguk.android;
+package com.trigpointinguk.android.trigdetails;
 
 import java.util.ArrayList;
 
@@ -12,7 +12,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 
+import com.trigpointinguk.android.DbHelper;
+import com.trigpointinguk.android.R;
+import com.trigpointinguk.android.R.id;
+import com.trigpointinguk.android.R.layout;
+import com.trigpointinguk.android.R.menu;
+import com.trigpointinguk.android.common.DisplayBitmapActivity;
 import com.trigpointinguk.android.common.StringLoader;
+import com.trigpointinguk.android.types.TrigPhoto;
 
 public class TrigDetailsAlbumTab extends ListActivity {
 	private long mTrigId;

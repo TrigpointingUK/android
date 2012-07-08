@@ -1,4 +1,5 @@
-package com.trigpointinguk.android;
+package com.trigpointinguk.android.types;
+
 
 public class TrigLog {
 	private String 		date;

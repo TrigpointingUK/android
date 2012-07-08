@@ -1,4 +1,4 @@
-package com.trigpointinguk.android;
+package com.trigpointinguk.android.logging;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -9,6 +9,9 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.zip.GZIPInputStream;
+
+import com.trigpointinguk.android.DbHelper;
+import com.trigpointinguk.android.types.Condition;
 
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -28,7 +31,7 @@ public class SyncTask extends AsyncTask<Void, Integer, Integer> {
     private static boolean mLock = false;
 
 	
-	SyncTask(Context pCtx) {
+	public SyncTask(Context pCtx) {
 		this.mCtx = pCtx;
 	}
 	

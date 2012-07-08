@@ -1,4 +1,4 @@
-package com.trigpointinguk.android;
+package com.trigpointinguk.android.trigdetails;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -8,6 +8,8 @@ import android.widget.BaseAdapter;
 import android.widget.Gallery;
 import android.widget.ImageView;
 
+import com.trigpointinguk.android.R;
+import com.trigpointinguk.android.R.styleable;
 import com.trigpointinguk.android.common.LazyImageLoader;
 
 public class TrigDetailsOSMapAdapter extends BaseAdapter {

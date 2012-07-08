@@ -1,4 +1,4 @@
-package com.trigpointinguk.android;
+package com.trigpointinguk.android.common;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -12,7 +12,11 @@ import android.view.MenuItem;
 import com.sonyericsson.zoom.DynamicZoomControl;
 import com.sonyericsson.zoom.ImageZoomView;
 import com.sonyericsson.zoom.LongPressZoomListener;
-import com.trigpointinguk.android.common.BitmapLoader;
+import com.trigpointinguk.android.R;
+import com.trigpointinguk.android.R.drawable;
+import com.trigpointinguk.android.R.id;
+import com.trigpointinguk.android.R.layout;
+import com.trigpointinguk.android.R.string;
 
 public class DisplayBitmapActivity extends Activity {
 	private static final String TAG="DisplayBitmapActivity";

@@ -2,6 +2,9 @@ package com.trigpointinguk.android;
 
 import org.osmdroid.util.BoundingBoxE6;
 
+import com.trigpointinguk.android.types.Condition;
+import com.trigpointinguk.android.types.Trig;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
