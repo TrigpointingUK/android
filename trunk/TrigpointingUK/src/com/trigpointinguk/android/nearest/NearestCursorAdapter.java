@@ -12,9 +12,6 @@ import android.widget.TextView;
 
 import com.trigpointinguk.android.DbHelper;
 import com.trigpointinguk.android.R;
-import com.trigpointinguk.android.R.drawable;
-import com.trigpointinguk.android.R.id;
-import com.trigpointinguk.android.R.layout;
 import com.trigpointinguk.android.types.Condition;
 import com.trigpointinguk.android.types.LatLon;
 import com.trigpointinguk.android.types.Trig;

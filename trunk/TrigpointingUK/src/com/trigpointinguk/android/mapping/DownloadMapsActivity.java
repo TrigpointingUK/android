@@ -13,15 +13,10 @@ import java.util.zip.ZipInputStream;
 
 import org.acra.ErrorReporter;
 
-import com.trigpointinguk.android.R;
-import com.trigpointinguk.android.R.array;
-import com.trigpointinguk.android.R.id;
-import com.trigpointinguk.android.R.layout;
-import com.trigpointinguk.android.R.string;
-
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -29,6 +24,8 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
+
+import com.trigpointinguk.android.R;
 
 public class DownloadMapsActivity extends Activity {
 	private TextView mStatus;
@@ -99,7 +96,8 @@ public class DownloadMapsActivity extends Activity {
 
 	private class PopulateMapsTask extends AsyncTask<String, Integer, Integer> {
 		protected Integer doInBackground(String... arg) {
-			String cacheDir = "/sdcard/osmdroid/tiles/";
+			String cacheDir = Environment.getExternalStorageDirectory().getPath() + "/osmdroid/tiles/";
+			Log.d(TAG, cacheDir);
 			int i=0; // not using mDownloadcount in loop for performance reasons
 
 			String[] files = arg[0].split(",");

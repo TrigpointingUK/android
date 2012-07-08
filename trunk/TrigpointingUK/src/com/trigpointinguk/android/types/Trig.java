@@ -3,7 +3,6 @@ package com.trigpointinguk.android.types;
 import android.location.Location;
 
 import com.trigpointinguk.android.R;
-import com.trigpointinguk.android.R.drawable;
 
 public class Trig extends LatLon {
 	/**

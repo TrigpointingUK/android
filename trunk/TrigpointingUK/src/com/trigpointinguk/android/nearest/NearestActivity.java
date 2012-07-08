@@ -1,12 +1,5 @@
 package com.trigpointinguk.android.nearest;
 
-import com.trigpointinguk.android.DbHelper;
-import com.trigpointinguk.android.R;
-import com.trigpointinguk.android.R.id;
-import com.trigpointinguk.android.R.layout;
-import com.trigpointinguk.android.trigdetails.TrigDetailsActivity;
-import com.trigpointinguk.android.types.LatLon;
-
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
@@ -20,6 +13,11 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.trigpointinguk.android.DbHelper;
+import com.trigpointinguk.android.R;
+import com.trigpointinguk.android.trigdetails.TrigDetailsActivity;
+import com.trigpointinguk.android.types.LatLon;
 
 
 public class NearestActivity extends ListActivity {

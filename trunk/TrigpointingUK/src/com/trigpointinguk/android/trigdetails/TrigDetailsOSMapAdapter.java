@@ -9,7 +9,6 @@ import android.widget.Gallery;
 import android.widget.ImageView;
 
 import com.trigpointinguk.android.R;
-import com.trigpointinguk.android.R.styleable;
 import com.trigpointinguk.android.common.LazyImageLoader;
 
 public class TrigDetailsOSMapAdapter extends BaseAdapter {

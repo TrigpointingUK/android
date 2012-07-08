@@ -3,12 +3,6 @@ package com.trigpointinguk.android.trigdetails;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.trigpointinguk.android.DbHelper;
-import com.trigpointinguk.android.R;
-import com.trigpointinguk.android.R.id;
-import com.trigpointinguk.android.R.layout;
-import com.trigpointinguk.android.common.DisplayBitmapActivity;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.database.Cursor;
@@ -16,8 +10,12 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.Gallery;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.Gallery;
+
+import com.trigpointinguk.android.DbHelper;
+import com.trigpointinguk.android.R;
+import com.trigpointinguk.android.common.DisplayBitmapActivity;
 
 public class TrigDetailsOSMapTab extends Activity {
 	private static final String TAG = "TrigDetailsOSMapTab";

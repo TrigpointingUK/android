@@ -15,9 +15,6 @@ import android.widget.Toast;
 
 import com.trigpointinguk.android.DbHelper;
 import com.trigpointinguk.android.R;
-import com.trigpointinguk.android.R.id;
-import com.trigpointinguk.android.R.layout;
-import com.trigpointinguk.android.R.menu;
 import com.trigpointinguk.android.types.Condition;
 import com.trigpointinguk.android.types.LatLon;
 import com.trigpointinguk.android.types.Trig;

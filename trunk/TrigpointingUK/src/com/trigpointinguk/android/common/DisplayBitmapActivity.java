@@ -13,10 +13,6 @@ import com.sonyericsson.zoom.DynamicZoomControl;
 import com.sonyericsson.zoom.ImageZoomView;
 import com.sonyericsson.zoom.LongPressZoomListener;
 import com.trigpointinguk.android.R;
-import com.trigpointinguk.android.R.drawable;
-import com.trigpointinguk.android.R.id;
-import com.trigpointinguk.android.R.layout;
-import com.trigpointinguk.android.R.string;
 
 public class DisplayBitmapActivity extends Activity {
 	private static final String TAG="DisplayBitmapActivity";

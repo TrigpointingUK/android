@@ -2,11 +2,6 @@ package com.trigpointinguk.android.trigdetails;
 
 import java.util.ArrayList;
 
-import com.trigpointinguk.android.R;
-import com.trigpointinguk.android.R.id;
-import com.trigpointinguk.android.R.layout;
-import com.trigpointinguk.android.types.TrigLog;
-
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,6 +9,9 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.trigpointinguk.android.R;
+import com.trigpointinguk.android.types.TrigLog;
 
 public class TrigDetailsLoglistAdapter extends ArrayAdapter<TrigLog> {
 	private ArrayList<TrigLog>   mLogs;

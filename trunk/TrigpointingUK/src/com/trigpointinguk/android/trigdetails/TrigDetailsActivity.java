@@ -1,10 +1,5 @@
 package com.trigpointinguk.android.trigdetails;
 
-import com.trigpointinguk.android.DbHelper;
-import com.trigpointinguk.android.R;
-import com.trigpointinguk.android.R.layout;
-import com.trigpointinguk.android.logging.LogTrigActivity;
-
 import android.app.TabActivity;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -14,6 +9,10 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.TabHost;
+
+import com.trigpointinguk.android.DbHelper;
+import com.trigpointinguk.android.R;
+import com.trigpointinguk.android.logging.LogTrigActivity;
 
 public class TrigDetailsActivity extends TabActivity {
 

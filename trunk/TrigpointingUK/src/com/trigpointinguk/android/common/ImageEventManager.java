@@ -241,7 +241,7 @@ public class ImageEventManager {
                     // create new image item and break loop otherwise restart loop to check again
                     if (imageThumb != null) {
                         item = new ImageItem();
-                        item.imageId = cursor.getInt(cursor.getColumnIndex(MediaStore.Images.Media._ID));
+                        //item.imageId = cursor.getInt(cursor.getColumnIndex(MediaStore.Images.Media._ID));
                         item.imagePath = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
                         //item.imageName = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME));
                         //item.imageType = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.MIME_TYPE));
@@ -260,11 +260,8 @@ public class ImageEventManager {
     }
 
     private class ImageItem {
-        public Integer imageId;
+        //public Integer imageId;
         public String imagePath;
-        //public String imageName;
-        //public String imageType;
-        //public int imageSize;
     }
 
 }

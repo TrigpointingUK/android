@@ -15,21 +15,11 @@ import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapController;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.ItemizedIconOverlay;
+import org.osmdroid.views.overlay.ItemizedIconOverlay.OnItemGestureListener;
 import org.osmdroid.views.overlay.MyLocationOverlay;
 import org.osmdroid.views.overlay.OverlayItem;
-import org.osmdroid.views.overlay.ScaleBarOverlay;
-import org.osmdroid.views.overlay.ItemizedIconOverlay.OnItemGestureListener;
 import org.osmdroid.views.overlay.OverlayItem.HotspotPlace;
-
-import com.trigpointinguk.android.DbHelper;
-import com.trigpointinguk.android.R;
-import com.trigpointinguk.android.R.drawable;
-import com.trigpointinguk.android.R.id;
-import com.trigpointinguk.android.R.layout;
-import com.trigpointinguk.android.R.menu;
-import com.trigpointinguk.android.trigdetails.TrigDetailsActivity;
-import com.trigpointinguk.android.types.Condition;
-import com.trigpointinguk.android.types.Trig;
+import org.osmdroid.views.overlay.ScaleBarOverlay;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -44,6 +34,12 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
+
+import com.trigpointinguk.android.DbHelper;
+import com.trigpointinguk.android.R;
+import com.trigpointinguk.android.trigdetails.TrigDetailsActivity;
+import com.trigpointinguk.android.types.Condition;
+import com.trigpointinguk.android.types.Trig;
 
 
 
