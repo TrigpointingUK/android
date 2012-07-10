@@ -10,10 +10,15 @@ import java.util.List;
 import org.acra.ErrorReporter;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -42,10 +47,11 @@ import com.trigpointinguk.android.R;
 import com.trigpointinguk.android.common.FileCache;
 import com.trigpointinguk.android.common.Utils;
 import com.trigpointinguk.android.types.Condition;
+import com.trigpointinguk.android.types.LatLon;
 import com.trigpointinguk.android.types.PhotoSubject;
 import com.trigpointinguk.android.types.TrigPhoto;
 
-public class LogTrigActivity extends Activity implements OnDateChangedListener {
+public class LogTrigActivity extends Activity implements OnDateChangedListener, LocationListener {
 	private static final String TAG			= "LogTrigActivity";
     private static final int    CHOOSE_PHOTO  = 1;
     private static final int    EDIT_PHOTO  = 2;
@@ -68,7 +74,8 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener {
     
     private	List<TrigPhoto> 	mPhotos; 
 
-    
+    private ProgressDialog		mProgressDialog;
+    private LocationManager 	mLocationManager;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -299,12 +306,7 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener {
 
 	
     
-    private void getLocation() {
-    	Log.i(TAG, "Start location listener and grab results");
-    	Toast.makeText(this, "Getting current location", Toast.LENGTH_SHORT).show();    	
-    }
-    
-
+ 
     private void populateFields() {
     	Log.i(TAG, "populateFields");
     	Cursor c = mDb.fetchLog(mTrigId);
@@ -427,6 +429,63 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener {
 		|| ( pYear == year && pMonth == month && pDay > day) ) {
 			view.updateDate(year, month, day);
 		}
+	}
+
+	
+	
+	
+	   private void getLocation() {
+	    	Log.i(TAG, "Start location listener and put up dialog box");
+	    
+		    mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+		    
+		    if (!mLocationManager.isProviderEnabled (LocationManager.GPS_PROVIDER)) {
+				Log.w(TAG, "GPS not enabled in system settings!");
+				Toast.makeText(this, "Please enable GPS in system settings!", Toast.LENGTH_LONG).show();
+				return;
+		    }
+
+		    // Start listening for GPS updates
+		    mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L,1.0f, this);
+
+			mProgressDialog = new ProgressDialog(this);
+			mProgressDialog.setMessage("Getting accurate GPS fix...");
+			mProgressDialog.setIndeterminate(true);
+			mProgressDialog.setCancelable(true);
+			mProgressDialog.show();
+
+		    
+	    }
+	    
+
+	
+	@Override
+	public void onLocationChanged(Location location) {
+		// Found GPS location, so cancel dialog, update the GUI, and stop listening for locations
+
+		LatLon ll = new LatLon(location);
+		mGridref.setText(ll.getOSGB10());
+		
+		mProgressDialog.cancel();
+		Toast.makeText(this, "GPS location added", Toast.LENGTH_SHORT).show();
+
+		mLocationManager.removeUpdates(this);
+		
+	}
+
+	@Override
+	public void onProviderDisabled(String provider) {
+		Log.i(TAG, "GPS provider disabled");
+		mProgressDialog.cancel();
+	}
+
+	@Override
+	public void onProviderEnabled(String provider) {
+		Log.i(TAG, "GPS provider enabled");
+	}
+
+	@Override
+	public void onStatusChanged(String provider, int status, Bundle extras) {
 	}
 }
 
