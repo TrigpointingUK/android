@@ -85,7 +85,7 @@
         <item>10</item>
         <item>100</item>
         <item>1000</item>
-        <item>10000</item>
+        <item>20000</item>
     </string-array>
 	<string name="prefsMapCount">Map icons</string>
 	<string name="prefsMapCountDetails">Approx number of icons shown on map</string>

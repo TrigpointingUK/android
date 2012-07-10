@@ -346,14 +346,16 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener {
 		Log.i(TAG, "updateGallery");
 	    mPhotos = new ArrayList<TrigPhoto>(); 
 		Cursor c = mDb.fetchPhotos(mTrigId);
-		do {
-			TrigPhoto photo = new TrigPhoto();
-			photo.setLogID		(c.getLong(c.getColumnIndex(DbHelper.PHOTO_ID)));
-			photo.setIconURL	(c.getString(c.getColumnIndex(DbHelper.PHOTO_ICON)));
-			mPhotos.add(photo);
-		} while (c.moveToNext());
-		c.close();
-				
+		if (c!=null) {
+			do {
+				TrigPhoto photo = new TrigPhoto();
+				photo.setLogID		(c.getLong(c.getColumnIndex(DbHelper.PHOTO_ID)));
+				photo.setIconURL	(c.getString(c.getColumnIndex(DbHelper.PHOTO_ICON)));
+				mPhotos.add(photo);
+			} while (c.moveToNext());
+			c.close();		
+		}
+		
 		mGallery.setAdapter(new LogTrigGalleryAdapter(this, mPhotos.toArray(new TrigPhoto[mPhotos.size()])));
 	}
 
