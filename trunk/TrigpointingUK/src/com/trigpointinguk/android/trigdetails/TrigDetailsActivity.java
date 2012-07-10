@@ -24,7 +24,7 @@ public class TrigDetailsActivity extends TabActivity {
 	    setContentView(R.layout.trigdetails);
 
 		Bundle extras = getIntent().getExtras();
-       mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
 	    
 	    Resources res = getResources();
@@ -89,6 +89,7 @@ public class TrigDetailsActivity extends TabActivity {
 					, c.getString(c.getColumnIndex(DbHelper.TRIG_NAME))
 			);
 			this.setTitle(title);
+			c.close();
 	        mDb.close();
 		} catch (Exception e) {
 		} finally {

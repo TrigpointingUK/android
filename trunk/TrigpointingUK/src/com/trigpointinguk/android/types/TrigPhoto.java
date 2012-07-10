@@ -1,12 +1,15 @@
 package com.trigpointinguk.android.types;
 
 public class TrigPhoto {
-	private String iconURL;
-	private String photoURL;
-	private String name;
-	private String descr;
-	private String date;
-	private String username;
+	private String  iconURL;
+	private String  photoURL;
+	private String  name;
+	private String  descr;
+	private String  date;
+	private String  username;
+	private String  subject;
+	private Boolean ispublic;
+	private Long    logID;
 	
 	public TrigPhoto(String name, String descr, String photourl, String iconurl, String username, String date) {
 		this.name		= name;
@@ -15,6 +18,9 @@ public class TrigPhoto {
 		this.iconURL	= iconurl;
 		this.username	= username;
 		this.date		= date;
+	}
+	
+	public TrigPhoto() {
 	}
 	
 	public String getIconURL() {
@@ -52,6 +58,30 @@ public class TrigPhoto {
 	}
 	public void setUsername(String username) {
 		this.username = username;
+	}
+
+	public String getSubject() {
+		return subject;
+	}
+
+	public void setSubject(String subject) {
+		this.subject = subject;
+	}
+
+	public Boolean getIspublic() {
+		return ispublic;
+	}
+
+	public void setIspublic(Boolean ispublic) {
+		this.ispublic = ispublic;
+	}
+
+	public Long getLogID() {
+		return logID;
+	}
+
+	public void setLogID(Long logID) {
+		this.logID = logID;
 	}
 	
 	

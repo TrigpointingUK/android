@@ -1,26 +1,36 @@
 package com.trigpointinguk.android.logging;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.List;
+
+import org.acra.ErrorReporter;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.DatePicker.OnDateChangedListener;
 import android.widget.EditText;
+import android.widget.Gallery;
 import android.widget.RatingBar;
 import android.widget.Spinner;
 import android.widget.TimePicker;
@@ -29,13 +39,16 @@ import android.widget.ViewSwitcher;
 
 import com.trigpointinguk.android.DbHelper;
 import com.trigpointinguk.android.R;
-import com.trigpointinguk.android.common.ImageEventListener;
-import com.trigpointinguk.android.common.ImageEventManager;
+import com.trigpointinguk.android.common.FileCache;
+import com.trigpointinguk.android.common.Utils;
 import com.trigpointinguk.android.types.Condition;
+import com.trigpointinguk.android.types.PhotoSubject;
+import com.trigpointinguk.android.types.TrigPhoto;
 
-public class LogTrigActivity extends Activity implements ImageEventListener, OnDateChangedListener {
+public class LogTrigActivity extends Activity implements OnDateChangedListener {
 	private static final String TAG			= "LogTrigActivity";
-    private static final int    TAKE_PHOTO  = 1;
+    private static final int    CHOOSE_PHOTO  = 1;
+    private static final int    EDIT_PHOTO  = 2;
     
 	private Long 				mTrigId;
     private ViewSwitcher 		mSwitcher;
@@ -48,10 +61,12 @@ public class LogTrigActivity extends Activity implements ImageEventListener, OnD
     private EditText			mComment;
     private CheckBox			mAdminFlag;
     private CheckBox			mUserFlag;
+    private Gallery				mGallery;
     
-    private ImageEventManager 	mIem;    
     private DbHelper 			mDb;
     private boolean				mHaveLog;
+    
+    private	List<TrigPhoto> 	mPhotos; 
 
     
 	
@@ -80,8 +95,9 @@ public class LogTrigActivity extends Activity implements ImageEventListener, OnD
 	   	mComment	= (EditText)		findViewById(R.id.logComment);
 	   	mAdminFlag	= (CheckBox)		findViewById(R.id.logAdminFlag);
 	   	mUserFlag	= (CheckBox)		findViewById(R.id.logUserFlag);
-	   	
-	   	
+	    mGallery 	= (Gallery) 		findViewById(R.id.logGallery);
+
+	    
     	// Setup time picker options which cannot be set in the config xml
  		mTime.setIs24HourView(true);
 
@@ -89,10 +105,17 @@ public class LogTrigActivity extends Activity implements ImageEventListener, OnD
 		ArrayAdapter<Condition> adapter = new ArrayAdapter<Condition> (this, android.R.layout.simple_spinner_item, Condition.values());
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		mCondition.setAdapter(adapter);
-	
+		
+		// Setup listener on gallery photos
+	    mGallery.setOnItemClickListener(new OnItemClickListener() {
+	        public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+	            Log.i(TAG, "Clicked photo icon number : " + position);
+	            Intent i = new Intent(LogTrigActivity.this, LogPhotoActivity.class);
+	            i.putExtra(DbHelper.PHOTO_ID, mPhotos.get(position).getLogID());
+	            startActivityForResult(i, EDIT_PHOTO);
+	        }
+	    });
 
-		// Class to listen for new photos appearing on the external storage
-		mIem = new ImageEventManager(LogTrigActivity.this,LogTrigActivity.this);
 		
 		// Connect to database
 		mDb = new DbHelper(this);
@@ -105,12 +128,12 @@ public class LogTrigActivity extends Activity implements ImageEventListener, OnD
 		}
 		
 		
-		// Setup button to take photo
-		Button takePhotoBtn = (Button) findViewById(R.id.logTakePhoto);
+		// Setup button to add photo
+		Button takePhotoBtn = (Button) findViewById(R.id.logAddPhoto);
 		takePhotoBtn.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				takePhoto();
+				choosePhoto();
 			}
 		});	
 
@@ -169,7 +192,7 @@ public class LogTrigActivity extends Activity implements ImageEventListener, OnD
 	public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
         case R.id.addphoto:
-			takePhoto();
+			choosePhoto();
             return true;
         case R.id.addlocation:
         	getLocation();
@@ -178,22 +201,6 @@ public class LogTrigActivity extends Activity implements ImageEventListener, OnD
         return false;
     }
  
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-    	if(requestCode==TAKE_PHOTO){
-            switch (resultCode) {
-                case RESULT_OK:
-                    mIem.cameraIntentComplete();
-                    Log.i(TAG, "Camera Intent Complete");
-                    break;
-                case RESULT_CANCELED:
-                    mIem.ignoreCameraEvents();
-                    Log.i(TAG, "Camera Intent Cancelled");
-                    break;
-            }
-    	}
-    }
-	
-    
     
 	@Override
 	protected void onPause() {
@@ -220,30 +227,88 @@ public class LogTrigActivity extends Activity implements ImageEventListener, OnD
 		}
 	}
 
-	@Override
-    public void newImageAvailable(String path){
-        Log.i(TAG, "New Camera image:\n"+path);
-    }
 	
-    
-    private void takePhoto() {
-    	Log.i(TAG, "Start camera intent and grab results");
-    	Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-    	intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
-    	mIem.listenForCameraEvents();
-    	startActivityForResult(intent, TAKE_PHOTO);
+    // service request to choose a photo
+    private void choosePhoto() {
+    	Log.i(TAG, "Get a photo from the gallery");
+    	Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
+    	photoPickerIntent.setType("image/*");
+    	startActivityForResult(photoPickerIntent, CHOOSE_PHOTO);
     }
  
+    
+    
+    
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data); 
+    	switch (requestCode) {
+    	case CHOOSE_PHOTO:
+    		createPhoto(requestCode, resultCode, data);
+    		break;
+    	case EDIT_PHOTO:
+    		updateGallery();
+    		break;
+    	}
+	}	
+	
+    
+    
+	private void createPhoto (int requestCode, int resultCode, Intent data) {
+		// Photo chosen - create DB entry and send user to edit activity
+		Log.i(TAG, "onActivityResult - ADD_PHOTO");
+		if(resultCode == RESULT_OK){  
+			Uri selectedImageUri = data.getData();
+    		Log.i(TAG, "Photo URI - " + selectedImageUri);
+    		
+    		// create a database record for the new photo
+    		Long photoId = mDb.createPhoto(mTrigId, "", "", "", "", PhotoSubject.NOSUBJECT, 0);
+    		Log.i(TAG, "Created Photo - " + photoId);
+
+    		
+    		// shrink the photo and store on SD card
+			String cachedir  = new FileCache(this, "logphotos").getCacheDir().getAbsolutePath();
+			String photoPath = new String(cachedir + photoId + "_I.jpg");
+			String thumbPath = new String(cachedir + photoId + "_T.jpg");
+			try {
+				Bitmap bThumb = Utils.decodeUri(this, selectedImageUri,  100);
+				Bitmap bPhoto = Utils.decodeUri(this, selectedImageUri, 1024);
+				Utils.saveBitmapToFile(thumbPath, bThumb, 90);
+				Utils.saveBitmapToFile(photoPath, bPhoto, 90);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+				ErrorReporter.getInstance().handleSilentException(e);
+				return;
+			} catch (IOException e) {
+				e.printStackTrace();
+				ErrorReporter.getInstance().handleSilentException(e);
+				return;
+			}
+    		
+    		// update the database record with the new photos
+    		mDb.updatePhoto(photoId, mTrigId, "", "", thumbPath, photoPath, PhotoSubject.NOSUBJECT, 0);
+    		Log.i(TAG, "Updated photo - " + photoId);
+    		
+    		// edit the other fields for the new photo
+            Intent i = new Intent(this, LogPhotoActivity.class);
+            i.putExtra(DbHelper.PHOTO_ID, photoId);
+            startActivityForResult(i, EDIT_PHOTO);
+		}
+    		
+	}
+
+	
+    
     private void getLocation() {
     	Log.i(TAG, "Start location listener and grab results");
     	Toast.makeText(this, "Getting current location", Toast.LENGTH_SHORT).show();    	
     }
     
+
     private void populateFields() {
     	Log.i(TAG, "populateFields");
     	Cursor c = mDb.fetchLog(mTrigId);
     	if (c == null) {return;}
-    	startManagingCursor(c);
 
     	// set Date
     	mDate.init				(c.getInt(c.getColumnIndex(DbHelper.LOG_YEAR)), 
@@ -272,9 +337,29 @@ public class LogTrigActivity extends Activity implements ImageEventListener, OnD
     	mCondition.setSelection (Arrays.asList(Condition.values()).indexOf(cond));
 
     	c.close();
+    	
+    	updateGallery();
+
     }
     
-    private void saveLog() {
+    private void updateGallery() {
+		Log.i(TAG, "updateGallery");
+	    mPhotos = new ArrayList<TrigPhoto>(); 
+		Cursor c = mDb.fetchPhotos(mTrigId);
+		do {
+			TrigPhoto photo = new TrigPhoto();
+			photo.setLogID		(c.getLong(c.getColumnIndex(DbHelper.PHOTO_ID)));
+			photo.setIconURL	(c.getString(c.getColumnIndex(DbHelper.PHOTO_ICON)));
+			mPhotos.add(photo);
+		} while (c.moveToNext());
+		c.close();
+				
+		mGallery.setAdapter(new LogTrigGalleryAdapter(this, mPhotos.toArray(new TrigPhoto[mPhotos.size()])));
+	}
+
+    
+    
+	private void saveLog() {
     	Log.i(TAG, "saveLog");
     	
     	// Only save the log if one already exists
@@ -327,6 +412,7 @@ public class LogTrigActivity extends Activity implements ImageEventListener, OnD
     	Toast.makeText(this, "Uploading log to server", Toast.LENGTH_SHORT).show();    	
     }
 
+    
 	@Override
 	public void onDateChanged(DatePicker view, int pYear, int pMonth, int pDay) {
 		Log.i(TAG, "Date changed");

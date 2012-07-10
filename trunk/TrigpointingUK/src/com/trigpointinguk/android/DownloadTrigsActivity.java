@@ -82,7 +82,7 @@ public class DownloadTrigsActivity extends Activity {
 				db.deleteAll();
 
 				while ((strLine = br.readLine()) != null && !strLine.trim().equals(""))   {
-					Log.i(TAG,strLine);
+					Log.v(TAG,strLine);
 					String[] csv=strLine.split("\t");
 					int id						= Integer.valueOf(csv[0]);
 					String waypoint				= csv[1];
@@ -108,7 +108,7 @@ public class DownloadTrigsActivity extends Activity {
 				db.mDb.execSQL("create index if not exists latlon on trig (lat, lon)");
 				db.mDb.setTransactionSuccessful();
 			}catch (IOException e) {
-				Log.d(TAG, "Error: " + e);
+				Log.e(TAG, "Error: " + e);
 				return DownloadStatus.ERROR;
 			} finally {
 				db.mDb.endTransaction();

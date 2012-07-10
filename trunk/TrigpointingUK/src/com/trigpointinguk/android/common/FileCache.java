@@ -24,6 +24,10 @@ public class FileCache {
 		return f;
 	}
 
+	public File getCacheDir() {
+		return cacheDir;
+	}
+
 	public int clear(){
 		File[] files=cacheDir.listFiles();
 		for(File f:files) {
