@@ -20,7 +20,7 @@ import android.util.Log;
 public class DbHelper {
 	private static final String TAG					= "DbHelper";
 
-	private static final int 	DATABASE_VERSION 	= 7;
+	private static final int 	DATABASE_VERSION 	= 8;
 	private static final String DATABASE_NAME		= "trigpointinguk";
 	private static final String TRIG_TABLE			= "trig";
 	public 	static final String TRIG_ID				= "_id";
@@ -57,6 +57,7 @@ public class DbHelper {
 	public  static final String PHOTO_DESCR         = "descr";
 	public  static final String PHOTO_SUBJECT       = "subject";
 	public  static final String PHOTO_ISPUBLIC      = "ispublic";
+	public  static final String PHOTO_TUKLOGID      = "tuklogid";
 
 
 	public  static final String DEFAULT_MAP_COUNT   = "400";
@@ -100,7 +101,8 @@ public class DbHelper {
 		+ PHOTO_NAME 	 + " string not null, "
 		+ PHOTO_DESCR    + " string not null, "
 		+ PHOTO_SUBJECT  + " char(1) not null, " 
-		+ PHOTO_ISPUBLIC + " integer not null "
+		+ PHOTO_ISPUBLIC + " integer not null, "
+		+ PHOTO_TUKLOGID + " integer not null "
 		+ ");";
 
 	
@@ -338,7 +340,32 @@ public class DbHelper {
         return mCursor;
     }
 
-	
+
+
+	/**
+     * Return a Cursor positioned at the log that matches the given id
+     * 
+     * @param id of log to retrieve
+     * @return Cursor positioned to matching log, if found
+     * @throws SQLException if note could not be found/retrieved
+     */
+    public Cursor fetchAllLogs() throws SQLException {
+
+        Cursor mCursor =
+            mDb.query(true, LOG_TABLE, new String[] {LOG_ID, LOG_YEAR, LOG_MONTH, LOG_DAY, 
+            				LOG_HOUR, LOG_MINUTES, LOG_GRIDREF, LOG_FB, LOG_CONDITION, 
+            				LOG_COMMENT, LOG_SCORE, LOG_COMMENT, LOG_FLAGADMINS, LOG_FLAGUSERS}
+                    , null, null,null, null, null, null);
+        if (mCursor != null) {
+            if (! mCursor.moveToFirst()) {
+            	// No log row found
+            	return null;
+            }
+        }
+        return mCursor;
+    }
+
+    
 
 	
 	/**
@@ -366,14 +393,15 @@ public class DbHelper {
 		initialValues.put(PHOTO_PHOTO		, photo);
 		initialValues.put(PHOTO_SUBJECT		, subject.code());
 		initialValues.put(PHOTO_ISPUBLIC	, ispublic);
+		initialValues.put(PHOTO_TUKLOGID    , 0);
 		return mDb.insert(PHOTO_TABLE, null, initialValues);
 	}
-
+;
 
 	
 	/**
-	 * Create a new photo.  If the record is
-	 * successfully created return the new rowId, otherwise return
+	 * Update a photo.  If the record is
+	 * successfully updated return the new rowId, otherwise return
 	 * a -1 to indicate failure.
 	 * 
 	 * @param id
@@ -396,9 +424,34 @@ public class DbHelper {
 		newValues.put(PHOTO_PHOTO		, photo);
 		newValues.put(PHOTO_SUBJECT		, subject.code());
 		newValues.put(PHOTO_ISPUBLIC	, ispublic);
+		newValues.put(PHOTO_TUKLOGID    , 0);
 		return mDb.update(PHOTO_TABLE, newValues, PHOTO_ID + "=" + photoId, null);
 	}
 
+	
+	/**
+	 * Update all photos for a trig with the T:UK log number.  If the records are
+	 * successfully updated return the number of rows updated, otherwise return
+	 * a -1 to indicate failure.
+	 * 
+	 * @param id
+	 * @param name 
+	 * @param descr 
+	 * @param icon 
+	 * @param photo 
+	 * @param subject 
+	 * @param ispublic 
+	 * @return rowId or -1 if failed
+	 */
+	public long updatePhotos(long trigId, int tukLogId) {
+		Log.i(TAG, "updatePhotos");
+		ContentValues newValues = new ContentValues();
+		newValues.put(PHOTO_TUKLOGID	, tukLogId);
+		
+		return mDb.update(PHOTO_TABLE, newValues, PHOTO_TRIG + "= ?", new String[]{String.valueOf(trigId)});
+	}
+
+	
 	
 	
 
@@ -412,6 +465,18 @@ public class DbHelper {
 	}
 
 
+
+	/**
+	 * Delete all photo records for trigpoint
+	 * 
+	 * @return true if deleted, false otherwise
+	 */
+	public boolean deletePhotosForTrig(long trigId) {
+		return mDb.delete(PHOTO_TABLE, PHOTO_TRIG + "=" + trigId, null) > 0;
+	}
+
+
+	
 	/**
      * Return a Cursor positioned at the photo that matches the given id
      * 

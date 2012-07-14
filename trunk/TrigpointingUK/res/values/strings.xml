@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">Hello, Android! T:UK string resource!</string>
     <string name="app_name">TrigpointingUK</string>
 	<string name="dlgNoTrigs">No trigpoint database!  Download now?</string>
 	<string name="noUser">Please set username in preferences</string>
@@ -136,5 +135,9 @@
 	<string name="prefsAcraSyslog">Include syslog</string>
 	<string name="prefsAcraSyslogEnabled">Crash reports contain syslog information (more privacy issues)</string> 
 	<string name="prefsAcraSyslogDisabled">Crash reports do not contain syslog information</string> 
-
+	<string name="syncToTUK">Sending logs to T:UK</string> 
+	<string name="syncPhotosToTUK">Sending photos to T:UK</string> 
+	<string name="syncLogsFromTUK">Downloading logs from T:UK</string> 
+	<string name="toastAddUsername">Please add username to preferences!</string> 
+	<string name="toastAddPassword">Please add password to preferences!</string>
 </resources>

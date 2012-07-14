@@ -14,7 +14,7 @@ public enum Condition {
 	TOPPLED			("T", R.drawable.c_toppled					, "Toppled"),
 	MOVED			("M", R.drawable.c_toppled					, "Moved"),
 	POSSIBLYMISSING	("Q", R.drawable.c_possiblymissing			, "Possibly Missing"),
-	MISSING			("X", R.drawable.c_definitelymissing		, "Missing"),
+	MISSING			("X", R.drawable.c_definitelymissing		, "Destroyed"),
 	VISIBLE			("V", R.drawable.c_unreachablebutvisible	, "Unreachable but Visible"),
 	INACCESSIBLE	("P", R.drawable.c_unknown					, "Inaccessible"),
 	UNKNOWN 		("U", R.drawable.c_unknown					, "Unknown"),

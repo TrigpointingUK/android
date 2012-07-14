@@ -396,6 +396,8 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
     
     private void deleteLog() {
     	mDb.deleteLog(mTrigId);
+    	mDb.deletePhotosForTrig(mTrigId);
+    	// TODO also delete the cached photo files here
     }
 
     
@@ -406,11 +408,11 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
     	// check for login credentials in prefs
     	SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		if (prefs.getString("username", "").equals("")) {
-			Toast.makeText(this, "Please add username to preferences!", Toast.LENGTH_LONG).show();
+			Toast.makeText(this, R.string.toastAddUsername, Toast.LENGTH_LONG).show();
 			return;
 		} 
 		if (prefs.getString("plaintextpassword", "").equals("")) {
-			Toast.makeText(this, "Please add password to preferences!", Toast.LENGTH_LONG).show();
+			Toast.makeText(this, R.string.toastAddPassword, Toast.LENGTH_LONG).show();
 			return;
 		} 
     	Toast.makeText(this, "Uploading log to server", Toast.LENGTH_SHORT).show();    	

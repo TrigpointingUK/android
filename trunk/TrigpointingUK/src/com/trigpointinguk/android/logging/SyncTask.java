@@ -2,131 +2,358 @@ package com.trigpointinguk.android.logging;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 
-import com.trigpointinguk.android.DbHelper;
-import com.trigpointinguk.android.types.Condition;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.database.Cursor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.trigpointinguk.android.DbHelper;
+import com.trigpointinguk.android.R;
+import com.trigpointinguk.android.types.Condition;
 
 
-public class SyncTask extends AsyncTask<Void, Integer, Integer> {
+
+public class SyncTask extends AsyncTask<Long, Integer, Integer> {
 	public static final String TAG ="SyncTask";
-	private Context mCtx;
-	private SharedPreferences mPrefs;
-    private ProgressDialog mProgressDialog;
-    private static boolean mLock = false;
+	private Context 			mCtx;
+	private SharedPreferences 	mPrefs;
+    private ProgressDialog 		mProgressDialog;
 
-	
+	private	DbHelper 			mDb = null;
+
+    private static boolean 		mLock = false;
+    private int 				mAppVersion;
+    private int 				mMax;		// Maximum count of things being synced, for progress bar
+    private String				mUsername;
+    private String				mPassword;
+    
+    private static final int 	MAX 		= 1;
+    private static final int 	PROGRESS 	= 2;
+    private static final int 	MESSAGE		= 3;
+    
+    private static final int 	SUCCESS 	= 0;
+    private static final int 	NOLOGS 		= 1;
+    private static final int 	ERROR 		= 2;
+    private static final int 	CANCELLED 	= 3;
+    
+    
 	public SyncTask(Context pCtx) {
 		this.mCtx = pCtx;
+		try {
+			mAppVersion = mCtx.getPackageManager().getPackageInfo(mCtx.getPackageName(), 0).versionCode;
+		} catch (NameNotFoundException e) {
+			Log.e(TAG,"Couldn't get versionCode!");
+			mAppVersion = 99999;
+		}
 	}
 	
-	protected Integer doInBackground(Void... arg0) {
+	
+	
+	protected Integer doInBackground(Long... trigId) {
 		Log.d(TAG, "doInBackground");
-		if (isCancelled()){return 0;}
+		if (isCancelled()){return CANCELLED;}
 		
+		// Make sure only one SyncTask runs at a time
+		if (mLock) {
+			Log.i(TAG, "SyncTask already running");
+			this.cancel(true);
+			return ERROR;
+		}
+		mLock = true;
+
+		// Open database connection
+		mDb = new DbHelper(mCtx);
+        mDb.open();
+		
+		try {
+			// Get details from Prefs
+			mUsername = mPrefs.getString("username", "");
+			mPassword = mPrefs.getString("plaintextpassword", "");
+			if (mUsername.equals("")) {return ERROR;}
+			if (mPassword.equals("")) {return ERROR;}
+
+			if (trigId.length == 0) {
+				// Syncing all logs
+				if (ERROR == sendLogsToTUK()) {
+					return ERROR;
+				}
+				sendPhotosToTUK();
+				readLogsFromTUK();
+			}
+		} finally {
+			mDb.close();
+			mLock = false;		
+		}
+
+		return SUCCESS;
+	}
+	
+	
+	
+	
+	Integer sendLogsToTUK() {
+		Log.d(TAG, "sendLogsToTUK");
+
+		publishProgress(MESSAGE, R.string.syncToTUK);
+		Cursor c = mDb.fetchAllLogs();
+		if (c==null) {
+			return NOLOGS;
+		}
+		
+		publishProgress(MAX, c.getCount());
+		publishProgress(PROGRESS, 0);
+		
+		int i=0;
+		do {
+			if (SUCCESS != sendLogToTUK(c)) {
+				return ERROR;
+			}
+			publishProgress(PROGRESS, ++i);
+		} while (c.moveToNext());
+			
+		return SUCCESS;
+	}
+
+	
+	
+	
+	
+	Integer sendLogToTUK(Cursor c) {
+		Log.i(TAG, "sendLogToTUK");
+		
+		Long trigId = c.getLong(c.getColumnIndex(DbHelper.LOG_ID));
+		
+		// Set up post variables
+	    List <NameValuePair> nameValuePairs = new ArrayList <NameValuePair> (10);
+	    nameValuePairs.add(new BasicNameValuePair("username"	, mUsername));
+	    nameValuePairs.add(new BasicNameValuePair("password"	, mPassword));
+	    nameValuePairs.add(new BasicNameValuePair("id"			, c.getString(c.getColumnIndex(DbHelper.LOG_ID))));
+    	nameValuePairs.add(new BasicNameValuePair("year"		, c.getString(c.getColumnIndex(DbHelper.LOG_YEAR))));
+    	nameValuePairs.add(new BasicNameValuePair("month"		, c.getString(c.getColumnIndex(DbHelper.LOG_MONTH))));
+    	nameValuePairs.add(new BasicNameValuePair("day"			, c.getString(c.getColumnIndex(DbHelper.LOG_DAY))));
+    	nameValuePairs.add(new BasicNameValuePair("hour"		, c.getString(c.getColumnIndex(DbHelper.LOG_HOUR))));
+    	nameValuePairs.add(new BasicNameValuePair("minutes"		, c.getString(c.getColumnIndex(DbHelper.LOG_MINUTES))));
+    	nameValuePairs.add(new BasicNameValuePair("comment"		, c.getString(c.getColumnIndex(DbHelper.LOG_COMMENT))));
+    	nameValuePairs.add(new BasicNameValuePair("gridref"		, c.getString(c.getColumnIndex(DbHelper.LOG_GRIDREF))));
+    	nameValuePairs.add(new BasicNameValuePair("fb"			, c.getString(c.getColumnIndex(DbHelper.LOG_FB))));
+    	nameValuePairs.add(new BasicNameValuePair("adminflag"	, c.getString(c.getColumnIndex(DbHelper.LOG_FLAGADMINS))));
+    	nameValuePairs.add(new BasicNameValuePair("userflag"	, c.getString(c.getColumnIndex(DbHelper.LOG_FLAGUSERS))));
+    	nameValuePairs.add(new BasicNameValuePair("score"		, c.getString(c.getColumnIndex(DbHelper.LOG_SCORE))));
+    	nameValuePairs.add(new BasicNameValuePair("condition"	, c.getString(c.getColumnIndex(DbHelper.LOG_CONDITION))));
+	    
+		try {
+			// Send the request
+			HttpClient client = new DefaultHttpClient();
+			HttpPost post = new HttpPost( "http://www.trigpointinguk.com/trigs/android-sync-log.php" );
+		    post.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+		    Log.d(TAG, nameValuePairs.toString());
+		    HttpResponse response = client.execute(post);
+		    
+		    // Get the response
+		    InputStream ips  = response.getEntity().getContent();
+	        BufferedReader buf = new BufferedReader(new InputStreamReader(ips,"UTF-8"));
+	        
+	        // Handle HTTP errors
+	        if(response.getStatusLine().getStatusCode()!=HttpStatus.SC_OK) {
+	            Log.e(TAG, "RC error - " + response.getStatusLine().getReasonPhrase());
+	            return ERROR;
+	        }
+
+	        // Single line JSON response from T:UK server
+	        String reply = buf.readLine();
+	        buf.close();
+	        ips.close();
+	        Log.d(TAG, "Reply from T:UK - " + reply);
+	        if (reply == null || reply == "") {
+	        	Log.e(TAG, "No response received from T:UK");
+	        	return ERROR;
+	        }
+
+	        // Parse the JSON response
+	        try {
+				JSONObject jo = new JSONObject(reply);
+				int status = jo.getInt("status");
+				String msg = jo.getString("msg");
+				Log.i(TAG, "Status=" + status + ", msg=" + msg);
+				if (status != 0) {
+					return ERROR;
+				}
+				int logId = jo.getInt("log_id");
+				Log.i(TAG, "Successfully inserted log into T:UK - " + logId);
+				// remove log from database
+				mDb.deleteLog(trigId);
+				// update photos for this trig with log id from T:UK
+				mDb.updatePhotos(trigId, logId);
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+				return ERROR;
+			}
+
+		} catch (ClientProtocolException e) {
+            return ERROR;
+		} catch (IOException e) {
+            return ERROR;
+		} catch (NumberFormatException e) {
+			Log.e(TAG, "Unable to convert log_id received from T:UK into integer");
+			return ERROR;
+		}
+
+		return SUCCESS;
+	}
+	
+	Integer sendPhotosToTUK() {
+		Log.d(TAG, "sendPhotosToTUK");
+		return SUCCESS;
+	}
+	
+	
+	Integer readLogsFromTUK() {
+		Log.d(TAG, "readLogsFromTUK");
+
         String strLine;                
 		int i=0;
-		String strUser;
-		DbHelper db = null;
 		
 		try {
-			strUser = URLEncoder.encode(mPrefs.getString("username", ""), "utf8");
-		} catch (UnsupportedEncodingException e1) {
-			e1.printStackTrace();
-			return 0;
-		}
-		if (strUser.equals("")) {return 0;}
-        
-		try {
-			URL url = new URL("http://www.trigpointinguk.com/trigs/down-android-mylogs.php?username="+strUser);
+			publishProgress(MESSAGE, R.string.syncLogsFromTUK);
+			URL url = new URL("http://www.trigpointinguk.com/trigs/down-android-mylogs.php?username="+URLEncoder.encode(mUsername)+"&appversion="+mAppVersion);
 			Log.d(TAG, "Getting " + url);
             URLConnection ucon = url.openConnection();
             InputStream is = ucon.getInputStream();
             GZIPInputStream zis = new GZIPInputStream(new BufferedInputStream(is));
             BufferedReader br = new BufferedReader(new InputStreamReader(zis));
 
-    		if (isCancelled()){return 0;}
-
-    		
-    		// Make sure only one SyncTask runs at a time
-    		if (mLock) {
-    			Log.i(TAG, "SyncTask already running");
-    			this.cancel(true);
-    			return 0;
-    		}
-    		mLock = true;
-
-    		
-    		db = new DbHelper(mCtx);
-            db.open();
-			db.mDb.beginTransaction();
+			mDb.mDb.beginTransaction();
             
+			// first record contains log count
+			if ((strLine=br.readLine()) != null) {
+				mMax = Integer.parseInt(strLine);
+				Log.i(TAG, "Log count from TUK = " + mMax);
+				publishProgress(MAX, mMax);
+			}
+			// read log records records
             while ((strLine = br.readLine()) != null && !strLine.trim().equals(""))   {
             	//Log.i(TAG,strLine);
 				String[] csv=strLine.split("\t");
 				Condition logged		= Condition.fromCode(csv[0]);
 				int id					= Integer.valueOf(csv[1]);
-				db.updateTrigLog(id, logged);
+				mDb.updateTrigLog(id, logged);
 				i++;
-				if (isCancelled()){return 0;}
+				if (isCancelled()){return CANCELLED;}
+				publishProgress(PROGRESS, i);
             }
-			db.mDb.setTransactionSuccessful();
+			mDb.mDb.setTransactionSuccessful();
         } catch (Exception e) {
         	Log.d(TAG, "Error: " + e);
         	i=-1;
+        	return ERROR;
         } finally {
-        	if (db != null) {
-        		db.mDb.endTransaction();
-            	db.close();
-        		mLock = false;
+        	if (mDb != null) {
+        		mDb.mDb.endTransaction();
         	}
         }
         
-		return i;
+		return SUCCESS;		
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
     protected void onPreExecute() {
 		Log.d(TAG, "onPreExecute");
 		
-		// Check that we have a username, so that we can sync existing logs
+		// Check that we have a username and password, so that we can sync existing logs
 		mPrefs = PreferenceManager.getDefaultSharedPreferences(mCtx);
 		if (mPrefs.getString("username", "").equals("")) {
-			Toast.makeText(mCtx, "Please add username to preferences!", Toast.LENGTH_LONG).show();
+			Toast.makeText(mCtx, R.string.toastAddUsername, Toast.LENGTH_LONG).show();
 			this.cancel(true);
-		} else {
-			mProgressDialog = new ProgressDialog(mCtx);
-			mProgressDialog.setMessage("Syncing with T:UK...");
-			mProgressDialog.setIndeterminate(true);
-			mProgressDialog.setCancelable(true);
-			mProgressDialog.show();
-		}
+			return;
+		} 
+		if (mPrefs.getString("plaintextpassword", "").equals("")) {
+			Toast.makeText(mCtx, R.string.toastAddPassword, Toast.LENGTH_LONG).show();
+			this.cancel(true);
+			return;
+		} 
+		
+	
+		mProgressDialog = new ProgressDialog(mCtx);
+		mProgressDialog.setIndeterminate(false);
+		mProgressDialog.setCancelable(true);
+		mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+		mProgressDialog.setMessage("Idle");
+		mProgressDialog.show();
+
+
     }
+    
     protected void onProgressUpdate(Integer... progress) {
+    	switch (progress[0]) {
+    	case MAX:
+        	Log.d(TAG, "Max progress set to " + progress[1]);
+        	mProgressDialog.setMax(progress[1]);
+        	mProgressDialog.setProgress(0);
+        	break;
+    	case PROGRESS:
+        	Log.d(TAG, "Progress set to " + progress[1]);
+        	mProgressDialog.setProgress(progress[1]);
+        	break;
+    	case MESSAGE:
+    		String message = mCtx.getResources().getString(progress[1]);
+    		Log.d(TAG, "Progress message set to " + message);
+    		mProgressDialog.setMessage(message);
+    		break;
+    	}
     }
-    protected void onPostExecute(Integer arg0) {
-		Log.d(TAG, "onPostExecute " + arg0);
+    
+    
+    protected void onPostExecute(Integer status) {
+		Log.d(TAG, "onPostExecute " + status);
 		if (!isCancelled()) {
-			if (arg0 >= 0) {
-				Toast.makeText(mCtx, "Synced " + arg0 + " logs", Toast.LENGTH_SHORT).show();
+			if (status == SUCCESS) {
+				Toast.makeText(mCtx, "Synced all logs with TrigpointingUK", Toast.LENGTH_SHORT).show();
 			} else {
-				Toast.makeText(mCtx, "Error retrieving logs", Toast.LENGTH_SHORT).show();					
+				Toast.makeText(mCtx, "Error syncing with TrigpointingUK", Toast.LENGTH_LONG).show();					
 			}
 		} else {
-			Log.d(TAG, "cancelled " + arg0);
+			Log.d(TAG, "cancelled ");
 			Toast.makeText(mCtx, "Sync cancelled", Toast.LENGTH_SHORT).show();			
 		}
 		if (mProgressDialog != null) {mProgressDialog.dismiss();}
