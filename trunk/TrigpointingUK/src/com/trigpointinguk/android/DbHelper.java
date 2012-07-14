@@ -349,13 +349,30 @@ public class DbHelper {
      * @return Cursor positioned to matching log, if found
      * @throws SQLException if note could not be found/retrieved
      */
-    public Cursor fetchAllLogs() throws SQLException {
+    public Cursor fetchLogs(Long... trigId) throws SQLException {
 
+    	String condition = null;
+    	if (trigId != null && trigId.length != 0) {
+    		// only a single trig
+    		condition = new String (LOG_ID + "=" + trigId[0]);
+    	}
         Cursor mCursor =
-            mDb.query(true, LOG_TABLE, new String[] {LOG_ID, LOG_YEAR, LOG_MONTH, LOG_DAY, 
-            				LOG_HOUR, LOG_MINUTES, LOG_GRIDREF, LOG_FB, LOG_CONDITION, 
-            				LOG_COMMENT, LOG_SCORE, LOG_COMMENT, LOG_FLAGADMINS, LOG_FLAGUSERS}
-                    , null, null,null, null, null, null);
+            mDb.query(true, LOG_TABLE, new String[] {
+            		LOG_ID, 
+            		LOG_YEAR, 
+            		LOG_MONTH, 
+            		LOG_DAY, 
+            		LOG_HOUR, 
+            		LOG_MINUTES, 
+            		LOG_GRIDREF, 
+            		LOG_FB, 
+            		LOG_CONDITION, 
+            		LOG_COMMENT, 
+            		LOG_SCORE, 
+            		LOG_COMMENT, 
+            		LOG_FLAGADMINS, 
+            		LOG_FLAGUSERS}
+                    , condition, null, null, null, null, null);
         if (mCursor != null) {
             if (! mCursor.moveToFirst()) {
             	// No log row found

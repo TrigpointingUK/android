@@ -43,6 +43,7 @@ import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
 import com.trigpointinguk.android.DbHelper;
+import com.trigpointinguk.android.MainActivity;
 import com.trigpointinguk.android.R;
 import com.trigpointinguk.android.common.FileCache;
 import com.trigpointinguk.android.common.Utils;
@@ -415,7 +416,10 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
 			Toast.makeText(this, R.string.toastAddPassword, Toast.LENGTH_LONG).show();
 			return;
 		} 
-    	Toast.makeText(this, "Uploading log to server", Toast.LENGTH_SHORT).show();    	
+		saveLog();
+    	mSwitcher.showNext();
+    	mHaveLog = false;
+		new SyncTask(LogTrigActivity.this).execute(mTrigId);
     }
 
     

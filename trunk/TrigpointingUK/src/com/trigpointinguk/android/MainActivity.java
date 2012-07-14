@@ -64,7 +64,6 @@ public class MainActivity extends Activity {
         btnSync.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				//new UpdateTrigLogsTask().execute();
 				new SyncTask(MainActivity.this).execute();
 			}
 		});

@@ -99,13 +99,16 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> {
 			if (mUsername.equals("")) {return ERROR;}
 			if (mPassword.equals("")) {return ERROR;}
 
+			if (ERROR == sendLogsToTUK(trigId)) {
+				return ERROR;
+			}
+			if (ERROR == sendPhotosToTUK()) {
+				return ERROR;
+			}
 			if (trigId.length == 0) {
-				// Syncing all logs
-				if (ERROR == sendLogsToTUK()) {
+				if (ERROR == readLogsFromTUK()) {
 					return ERROR;
 				}
-				sendPhotosToTUK();
-				readLogsFromTUK();
 			}
 		} finally {
 			mDb.close();
@@ -118,11 +121,11 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> {
 	
 	
 	
-	Integer sendLogsToTUK() {
+	Integer sendLogsToTUK(Long... trigId) {
 		Log.d(TAG, "sendLogsToTUK");
 
 		publishProgress(MESSAGE, R.string.syncToTUK);
-		Cursor c = mDb.fetchAllLogs();
+		Cursor c = mDb.fetchLogs(trigId);
 		if (c==null) {
 			return NOLOGS;
 		}
@@ -140,7 +143,6 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> {
 			
 		return SUCCESS;
 	}
-
 	
 	
 	
