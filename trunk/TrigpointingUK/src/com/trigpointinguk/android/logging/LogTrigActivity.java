@@ -264,7 +264,7 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
     
 	private void createPhoto (int requestCode, int resultCode, Intent data) {
 		// Photo chosen - create DB entry and send user to edit activity
-		Log.i(TAG, "onActivityResult - ADD_PHOTO");
+		Log.i(TAG, "createPhoto");
 		if(resultCode == RESULT_OK){  
 			Uri selectedImageUri = data.getData();
     		Log.i(TAG, "Photo URI - " + selectedImageUri);
@@ -276,13 +276,14 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
     		
     		// shrink the photo and store on SD card
 			String cachedir  = new FileCache(this, "logphotos").getCacheDir().getAbsolutePath();
-			String photoPath = new String(cachedir + photoId + "_I.jpg");
-			String thumbPath = new String(cachedir + photoId + "_T.jpg");
+			String photoPath = new String(cachedir + "/" + photoId + "_I.jpg");
+			String thumbPath = new String(cachedir + "/" + photoId + "_T.jpg");
+			Log.d(TAG, photoPath + " - " + thumbPath);
 			try {
 				Bitmap bThumb = Utils.decodeUri(this, selectedImageUri,  100);
-				Bitmap bPhoto = Utils.decodeUri(this, selectedImageUri, 1024);
-				Utils.saveBitmapToFile(thumbPath, bThumb, 90);
-				Utils.saveBitmapToFile(photoPath, bPhoto, 90);
+				Bitmap bPhoto = Utils.decodeUri(this, selectedImageUri,  640);
+				Utils.saveBitmapToFile(thumbPath, bThumb, 50);
+				Utils.saveBitmapToFile(photoPath, bPhoto, 50);
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 				ErrorReporter.getInstance().handleSilentException(e);

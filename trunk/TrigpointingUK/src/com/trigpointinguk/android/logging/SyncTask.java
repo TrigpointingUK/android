@@ -2,6 +2,7 @@ package com.trigpointinguk.android.logging;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -19,6 +20,10 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
@@ -54,12 +59,14 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> {
     private String				mUsername;
     private String				mPassword;
     
-    private static final int 	MAX 		= 1;
-    private static final int 	PROGRESS 	= 2;
-    private static final int 	MESSAGE		= 3;
+    private static final int 	MAX 			= 1;
+    private static final int 	PROGRESS 		= 2;
+    private static final int 	MESSAGE			= 3;
+    private static final int 	BLANKPROGRESS	= 4;
+    
     
     private static final int 	SUCCESS 	= 0;
-    private static final int 	NOLOGS 		= 1;
+    private static final int 	NOROWS 		= 1;
     private static final int 	ERROR 		= 2;
     private static final int 	CANCELLED 	= 3;
     
@@ -102,7 +109,7 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> {
 			if (ERROR == sendLogsToTUK(trigId)) {
 				return ERROR;
 			}
-			if (ERROR == sendPhotosToTUK()) {
+			if (ERROR == sendPhotosToTUK(trigId)) {
 				return ERROR;
 			}
 			if (trigId.length == 0) {
@@ -123,11 +130,16 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> {
 	
 	Integer sendLogsToTUK(Long... trigId) {
 		Log.d(TAG, "sendLogsToTUK");
-
+		Long trig_id = null;
+		
+		if (trigId != null && trigId.length >= 1) {
+			trig_id = trigId[0];
+		}
+		
 		publishProgress(MESSAGE, R.string.syncToTUK);
-		Cursor c = mDb.fetchLogs(trigId);
+		Cursor c = mDb.fetchLogs(trig_id);
 		if (c==null) {
-			return NOLOGS;
+			return NOROWS;
 		}
 		
 		publishProgress(MAX, c.getCount());
@@ -144,6 +156,34 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> {
 		return SUCCESS;
 	}
 	
+	
+	Integer sendPhotosToTUK(Long... trigId) {
+		Log.d(TAG, "sendPhotosToTUK");
+		Long trig_id = null;
+		
+		if (trigId != null && trigId.length >= 1) {
+			trig_id = trigId[0];
+		}
+
+		publishProgress(MESSAGE, R.string.syncPhotosToTUK);
+		Cursor c = mDb.fetchPhotos(trig_id);
+		if (c==null) {
+			return NOROWS;
+		}
+		
+		publishProgress(MAX, c.getCount());
+		publishProgress(PROGRESS, 0);
+		
+		int i=0;
+		do {
+			if (SUCCESS != sendPhotoToTUK(c)) {
+				return ERROR;
+			}
+			publishProgress(PROGRESS, ++i);
+		} while (c.moveToNext());
+			
+		return SUCCESS;
+	}
 	
 	
 	
@@ -230,10 +270,108 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> {
 		return SUCCESS;
 	}
 	
-	Integer sendPhotosToTUK() {
-		Log.d(TAG, "sendPhotosToTUK");
+	
+	
+	Integer sendPhotoToTUK(Cursor c) {
+		Log.i(TAG, "sendPhotoToTUK");
+		
+		Long 	photoId 	= c.getLong  (c.getColumnIndex(DbHelper.PHOTO_ID));
+    	String 	photoPath 	= c.getString(c.getColumnIndex(DbHelper.PHOTO_PHOTO));
+		
+		try {
+			// Send the request
+			HttpClient client = new DefaultHttpClient();
+			HttpPost post = new HttpPost( "http://www.trigpointinguk.com/trigs/android-sync-photo.php" );
+		    
+		    MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
+    	    entity.addPart("username"	, new StringBody(mUsername));
+    	    entity.addPart("password"	, new StringBody(mPassword));
+    	    entity.addPart("photoid"	, new StringBody(c.getString(c.getColumnIndex(DbHelper.PHOTO_ID))));
+    	    entity.addPart("tlog_id"	, new StringBody(c.getString(c.getColumnIndex(DbHelper.PHOTO_TUKLOGID))));
+    	    entity.addPart("trig"		, new StringBody(c.getString(c.getColumnIndex(DbHelper.PHOTO_TRIG))));
+    	    entity.addPart("name"		, new StringBody(c.getString(c.getColumnIndex(DbHelper.PHOTO_NAME))));
+    	    entity.addPart("descr"		, new StringBody(c.getString(c.getColumnIndex(DbHelper.PHOTO_DESCR))));
+    	    entity.addPart("subject"	, new StringBody(c.getString(c.getColumnIndex(DbHelper.PHOTO_SUBJECT))));
+    	    entity.addPart("ispublic"	, new StringBody(c.getString(c.getColumnIndex(DbHelper.PHOTO_ISPUBLIC))));
+            entity.addPart("photo"		, new FileBody(new File (photoPath), "image/jpeg"));
+
+            post.setEntity(entity);
+            HttpResponse response = client.execute(post);
+            
+		    // Get the response
+		    InputStream ips  = response.getEntity().getContent();
+	        BufferedReader buf = new BufferedReader(new InputStreamReader(ips,"UTF-8"));
+	        
+	        // Handle HTTP errors
+	        if(response.getStatusLine().getStatusCode()!=HttpStatus.SC_OK) {
+	            Log.e(TAG, "RC error - " + response.getStatusLine().getReasonPhrase());
+	            return ERROR;
+	        }
+
+	        // Single line JSON response from T:UK server
+	        String reply = buf.readLine();
+	        buf.close();
+	        ips.close();
+	        Log.i(TAG, "Reply from T:UK - " + reply);
+	        if (reply == null || reply == "") {
+	        	Log.e(TAG, "No response received from T:UK");
+	        	return ERROR;
+	        }
+
+	        // Parse the JSON response
+	        try {
+				JSONObject jo = new JSONObject(reply);
+				int status = jo.getInt("status");
+				String msg = jo.getString("msg");
+				Log.i(TAG, "Status=" + status + ", msg=" + msg);
+				if (status != 0) {
+					return ERROR;
+				}
+				int tukPhotoId = jo.getInt("photo_id");
+				Log.i(TAG, "Successfully uploaded photo to T:UK - " + tukPhotoId);
+				// remove log from database
+				mDb.deletePhoto(photoId);
+				// TODO: remove file from cachedir
+	        } catch (JSONException e1) {
+				e1.printStackTrace();
+				return ERROR;
+			}
+
+		} catch (ClientProtocolException e) {
+            return ERROR;
+		} catch (IOException e) {
+            return ERROR;
+		} catch (NumberFormatException e) {
+			Log.e(TAG, "Unable to convert tukPhotoId received from T:UK into integer");
+			return ERROR;
+		}
+
 		return SUCCESS;
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	Integer readLogsFromTUK() {
@@ -243,6 +381,7 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> {
 		int i=0;
 		
 		try {
+			publishProgress(BLANKPROGRESS);
 			publishProgress(MESSAGE, R.string.syncLogsFromTUK);
 			URL url = new URL("http://www.trigpointinguk.com/trigs/down-android-mylogs.php?username="+URLEncoder.encode(mUsername)+"&appversion="+mAppVersion);
 			Log.d(TAG, "Getting " + url);
@@ -330,9 +469,10 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> {
     	switch (progress[0]) {
     	case MAX:
         	Log.d(TAG, "Max progress set to " + progress[1]);
+        	mProgressDialog.setIndeterminate(false);
         	mProgressDialog.setMax(progress[1]);
         	mProgressDialog.setProgress(0);
-        	break;
+    		break;
     	case PROGRESS:
         	Log.d(TAG, "Progress set to " + progress[1]);
         	mProgressDialog.setProgress(progress[1]);
@@ -341,6 +481,9 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> {
     		String message = mCtx.getResources().getString(progress[1]);
     		Log.d(TAG, "Progress message set to " + message);
     		mProgressDialog.setMessage(message);
+    		break;
+    	case BLANKPROGRESS:
+    		mProgressDialog.setMax(0);
     		break;
     	}
     }

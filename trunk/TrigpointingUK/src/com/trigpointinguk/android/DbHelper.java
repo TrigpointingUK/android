@@ -349,12 +349,12 @@ public class DbHelper {
      * @return Cursor positioned to matching log, if found
      * @throws SQLException if note could not be found/retrieved
      */
-    public Cursor fetchLogs(Long... trigId) throws SQLException {
+    public Cursor fetchLogs(Long trigId) throws SQLException {
 
     	String condition = null;
-    	if (trigId != null && trigId.length != 0) {
+    	if (trigId != null) {
     		// only a single trig
-    		condition = new String (LOG_ID + "=" + trigId[0]);
+    		condition = new String (LOG_ID + "=" + trigId);
     	}
         Cursor mCursor =
             mDb.query(true, LOG_TABLE, new String[] {
@@ -529,13 +529,20 @@ public class DbHelper {
 
 	/**
      * Return a Cursor positioned at the first photo for the given trigpoint
+     * (or all trigpoints, if null)
      * 
      * @param id of trigpoint to retrieve
      * @return Cursor positioned to matching photo, if found
      * @throws SQLException if photo could not be found/retrieved
      */
-    public Cursor fetchPhotos(long trig_id) throws SQLException {
+    public Cursor fetchPhotos(Long trig_id) throws SQLException {
 
+    	String condition = null;
+    	if (trig_id != null) {
+    		// only a single trig
+    		condition = new String (PHOTO_TRIG + "=" + trig_id);
+    	}
+    	
         Cursor mCursor =
             mDb.query(true, 
             		PHOTO_TABLE, 
@@ -546,8 +553,9 @@ public class DbHelper {
             						PHOTO_NAME, 
             						PHOTO_DESCR, 
             						PHOTO_SUBJECT,
-            						PHOTO_ISPUBLIC}
-                    , PHOTO_TRIG + "=" + trig_id, null,
+            						PHOTO_ISPUBLIC,
+            						PHOTO_TUKLOGID}
+                    , condition, null,
                     null, null, null, null);
         
         if (mCursor != null) {
