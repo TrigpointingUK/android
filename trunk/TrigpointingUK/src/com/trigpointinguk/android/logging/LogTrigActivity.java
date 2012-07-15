@@ -12,6 +12,7 @@ import org.acra.ErrorReporter;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -43,7 +44,6 @@ import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
 import com.trigpointinguk.android.DbHelper;
-import com.trigpointinguk.android.MainActivity;
 import com.trigpointinguk.android.R;
 import com.trigpointinguk.android.common.FileCache;
 import com.trigpointinguk.android.common.Utils;
@@ -460,8 +460,12 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
 			mProgressDialog.setIndeterminate(true);
 			mProgressDialog.setCancelable(true);
 			mProgressDialog.show();
-
-		    
+			mProgressDialog.setOnCancelListener (new DialogInterface.OnCancelListener() {
+				@Override
+				public void onCancel(DialogInterface arg0) {
+					Toast.makeText(LogTrigActivity.this, "Cancelled Get location", Toast.LENGTH_SHORT).show();
+					mLocationManager.removeUpdates(LogTrigActivity.this);
+				}});
 	    }
 	    
 
@@ -473,11 +477,10 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
 		LatLon ll = new LatLon(location);
 		mGridref.setText(ll.getOSGB10());
 		
-		mProgressDialog.cancel();
+		mProgressDialog.dismiss();
 		Toast.makeText(this, "GPS location added", Toast.LENGTH_SHORT).show();
 
 		mLocationManager.removeUpdates(this);
-		
 	}
 
 	@Override
