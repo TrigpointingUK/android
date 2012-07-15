@@ -52,7 +52,8 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> {
     private ProgressDialog 		mProgressDialog;
 
 	private	DbHelper 			mDb = null;
-
+	private SyncListener		mSyncListener;
+	
     private static boolean 		mLock = false;
     private int 				mAppVersion;
     private int 				mMax;		// Maximum count of things being synced, for progress bar
@@ -65,14 +66,16 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> {
     private static final int 	BLANKPROGRESS	= 4;
     
     
-    private static final int 	SUCCESS 	= 0;
-    private static final int 	NOROWS 		= 1;
-    private static final int 	ERROR 		= 2;
-    private static final int 	CANCELLED 	= 3;
+    public static final int 	SUCCESS 	= 0;
+    public static final int 	NOROWS 		= 1;
+    public static final int 	ERROR 		= 2;
+    public static final int 	CANCELLED 	= 3;
     
     
-	public SyncTask(Context pCtx) {
+    
+	public SyncTask(Context pCtx, SyncListener listener) {
 		this.mCtx = pCtx;
+		this.mSyncListener = listener;
 		try {
 			mAppVersion = mCtx.getPackageManager().getPackageInfo(mCtx.getPackageName(), 0).versionCode;
 		} catch (NameNotFoundException e) {
@@ -459,7 +462,7 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> {
 		mProgressDialog.setIndeterminate(false);
 		mProgressDialog.setCancelable(true);
 		mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-		mProgressDialog.setMessage("Idle");
+		mProgressDialog.setMessage("Connecting to T:UK");
 		mProgressDialog.show();
 
 
@@ -493,7 +496,7 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> {
 		Log.d(TAG, "onPostExecute " + status);
 		if (!isCancelled()) {
 			if (status == SUCCESS) {
-				Toast.makeText(mCtx, "Synced all logs with TrigpointingUK", Toast.LENGTH_SHORT).show();
+				Toast.makeText(mCtx, "Synced with TrigpointingUK", Toast.LENGTH_SHORT).show();
 			} else {
 				Toast.makeText(mCtx, "Error syncing with TrigpointingUK", Toast.LENGTH_LONG).show();					
 			}
@@ -502,5 +505,8 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> {
 			Toast.makeText(mCtx, "Sync cancelled", Toast.LENGTH_SHORT).show();			
 		}
 		if (mProgressDialog != null) {mProgressDialog.dismiss();}
+		if (mSyncListener != null) {
+			mSyncListener.onSynced(status);
+		}
     }
 }

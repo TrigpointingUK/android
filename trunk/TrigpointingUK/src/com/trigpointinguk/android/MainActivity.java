@@ -64,7 +64,7 @@ public class MainActivity extends Activity {
         btnSync.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				new SyncTask(MainActivity.this).execute();
+				new SyncTask(MainActivity.this, null).execute();
 			}
 		});
         final Button btnCrash = (Button) findViewById(R.id.btnCrash);
@@ -93,7 +93,7 @@ public class MainActivity extends Activity {
         
         //autosync
         if (mPrefs.getBoolean("autosync", false)) {
-			new SyncTask(MainActivity.this).execute();        	
+			new SyncTask(MainActivity.this, null).execute();        	
         }   
         
         //Experimental

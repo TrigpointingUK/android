@@ -61,14 +61,12 @@ public class TrigDetailsActivity extends TabActivity {
 	                  .setContent(intent);
 	    tabHost.addTab(spec);
 
-	    if (mPrefs.getBoolean("experimental", false)) {
-		    intent = new Intent().setClass(this, LogTrigActivity.class);
-		    intent.putExtras(extras);
-		    spec = tabHost.newTabSpec("mylog").setIndicator("",
-		                      res.getDrawable(android.R.drawable.ic_menu_edit))
-		                  .setContent(intent);
-		    tabHost.addTab(spec);
-	    }
+	    intent = new Intent().setClass(this, LogTrigActivity.class);
+	    intent.putExtras(extras);
+	    spec = tabHost.newTabSpec("mylog").setIndicator("",
+	                      res.getDrawable(android.R.drawable.ic_menu_edit))
+	                  .setContent(intent);
+	    tabHost.addTab(spec);
 	    
 	    tabHost.setCurrentTab(0);
 	    

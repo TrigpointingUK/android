@@ -125,8 +125,8 @@
 	<string name="photoRemove">Remove</string>
     <string name="photoThumbnail">Thumbnail</string>
 	<string name="addLog">Log this trigpoint</string>
-	<string name="prefsExperimental">Experimental</string>
-	<string name="prefsExperimentalDetails">Enable experimental features (unstable)</string>
+	<string name="prefsExperimental">Developer mode</string>
+	<string name="prefsExperimentalDetails">Access code under development (unstable)</string>
 	<string name="prefsBehaviour">Application preferences</string>
 	<string name="prefsDevelopment">Development options</string>
 	<string name="prefsAcra">Crash reports</string> 

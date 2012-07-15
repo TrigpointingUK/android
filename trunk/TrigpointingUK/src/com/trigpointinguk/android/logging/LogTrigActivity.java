@@ -52,7 +52,7 @@ import com.trigpointinguk.android.types.LatLon;
 import com.trigpointinguk.android.types.PhotoSubject;
 import com.trigpointinguk.android.types.TrigPhoto;
 
-public class LogTrigActivity extends Activity implements OnDateChangedListener, LocationListener {
+public class LogTrigActivity extends Activity implements OnDateChangedListener, LocationListener, SyncListener {
 	private static final String TAG			= "LogTrigActivity";
     private static final int    CHOOSE_PHOTO  = 1;
     private static final int    EDIT_PHOTO  = 2;
@@ -418,9 +418,7 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
 			return;
 		} 
 		saveLog();
-    	mSwitcher.showNext();
-    	mHaveLog = false;
-		new SyncTask(LogTrigActivity.this).execute(mTrigId);
+		new SyncTask(LogTrigActivity.this, this).execute(mTrigId);
     }
 
     
@@ -496,6 +494,14 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
 
 	@Override
 	public void onStatusChanged(String provider, int status, Bundle extras) {
+	}
+
+	@Override
+	public void onSynced(int status) {
+    	if (status == SyncTask.SUCCESS) {
+    		mSwitcher.showNext();
+        	mHaveLog = false;
+    	}
 	}
 }
 
