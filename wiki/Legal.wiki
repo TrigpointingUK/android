@@ -48,23 +48,23 @@ fix bugs, may wish to leave crash reporting enabled, but switch off "Include sys
 === Android Permissions Required ===
 In order to install this app, the following permissions are sought from users:
   * Coarse Network Location
-  	This shows roughly where you are, based on the mobile phone coverage.
+    This shows roughly where you are, based on the mobile phone coverage.
   	
   * Fine Network Location
     This shows exactly where you are, based on the GPS in your phone.
     
   * Full Internet Access
-  	This is used to download trigpoint information from www.trigpointinguk.com, and mapping information from OSM and Bing.
+    This is used to download trigpoint information from www.trigpointinguk.com, and mapping information from OSM and Bing.
   	
   * Modify/delete USB storage contents modify/delete SD card contents
     This enables the app to cache trigpoint information and map tiles.
     
   * Read Logs
-  	This enables the crash reporting system to access the system logs to gain more information about the problem.  
-  	This information is only used if "Include syslog" is ticked in the Preferences. 
+    This enables the crash reporting system to access the system logs to gain more information about the problem.  
+    This information is only used if "Include syslog" is ticked in the Preferences. 
     
   * Control vibrator
-  	Provides haptic feedback during single-finger zooming of photos
+    Provides haptic feedback during single-finger zooming of photos
   	
   * View Wi-Fi state
   
