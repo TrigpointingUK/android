@@ -60,6 +60,7 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
     private int 				mMax;		// Maximum count of things being synced, for progress bar
     private String				mUsername;
     private String				mPassword;
+    private String				mErrorMessage;
     
     private int					mActiveByteCount; // byte count from currently transferring photo
     private int					mPreviousByteCount; // byte count from previously transferred photos
@@ -229,6 +230,7 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
     	nameValuePairs.add(new BasicNameValuePair("userflag"	, c.getString(c.getColumnIndex(DbHelper.LOG_FLAGUSERS))));
     	nameValuePairs.add(new BasicNameValuePair("score"		, c.getString(c.getColumnIndex(DbHelper.LOG_SCORE))));
     	nameValuePairs.add(new BasicNameValuePair("condition"	, c.getString(c.getColumnIndex(DbHelper.LOG_CONDITION))));
+    	nameValuePairs.add(new BasicNameValuePair("appversion"  , String.valueOf(mAppVersion)));
 	    
 		try {
 			// Send the request
@@ -262,8 +264,9 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
 	        try {
 				JSONObject jo = new JSONObject(reply);
 				int status = jo.getInt("status");
-				String msg = jo.getString("msg");
-				Log.i(TAG, "Status=" + status + ", msg=" + msg);
+				mErrorMessage = jo.getString("msg");
+				Log.i(TAG, "Status=" + status + ", msg=" + mErrorMessage);
+				
 				if (status != 0) {
 					return ERROR;
 				}
@@ -316,6 +319,8 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
     	    entity.addPart("subject"	, new StringBody(c.getString(c.getColumnIndex(DbHelper.PHOTO_SUBJECT))));
     	    entity.addPart("ispublic"	, new StringBody(c.getString(c.getColumnIndex(DbHelper.PHOTO_ISPUBLIC))));
             entity.addPart("photo"		, new FileBody(new File (photoPath), "image/jpeg"));
+        	entity.addPart("appversion" , new StringBody(String.valueOf(mAppVersion)));
+
 
             post.setEntity(entity);
             HttpResponse response = client.execute(post);
@@ -344,8 +349,8 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
 	        try {
 				JSONObject jo = new JSONObject(reply);
 				int status = jo.getInt("status");
-				String msg = jo.getString("msg");
-				Log.i(TAG, "Status=" + status + ", msg=" + msg);
+				mErrorMessage = jo.getString("msg");
+				Log.i(TAG, "Status=" + status + ", msg=" + mErrorMessage);
 				if (status != 0) {
 					return ERROR;
 				}
@@ -483,7 +488,6 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
 			return;
 		} 
 		
-	
 		mProgressDialog = new ProgressDialog(mCtx);
 		mProgressDialog.setIndeterminate(false);
 		mProgressDialog.setCancelable(true);
@@ -491,7 +495,7 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
 		mProgressDialog.setMessage("Connecting to T:UK");
 		mProgressDialog.show();
 
-
+		mErrorMessage = "";
     }
     
     protected void onProgressUpdate(Integer... progress) {
@@ -530,7 +534,7 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
 			if (status == SUCCESS) {
 				Toast.makeText(mCtx, "Synced with TrigpointingUK", Toast.LENGTH_SHORT).show();
 			} else {
-				Toast.makeText(mCtx, "Error syncing with TrigpointingUK", Toast.LENGTH_LONG).show();					
+				Toast.makeText(mCtx, "Error syncing with TrigpointingUK - " + mErrorMessage, Toast.LENGTH_LONG).show();					
 			}
 		} else {
 			Log.d(TAG, "cancelled ");
