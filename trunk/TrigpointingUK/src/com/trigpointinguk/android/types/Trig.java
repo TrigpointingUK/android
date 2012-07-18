@@ -29,11 +29,14 @@ public class Trig extends LatLon {
 		CENTRE			("CE", R.drawable.t_passive, "Centre"),
 		CONCRETERING	("CR", R.drawable.t_passive, "Concrete Ring"),
 		CURRYSTOOL		("CS", R.drawable.t_passive, "Curry Stool"),
+		CUT				("CT", R.drawable.t_passive, "Cut"),
 		FBM				("FB", R.drawable.t_fbm, "FBM"),
 		FENOMARK		("FE", R.drawable.t_passive, "Fenomark"),
+		INTERSECTED		("IN", R.drawable.t_intersected, "Intersected Station"),
 		MONUMENT		("MO", R.drawable.t_passive, "Monument"),
 		OTHER			("OT", R.drawable.t_passive, "Other"),
 		PILLAR			("PI", R.drawable.t_pillar, "Pillar"),
+		PLATFORM		("PB", R.drawable.t_passive, "Platform Bolt"),
 		RIVET			("RI", R.drawable.t_passive, "Rivet"),
 		SPIDER			("SP", R.drawable.t_passive, "Spider"),
 		SURFACEBLOCK	("SB", R.drawable.t_passive, "Surface Block"),
@@ -73,6 +76,7 @@ public class Trig extends LatLon {
 	public enum Current {
 		ACTIVE	 		("A", "Active"),
 		PASSIVE			("P", "Passive"),
+		NCE				("C", "NCE Adjustment"),
 		NONE			("N", "None"),
 		USERADDED		("U", "Unknown - User Added"),
 		;
@@ -104,10 +108,12 @@ public class Trig extends LatLon {
 	
 	// HISTORIC USE of the trigpoint
 	public enum Historic {
+		GPS		 		("S", "13th order - GPS"),
 		PRIMARY	 		("1", "Primary"),
 		SECONDARY		("2", "Secondary"),
 		THIRDORDER		("3", "3rd order"),
 		FOURTHORDER		("4", "4th order"),
+		ACTIVE			("A", "Active station"),
 		FBM				("F", "Fundamental Benchmark"),
 		GREATGLEN		("G", "Great Glen Project"),
 		HYDROGRAPHIC	("H", "Hydrographic Survey Pillar"),
