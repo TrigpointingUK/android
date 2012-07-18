@@ -41,11 +41,13 @@ import android.widget.Toast;
 
 import com.trigpointinguk.android.DbHelper;
 import com.trigpointinguk.android.R;
+import com.trigpointinguk.android.common.CountingMultipartEntity;
+import com.trigpointinguk.android.common.CountingMultipartEntity.ProgressListener;
 import com.trigpointinguk.android.types.Condition;
 
 
 
-public class SyncTask extends AsyncTask<Long, Integer, Integer> {
+public class SyncTask extends AsyncTask<Long, Integer, Integer> implements ProgressListener {
 	public static final String TAG ="SyncTask";
 	private Context 			mCtx;
 	private SharedPreferences 	mPrefs;
@@ -60,10 +62,14 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> {
     private String				mUsername;
     private String				mPassword;
     
+    private int					mActiveByteCount; // byte count from currently transferring photo
+    private int					mPreviousByteCount; // byte count from previously transferred photos
+    
     private static final int 	MAX 			= 1;
     private static final int 	PROGRESS 		= 2;
     private static final int 	MESSAGE			= 3;
     private static final int 	BLANKPROGRESS	= 4;
+    private static final int 	MESSAGECOUNT	= 5;
     
     
     public static final int 	SUCCESS 	= 0;
@@ -163,6 +169,8 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> {
 	Integer sendPhotosToTUK(Long... trigId) {
 		Log.d(TAG, "sendPhotosToTUK");
 		Long trig_id = null;
+		mPreviousByteCount = 0;
+		mActiveByteCount = 0;
 		
 		if (trigId != null && trigId.length >= 1) {
 			trig_id = trigId[0];
@@ -174,15 +182,25 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> {
 			return NOROWS;
 		}
 		
-		publishProgress(MAX, c.getCount());
+		// whiz through the cursor, totalling file sizes 
+		int totalBytes=0;
+		do {
+			totalBytes += new File(c.getString(c.getColumnIndex(DbHelper.PHOTO_PHOTO))).length();
+		} while (c.moveToNext());
+		// reset cursor
+		c.moveToFirst();
+		
+		publishProgress(MAX, totalBytes);
 		publishProgress(PROGRESS, 0);
 		
-		int i=0;
+		int i = 1;
 		do {
+			publishProgress(MESSAGECOUNT, i++, c.getCount());
 			if (SUCCESS != sendPhotoToTUK(c)) {
 				return ERROR;
 			}
-			publishProgress(PROGRESS, ++i);
+			mPreviousByteCount += mActiveByteCount;
+			mActiveByteCount = 0;
 		} while (c.moveToNext());
 			
 		return SUCCESS;
@@ -286,10 +304,11 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> {
 			HttpClient client = new DefaultHttpClient();
 			HttpPost post = new HttpPost( "http://www.trigpointinguk.com/trigs/android-sync-photo.php" );
 		    
-		    MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
+		    //MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
+			MultipartEntity entity = new CountingMultipartEntity(this);
     	    entity.addPart("username"	, new StringBody(mUsername));
     	    entity.addPart("password"	, new StringBody(mPassword));
-    	    entity.addPart("photoid"	, new StringBody(c.getString(c.getColumnIndex(DbHelper.PHOTO_ID))));
+    	    entity.addPart("photoid"	, new StringBody(photoId.toString()));
     	    entity.addPart("tlog_id"	, new StringBody(c.getString(c.getColumnIndex(DbHelper.PHOTO_TUKLOGID))));
     	    entity.addPart("trig"		, new StringBody(c.getString(c.getColumnIndex(DbHelper.PHOTO_TRIG))));
     	    entity.addPart("name"		, new StringBody(c.getString(c.getColumnIndex(DbHelper.PHOTO_NAME))));
@@ -352,7 +371,12 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> {
 		return SUCCESS;
 	}
 	
-	
+	@Override
+	public void transferred(long num) {
+		mActiveByteCount = (int) num;
+		publishProgress(PROGRESS, mPreviousByteCount + mActiveByteCount);
+		Log.d(TAG, "Transferred bytes: " + num);
+	}	
 	
 	
 	
@@ -469,6 +493,7 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> {
     }
     
     protected void onProgressUpdate(Integer... progress) {
+    	String message;
     	switch (progress[0]) {
     	case MAX:
         	Log.d(TAG, "Max progress set to " + progress[1]);
@@ -481,12 +506,17 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> {
         	mProgressDialog.setProgress(progress[1]);
         	break;
     	case MESSAGE:
-    		String message = mCtx.getResources().getString(progress[1]);
+    		message = mCtx.getResources().getString(progress[1]);
+    		Log.d(TAG, "Progress message set to " + message);
+    		mProgressDialog.setMessage(message);
+    		break;
+    	case MESSAGECOUNT:
+    		message = "Uploading photo " + progress[1] + " of " + progress[2];
     		Log.d(TAG, "Progress message set to " + message);
     		mProgressDialog.setMessage(message);
     		break;
     	case BLANKPROGRESS:
-    		mProgressDialog.setMax(0);
+    		mProgressDialog.setMax(1);
     		break;
     	}
     }
@@ -509,4 +539,8 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> {
 			mSyncListener.onSynced(status);
 		}
     }
+
+
+
+
 }
