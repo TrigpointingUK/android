@@ -1,5 +1,6 @@
 package com.trigpointinguk.android.logging;
 
+import java.io.File;
 import java.util.Arrays;
 
 import android.app.Activity;
@@ -76,6 +77,9 @@ public class LogPhotoActivity extends Activity {
 				Log.i(TAG, "Remove Photo");
 				// delete the photo record from the database
 				mDb.deletePhoto(mPhotoId);
+				// delete the files from the cache
+				new File (mPhotoURL).delete();
+				new File (mIconURL).delete();
 				setResult(RESULT_CANCELED);
 				finish();
 			}

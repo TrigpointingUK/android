@@ -20,7 +20,6 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
@@ -298,6 +297,7 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
 		
 		Long 	photoId 	= c.getLong  (c.getColumnIndex(DbHelper.PHOTO_ID));
     	String 	photoPath 	= c.getString(c.getColumnIndex(DbHelper.PHOTO_PHOTO));
+    	String 	thumbPath 	= c.getString(c.getColumnIndex(DbHelper.PHOTO_ICON));
 		
 		try {
 			// Send the request
@@ -353,7 +353,9 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
 				Log.i(TAG, "Successfully uploaded photo to T:UK - " + tukPhotoId);
 				// remove log from database
 				mDb.deletePhoto(photoId);
-				// TODO: remove file from cachedir
+				// remove files from cachedir
+				new File (photoPath).delete();
+				new File (thumbPath).delete();
 	        } catch (JSONException e1) {
 				e1.printStackTrace();
 				return ERROR;

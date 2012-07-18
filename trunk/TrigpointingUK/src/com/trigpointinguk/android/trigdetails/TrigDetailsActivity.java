@@ -2,11 +2,9 @@ package com.trigpointinguk.android.trigdetails;
 
 import android.app.TabActivity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.TabHost;
 
@@ -17,14 +15,14 @@ import com.trigpointinguk.android.logging.LogTrigActivity;
 public class TrigDetailsActivity extends TabActivity {
 
 	private static final String TAG="TrigDetailsActivity";
-    private SharedPreferences mPrefs;
+    //private SharedPreferences mPrefs;
 	
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
 	    setContentView(R.layout.trigdetails);
 
 		Bundle extras = getIntent().getExtras();
-        mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        //mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
 	    
 	    Resources res = getResources();

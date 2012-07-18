@@ -1,5 +1,6 @@
 package com.trigpointinguk.android.logging;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -397,9 +398,18 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
     }
     
     private void deleteLog() {
+    	// delete log records from DB
     	mDb.deleteLog(mTrigId);
+    	// delete image files from filesystem
+		Cursor c = mDb.fetchPhotos(mTrigId);
+		if (c!=null) {
+			do {
+				new File(c.getString(c.getColumnIndex(DbHelper.PHOTO_PHOTO))).delete();
+				new File(c.getString(c.getColumnIndex(DbHelper.PHOTO_ICON))).delete();
+			} while (c.moveToNext());
+		}
+    	// delete photo records from DB
     	mDb.deletePhotosForTrig(mTrigId);
-    	// TODO also delete the cached photo files here
     }
 
     
