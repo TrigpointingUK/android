@@ -57,6 +57,7 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
 	private static final String TAG			= "LogTrigActivity";
     private static final int    CHOOSE_PHOTO  = 1;
     private static final int    EDIT_PHOTO  = 2;
+    private SharedPreferences 	mPrefs;
     
 	private Long 				mTrigId;
     private ViewSwitcher 		mSwitcher;
@@ -84,7 +85,8 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
 		Log.i(TAG, "onCreate");
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.logtrig);
-		
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+
 		// Get trig_id from extras 
 		Bundle extras = getIntent().getExtras();
 		if (extras != null) {
@@ -114,6 +116,12 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
 		ArrayAdapter<Condition> adapter = new ArrayAdapter<Condition> (this, android.R.layout.simple_spinner_item, Condition.values());
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		mCondition.setAdapter(adapter);
+
+		// Switch off logUserFlag
+        if (!mPrefs.getBoolean("experimental", false)) {
+        	mUserFlag.setVisibility(View.INVISIBLE);
+        }
+        	
 		
 		// Setup listener on gallery photos
 	    mGallery.setOnItemClickListener(new OnItemClickListener() {

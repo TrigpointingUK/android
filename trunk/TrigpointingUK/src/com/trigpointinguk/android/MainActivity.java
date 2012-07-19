@@ -2,13 +2,6 @@ package com.trigpointinguk.android;
 
 import org.acra.ErrorReporter;
 
-import com.trigpointinguk.android.common.ClearCacheTask;
-import com.trigpointinguk.android.logging.LogTrigActivity;
-import com.trigpointinguk.android.logging.SyncTask;
-import com.trigpointinguk.android.mapping.DownloadMapsActivity;
-import com.trigpointinguk.android.mapping.MapActivity;
-import com.trigpointinguk.android.nearest.NearestActivity;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -25,6 +18,12 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.trigpointinguk.android.common.ClearCacheTask;
+import com.trigpointinguk.android.logging.SyncTask;
+import com.trigpointinguk.android.mapping.DownloadMapsActivity;
+import com.trigpointinguk.android.mapping.MapActivity;
+import com.trigpointinguk.android.nearest.NearestActivity;
 
 public class MainActivity extends Activity {
     public static final String TAG ="MainActivity";
@@ -86,10 +85,11 @@ public class MainActivity extends Activity {
         btnSearch.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				Intent i = new Intent(MainActivity.this, LogTrigActivity.class);
-				startActivity(i);
+				// do nothing
 			}
 		});
+        // disable search button
+        btnSearch.setEnabled(false);
         
         //autosync
         if (mPrefs.getBoolean("autosync", false)) {
@@ -100,7 +100,6 @@ public class MainActivity extends Activity {
         if (mPrefs.getBoolean("experimental", false)) {
         	Toast.makeText(this, "Running in experimental mode", Toast.LENGTH_LONG).show();
         } else {
-        	btnSearch.setEnabled(false);
         	btnCrash.setVisibility(View.INVISIBLE);
         }
     }
