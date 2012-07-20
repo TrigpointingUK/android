@@ -28,11 +28,20 @@ import com.trigpointinguk.android.nearest.NearestActivity;
 public class MainActivity extends Activity {
     public static final String TAG ="MainActivity";
     public static final int NOTRIGS = 1;
+	private static final String RUNBEFORE = "RUNBEFORE";
     private SharedPreferences mPrefs;
     
  	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // retrieve saved instance state
+        Boolean runbefore = false;
+        if (savedInstanceState != null) {
+        	runbefore = savedInstanceState.getBoolean(RUNBEFORE, false);
+        } 
+        
+        
         setContentView(R.layout.main);
         mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
@@ -92,7 +101,7 @@ public class MainActivity extends Activity {
         btnSearch.setEnabled(false);
         
         //autosync
-        if (mPrefs.getBoolean("autosync", false)) {
+        if (mPrefs.getBoolean("autosync", false) && !runbefore) {
 			new SyncTask(MainActivity.this, null).execute();        	
         }   
         
@@ -106,6 +115,13 @@ public class MainActivity extends Activity {
 
  	
  	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+ 		outState.putBoolean(RUNBEFORE, true);
+ 		super.onSaveInstanceState(outState);
+	}
+
+
+	@Override
 	protected Dialog onCreateDialog(int id) {
  	    Dialog dialog;
  	    switch(id) {
