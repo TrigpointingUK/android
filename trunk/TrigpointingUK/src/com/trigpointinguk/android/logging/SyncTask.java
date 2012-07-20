@@ -447,9 +447,10 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
         } catch (Exception e) {
         	Log.d(TAG, "Error: " + e);
         	i=-1;
+        	mErrorMessage = e.getMessage();
         	return ERROR;
         } finally {
-        	if (mDb != null) {
+        	if (mDb != null && mDb.mDb.inTransaction()) {
         		mDb.mDb.endTransaction();
         	}
         }
