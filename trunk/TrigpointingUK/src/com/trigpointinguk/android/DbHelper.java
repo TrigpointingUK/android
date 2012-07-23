@@ -222,13 +222,30 @@ public class DbHelper {
 		String strOrder;	
    
 		if (null != loc) {
-			strOrder = String.format("(%3.3f-%s)*(%3.3f-%s) + %f * (%3.3f-%s)*(%3.3f-%s) LIMIT %s", loc.getLatitude(), TRIG_LAT, loc.getLatitude(), TRIG_LAT, 
-					Math.pow(Math.cos(Math.toRadians(loc.getLatitude())),2), loc.getLongitude(), TRIG_LON, loc.getLongitude(), TRIG_LON, mPrefs.getString("listentries", "100"));
+			strOrder = String.format("(%s-%s)*(%s-%s) + %s * (%s-%s)*(%s-%s) LIMIT %s", 
+					loc.getLatitude(), 
+					TRIG_LAT, 
+					loc.getLatitude(), 
+					TRIG_LAT, 
+					Math.pow(Math.cos(Math.toRadians(loc.getLatitude())),2), 
+					loc.getLongitude(), 
+					TRIG_LON, 
+					loc.getLongitude(), 
+					TRIG_LON, 
+					mPrefs.getString("listentries", "100"));
 		} else {
 			strOrder = TRIG_NAME + " LIMIT " +  mPrefs.getString("listentries", "100");
 		}
 		Log.i(TAG, strOrder);
-		return mDb.query(TRIG_TABLE, new String[] {TRIG_ID, TRIG_NAME, TRIG_LAT, TRIG_LON, TRIG_TYPE, TRIG_CONDITION, TRIG_LOGGED}, null, null, null, null, strOrder);
+		return mDb.query(TRIG_TABLE, new String[] {
+				TRIG_ID, 
+				TRIG_NAME, 
+				TRIG_LAT, 
+				TRIG_LON, 
+				TRIG_TYPE, 
+				TRIG_CONDITION, 
+				TRIG_LOGGED}, 
+				null, null, null, null, strOrder);
 	}
 	
 	
@@ -239,15 +256,30 @@ public class DbHelper {
 	 * @return Cursor 
 	 */
 	public Cursor fetchTrigMapList (BoundingBoxE6 box) {
-		String strOrder = String.format("%s limit %s", TRIG_LAT, mPrefs.getString("mapcount", DEFAULT_MAP_COUNT));	
+		String strOrder = String.format("%s limit %s", 
+				TRIG_LAT, 
+				mPrefs.getString("mapcount", DEFAULT_MAP_COUNT));	
    
-		String strWhere = String.format("%s between %3.6f and %3.6f  and  %s between %3.6f and %3.6f"
-				, TRIG_LON, box.getLonWestE6()/1000000.0, box.getLonEastE6()/1000000.0, TRIG_LAT, box.getLatSouthE6()/1000000.0, box.getLatNorthE6()/1000000.0); 
+		String strWhere = String.format("%s between %s and %s  and  %s between %s and %s",
+				TRIG_LON, 
+				box.getLonWestE6()/1000000.0, 
+				box.getLonEastE6()/1000000.0, 
+				TRIG_LAT, 
+				box.getLatSouthE6()/1000000.0, 
+				box.getLatNorthE6()/1000000.0); 
 
 		
 		Log.i(TAG, strWhere);
 		Log.i(TAG, strOrder);
-		return mDb.query(TRIG_TABLE, new String[] {TRIG_ID, TRIG_NAME, TRIG_LAT, TRIG_LON, TRIG_TYPE, TRIG_CONDITION, TRIG_LOGGED}, strWhere, null, null, null, strOrder);
+		return mDb.query(TRIG_TABLE, new String[] {
+				TRIG_ID, 
+				TRIG_NAME, 
+				TRIG_LAT, 
+				TRIG_LON, 
+				TRIG_TYPE, 
+				TRIG_CONDITION, 
+				TRIG_LOGGED}, 
+				strWhere, null, null, null, strOrder);
 	}
 	
 	/**
@@ -256,7 +288,19 @@ public class DbHelper {
 	 * @return Cursor 
 	 */
 	public Cursor fetchTrigInfo (long id) {
-		return mDb.query(TRIG_TABLE, new String[] {TRIG_ID, TRIG_NAME, TRIG_LAT, TRIG_LON, TRIG_TYPE, TRIG_CONDITION, TRIG_LOGGED, TRIG_CURRENT, TRIG_HISTORIC, TRIG_FB}, TRIG_ID + "="+id, null, null, null, null);
+		return mDb.query(TRIG_TABLE, new String[] {
+				TRIG_ID, 
+				TRIG_NAME, 
+				TRIG_LAT, 
+				TRIG_LON, 
+				TRIG_TYPE, 
+				TRIG_CONDITION, 
+				TRIG_LOGGED, 
+				TRIG_CURRENT, 
+				TRIG_HISTORIC, 
+				TRIG_FB}, 
+				TRIG_ID + "="+id, 
+				null, null, null, null);
 	}
 	
 	/**
@@ -326,10 +370,22 @@ public class DbHelper {
     public Cursor fetchLog(long id) throws SQLException {
 
         Cursor mCursor =
-            mDb.query(true, LOG_TABLE, new String[] {LOG_ID, LOG_YEAR, LOG_MONTH, LOG_DAY, 
-            				LOG_HOUR, LOG_MINUTES, LOG_GRIDREF, LOG_FB, LOG_CONDITION, 
-            				LOG_COMMENT, LOG_SCORE, LOG_COMMENT, LOG_FLAGADMINS, LOG_FLAGUSERS}
-                    , LOG_ID + "=" + id, null,
+            mDb.query(true, LOG_TABLE, new String[] {
+            		LOG_ID, 
+            		LOG_YEAR, 
+            		LOG_MONTH, 
+            		LOG_DAY, 
+            		LOG_HOUR, 
+            		LOG_MINUTES, 
+            		LOG_GRIDREF, 
+            		LOG_FB, 
+            		LOG_CONDITION, 
+            		LOG_COMMENT, 
+            		LOG_SCORE, 
+            		LOG_COMMENT, 
+            		LOG_FLAGADMINS, 
+            		LOG_FLAGUSERS},
+                    LOG_ID + "=" + id, null,
                     null, null, null, null);
         if (mCursor != null) {
             if (! mCursor.moveToFirst()) {

@@ -81,7 +81,7 @@ public class TrigDetailsOSMapTab extends Activity {
 		Double lon = c.getDouble(c.getColumnIndex(DbHelper.TRIG_LON));
 
 		// OS 1:25000 maps
-		url = String.format("%s/%s/%3.5f,%3.5f/%d?key=%s",
+		url = String.format("%s/%s/%s,%s/%d?key=%s",
 				"http://dev.virtualearth.net/REST/v1/Imagery/Map",
 				"OrdnanceSurvey",
 				lat, lon,
@@ -89,7 +89,7 @@ public class TrigDetailsOSMapTab extends Activity {
 				"AmX-6eFz_aE2rrhkXUprU3HRV2BNMrCYQoKodIFdfNEcZosjAEbsNetB00GFktP5");
 		URLs.add(url);
 
-		url = String.format("%s/%s/%3.5f,%3.5f/%d?key=%s",
+		url = String.format("%s/%s/%s,%s/%d?key=%s",
 				"http://dev.virtualearth.net/REST/v1/Imagery/Map",
 				"OrdnanceSurvey",
 				lat, lon,
@@ -98,7 +98,7 @@ public class TrigDetailsOSMapTab extends Activity {
 		URLs.add(url);
 
 		// Aerial photos
-		url = String.format("%s/%s/%3.5f,%3.5f/%d?key=%s",
+		url = String.format("%s/%s/%s,%s/%d?key=%s",
 				"http://dev.virtualearth.net/REST/v1/Imagery/Map",
 				"Aerial",
 				lat, lon,
@@ -106,7 +106,7 @@ public class TrigDetailsOSMapTab extends Activity {
 				"AmX-6eFz_aE2rrhkXUprU3HRV2BNMrCYQoKodIFdfNEcZosjAEbsNetB00GFktP5");
 		URLs.add(url);
 
-		url = String.format("%s/%s/%3.5f,%3.5f/%d?key=%s",
+		url = String.format("%s/%s/%s,%s/%d?key=%s",
 				"http://dev.virtualearth.net/REST/v1/Imagery/Map",
 				"Aerial",
 				lat, lon,
@@ -114,7 +114,7 @@ public class TrigDetailsOSMapTab extends Activity {
 				"AmX-6eFz_aE2rrhkXUprU3HRV2BNMrCYQoKodIFdfNEcZosjAEbsNetB00GFktP5");
 		URLs.add(url);
 
-		url = String.format("%s/%s/%3.5f,%3.5f/%d?key=%s",
+		url = String.format("%s/%s/%s,%s/%d?key=%s",
 				"http://dev.virtualearth.net/REST/v1/Imagery/Map",
 				"Aerial",
 				lat, lon,

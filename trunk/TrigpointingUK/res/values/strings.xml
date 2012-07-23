@@ -56,11 +56,11 @@
     </string-array>
     <integer-array name="downloadMapsArrayTiles">
         <item>7474</item>
-        <item>7686</item>
-        <item>7686</item>
-        <item>7055</item>
-        <item>7055</item>
-        <item>7055</item>
+        <item>7471</item>
+        <item>7471</item>
+        <item>6870</item>
+        <item>6870</item>
+        <item>6870</item>
     </integer-array>
 
 	<string name="prefs">Preferences</string>
