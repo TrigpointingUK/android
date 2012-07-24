@@ -1,6 +1,7 @@
 package com.trigpointinguk.android.trigdetails;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.database.Cursor;
@@ -9,6 +10,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -28,6 +32,8 @@ public class TrigDetailsInfoTab extends Activity {
 	private double   mLatitude;
 	private double   mLongitude;
 	private String   mWaypoint;
+	
+	private static final int RADAR = 1;
 	
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -128,12 +134,44 @@ public class TrigDetailsInfoTab extends Activity {
 	        		i.putExtra("name", mWaypoint);
 	        		startActivity(i);
 	        	} catch (ActivityNotFoundException e) {
-					Toast.makeText(this, "Unable to launch radar", Toast.LENGTH_LONG).show();
+					showDialog(RADAR);
 	        	} 
 	        	return true;	     
 	        }
 			return super.onOptionsItemSelected(item);
 	}
+	
+	protected Dialog onCreateDialog(int id) {
+	    Dialog dialog;
+	    switch(id) {
+	    case RADAR:
+			dialog = new Dialog(this);
+			dialog.setContentView(R.layout.radardialog);
+			dialog.setTitle(R.string.radartitle);
+			Button yes = (Button) dialog.findViewById(R.id.yes);
+			yes.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					dismissDialog(RADAR);
+					Intent intent = new Intent(Intent.ACTION_VIEW);
+					intent.setData(Uri.parse("market://details?id=com.eclipsim.gpsstatus2"));
+					startActivity(intent);
+				}
+			});
+			Button no = (Button) dialog.findViewById(R.id.no);
+			no.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					dismissDialog(RADAR);
+				}
+			});
+	        break;
+	    default:
+	        dialog = null;
+	    }
+	    return dialog;
+	}
+	
 	
 	@Override
 	protected void onDestroy() {

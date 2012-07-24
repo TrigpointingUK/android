@@ -141,5 +141,9 @@
 	<string name="syncPhotosToTUK">Sending photos to T:UK</string> 
 	<string name="syncLogsFromTUK">Downloading logs from T:UK</string> 
 	<string name="toastAddUsername">Please add username to preferences!</string> 
-	<string name="toastAddPassword">Please add password to preferences!</string>
+	<string name="toastAddPassword">Please add password to preferences!</string> 
+	<string name="radarexplain">In order to use the radar mode, you need to install an app called Gps Status.  Would you like to go to the app\'s Google Play page?</string> 
+	<string name="yesplease">Yes please</string> 
+	<string name="nothanks">No thanks</string> 
+	<string name="radartitle">Cannot launch radar</string>
 </resources>
