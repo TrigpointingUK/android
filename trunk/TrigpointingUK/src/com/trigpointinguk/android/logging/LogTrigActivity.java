@@ -61,7 +61,7 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
     private static final int    EDIT_PHOTO  = 2;
     private SharedPreferences 	mPrefs;
     
-	private Long 				mTrigId;
+	private Long				mTrigId;
 	private LatLon				mTrigLocation;
 	
     private ViewSwitcher 		mSwitcher;
@@ -209,6 +209,15 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
 			@Override
 			public void onClick(View arg0) {
 	        	uploadLog();
+			}
+		});	
+
+		// Setup button to sync the log later (ie do nothing!)
+		Button syncLaterBtn = (Button) findViewById(R.id.logSyncLater);
+		syncLaterBtn.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+	        	finish();
 			}
 		});	
 

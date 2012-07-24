@@ -13,6 +13,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,6 +35,7 @@ public class TrigDetailsInfoTab extends Activity {
 	private double   mLatitude;
 	private double   mLongitude;
 	private String   mWaypoint;
+	private CheckBox mMark;
 	
 	private static final int RADAR = 1;
 	
@@ -94,7 +98,15 @@ public class TrigDetailsInfoTab extends Activity {
 		tv.setText(c.getString(c.getColumnIndex(DbHelper.TRIG_FB)));
 
 		c.close();
-		mDb.close();
+		
+		mMark = (CheckBox) findViewById(R.id.mark);
+		mMark.setChecked(mDb.isMarkedTrig(mTrigId));
+		mMark.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+			mDb.setMarkedTrig(mTrigId, isChecked);
+			}
+		});
     }
 	
 	@Override

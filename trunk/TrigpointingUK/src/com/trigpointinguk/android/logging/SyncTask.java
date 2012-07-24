@@ -211,7 +211,7 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
 	Integer sendLogToTUK(Cursor c) {
 		Log.i(TAG, "sendLogToTUK");
 		
-		Long trigId = c.getLong(c.getColumnIndex(DbHelper.LOG_ID));
+		long trigId = c.getInt(c.getColumnIndex(DbHelper.LOG_ID));
 		
 		// Set up post variables
 	    List <NameValuePair> nameValuePairs = new ArrayList <NameValuePair> (10);
@@ -276,6 +276,8 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
 				mDb.deleteLog(trigId);
 				// update photos for this trig with log id from T:UK
 				mDb.updatePhotos(trigId, logId);
+				// update local logged condition
+				mDb.updateTrigLog(trigId, Condition.fromCode(c.getString(c.getColumnIndex(DbHelper.LOG_CONDITION))));
 			} catch (JSONException e1) {
 				e1.printStackTrace();
 				return ERROR;
@@ -298,7 +300,7 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
 	Integer sendPhotoToTUK(Cursor c) {
 		Log.i(TAG, "sendPhotoToTUK");
 		
-		Long 	photoId 	= c.getLong  (c.getColumnIndex(DbHelper.PHOTO_ID));
+		Long	photoId 	= c.getLong  (c.getColumnIndex(DbHelper.PHOTO_ID));
     	String 	photoPath 	= c.getString(c.getColumnIndex(DbHelper.PHOTO_PHOTO));
     	String 	thumbPath 	= c.getString(c.getColumnIndex(DbHelper.PHOTO_ICON));
 		

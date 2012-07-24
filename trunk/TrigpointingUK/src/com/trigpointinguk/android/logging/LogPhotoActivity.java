@@ -25,11 +25,11 @@ public class LogPhotoActivity extends Activity {
 	
 	private static final String TAG			= "LogPhotoActivity";
     
-	private Long 				mPhotoId;
+	private Integer				mPhotoId;
 	
 	private String 				mIconURL;
 	private String 				mPhotoURL;
-	private Long				mTrigId;
+	private Integer				mTrigId;
     private ImageView			mThumb;
     private EditText			mName;
     private EditText			mDescr;
@@ -44,7 +44,7 @@ public class LogPhotoActivity extends Activity {
 	    setContentView(R.layout.logphoto);
 
 		Bundle extras = getIntent().getExtras();
-		mPhotoId = extras.getLong(DbHelper.PHOTO_ID);
+		mPhotoId = extras.getInt(DbHelper.PHOTO_ID);
 		
 		mThumb		= (ImageView)		findViewById(R.id.photoThumb);
 	   	mName		= (EditText)		findViewById(R.id.photoName);
@@ -141,7 +141,7 @@ public class LogPhotoActivity extends Activity {
     	// set hidden variables
     	mIconURL 				= c.getString(c.getColumnIndex(DbHelper.PHOTO_ICON));
     	mPhotoURL 				= c.getString(c.getColumnIndex(DbHelper.PHOTO_PHOTO));
-    	mTrigId 				= c.getLong(c.getColumnIndex(DbHelper.PHOTO_TRIG));
+    	mTrigId 				= c.getInt(c.getColumnIndex(DbHelper.PHOTO_TRIG));
 
     	// set thumbnail image
     	mThumb.setImageBitmap(BitmapFactory.decodeFile(mIconURL));

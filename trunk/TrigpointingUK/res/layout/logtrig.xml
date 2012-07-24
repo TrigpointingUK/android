@@ -47,8 +47,9 @@
                 android:id="@+id/ll7"
                 android:layout_height="0dp" android:layout_width="fill_parent" android:layout_weight="0.05" android:layout_marginTop="20dp">
                 <Button android:layout_height="wrap_content" android:text="@string/logUploadNow" android:layout_width="fill_parent" android:layout_weight="1" android:id="@+id/logUploadNow"></Button>
+                <Button android:layout_height="wrap_content" android:text="@string/logSyncLater" android:layout_width="fill_parent" android:layout_weight="1" android:id="@+id/logSyncLater"></Button>
                 <Button android:layout_height="wrap_content" android:text="@string/logDelete" android:layout_width="fill_parent" android:layout_weight="1" android:id="@+id/logDelete"></Button>
-            </LinearLayout>
+                </LinearLayout>
         </LinearLayout>
     </ScrollView>
 </ViewSwitcher>

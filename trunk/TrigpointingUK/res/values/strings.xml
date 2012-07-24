@@ -116,7 +116,8 @@
 	<color name="okcolour">#00f000</color>
 	<string name="logPhotos">Photos:</string>
 	<string name="logAddPhoto">Add Photo</string>
-	<string name="logUploadNow">Upload Now</string>
+	<string name="logUploadNow">Sync Now</string>
+	<string name="logSyncLater">Sync Later</string>
 	<string name="logDelete">Delete Log</string>
 	<string name="logUserFlag">Flag log to warn other T:UK users</string>
 	<string name="photoName">Caption:</string>
@@ -145,5 +146,6 @@
 	<string name="radarexplain">In order to use the radar mode, you need to install an app called Gps Status.  Would you like to go to the app\'s Google Play page?</string> 
 	<string name="yesplease">Yes please</string> 
 	<string name="nothanks">No thanks</string> 
-	<string name="radartitle">Cannot launch radar</string>
+	<string name="radartitle">Cannot launch radar</string> 
+	<string name="markTrig">Mark</string>
 </resources>

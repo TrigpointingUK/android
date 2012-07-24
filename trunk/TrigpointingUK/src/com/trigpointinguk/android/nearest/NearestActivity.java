@@ -30,6 +30,7 @@ public class NearestActivity extends ListActivity {
 	private LocationListener mLocationListener;
 	private LocationManager mLocationManager; 
 	private static final String TAG = "NearestActivity";
+	private static final int DETAILS = 1;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +62,7 @@ public class NearestActivity extends ListActivity {
 				updateHeader("listener");
 				if (isBetterLocation(location, mCurrentLocation)) {
 					mCurrentLocation = location;
-					if (!mTaskRunning) {new FindTrigsTask().execute();}
+					refreshList();
 				}
 			}
 			public void onStatusChanged(String provider, int status, Bundle extras) {}
@@ -76,6 +77,9 @@ public class NearestActivity extends ListActivity {
 
 
 	
+	private void refreshList() {
+		if (!mTaskRunning) {new FindTrigsTask().execute();}
+	}
 	
 	
 	private void updateHeader(String comment) {
@@ -103,11 +107,21 @@ public class NearestActivity extends ListActivity {
         Intent i = new Intent(this, TrigDetailsActivity.class);
         i.putExtra(DbHelper.TRIG_ID, id);
         Log.i(TAG, "Trig_id = " +id);
-        startActivity(i);
+        startActivityForResult(i, DETAILS);
     }
 	
 	
+    
 	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		Log.i(TAG, "onActivityResult");
+		refreshList();
+	}
+
+
+
+
 	private class FindTrigsTask extends AsyncTask<Void, Integer, Cursor> {
 		
 		protected Cursor doInBackground(Void... arg0) {

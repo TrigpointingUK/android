@@ -71,7 +71,7 @@ public class TrigDetailsActivity extends TabActivity {
 	    // Change title
 	    // get trig_id from extras
 		if (extras == null) {return;}
-		Long  trigId = extras.getLong(DbHelper.TRIG_ID);
+		Integer  trigId = extras.getInt(DbHelper.TRIG_ID);
 		Log.i(TAG, "Trig_id = "+trigId);
 
 		// get trig info from database

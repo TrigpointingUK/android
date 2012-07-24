@@ -4,28 +4,30 @@ import com.trigpointinguk.android.R;
 
 
 public enum Condition {
-	NOTLOGGED		(" ", R.drawable.c_nolog					, "Not Logged"),
-	COULDNTFIND		("N", R.drawable.c_possiblymissing			, "Couldn't Find"),
-	GOOD			("G", R.drawable.c_good						, "Good"),
-	SLIGHTLYDAMAGED	("S", R.drawable.c_slightlydamaged			, "Slightly Damaged"),
-	CONVERTED		("C", R.drawable.c_slightlydamaged			, "Converted"),
-	DAMAGED			("D", R.drawable.c_damaged					, "Damaged"),
-	REMAINS			("R", R.drawable.c_toppled					, "Remains"),
-	TOPPLED			("T", R.drawable.c_toppled					, "Toppled"),
-	MOVED			("M", R.drawable.c_toppled					, "Moved"),
-	POSSIBLYMISSING	("Q", R.drawable.c_possiblymissing			, "Possibly Missing"),
-	MISSING			("X", R.drawable.c_definitelymissing		, "Destroyed"),
-	VISIBLE			("V", R.drawable.c_unreachablebutvisible	, "Unreachable but Visible"),
-	INACCESSIBLE	("P", R.drawable.c_unknown					, "Inaccessible"),
-	UNKNOWN 		("U", R.drawable.c_unknown					, "Unknown"),
+	NOTLOGGED		(" ", R.drawable.c_nolog					, R.drawable.cs_nolog					, "Not Logged"),
+	COULDNTFIND		("N", R.drawable.c_possiblymissing			, R.drawable.cs_possiblymissing			, "Couldn't Find"),
+	GOOD			("G", R.drawable.c_good						, R.drawable.cs_good					, "Good"),
+	SLIGHTLYDAMAGED	("S", R.drawable.c_slightlydamaged			, R.drawable.cs_slightlydamaged			, "Slightly Damaged"),
+	CONVERTED		("C", R.drawable.c_slightlydamaged			, R.drawable.cs_slightlydamaged			, "Converted"),
+	DAMAGED			("D", R.drawable.c_damaged					, R.drawable.cs_damaged					, "Damaged"),
+	REMAINS			("R", R.drawable.c_toppled					, R.drawable.cs_toppled					, "Remains"),
+	TOPPLED			("T", R.drawable.c_toppled					, R.drawable.cs_toppled					, "Toppled"),
+	MOVED			("M", R.drawable.c_toppled					, R.drawable.cs_toppled					, "Moved"),
+	POSSIBLYMISSING	("Q", R.drawable.c_possiblymissing			, R.drawable.cs_possiblymissing			, "Possibly Missing"),
+	MISSING			("X", R.drawable.c_definitelymissing		, R.drawable.cs_definitelymissing		, "Destroyed"),
+	VISIBLE			("V", R.drawable.c_unreachablebutvisible	, R.drawable.cs_unreachablebutvisible	, "Unreachable but Visible"),
+	INACCESSIBLE	("P", R.drawable.c_unknown					, R.drawable.cs_unknown					, "Inaccessible"),
+	UNKNOWN 		("U", R.drawable.c_unknown					, R.drawable.cs_unknown					, "Unknown"),
 	;
 
 	private final String   code;
 	private final int	   icon;
+	private final int	   icon_h;
 	private final String   descr;	
-	Condition(String code, int icon, String descr) {
-		this.code = code;
+	Condition(String code, int icon, int icon_h, String descr) {
+		this.code 	= code;
 		this.icon   = icon;
+		this.icon_h = icon_h;
 		this.descr  = descr;
 	}
 	public String code() {
@@ -33,6 +35,13 @@ public enum Condition {
 	}
 	public int icon() {
 		return icon;
+	}
+	public int icon(Boolean highlight) {
+		if (highlight) {
+			return icon_h;
+		} else {
+			return icon;
+		}
 	}
 	public String toString() {
 		return descr;

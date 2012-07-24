@@ -20,35 +20,37 @@ public class Trig extends LatLon {
 	
 	// PHYSICAL TYPE of the trigpoint
 	public enum Physical {
-		ACTIVE	 		("AC", R.drawable.t_passive, "Active"),
-		BERNTSEN		("BE", R.drawable.t_passive, "Berntsen"),
-		BLOCK			("BL", R.drawable.t_passive, "Block"),
-		BOLT			("BO", R.drawable.t_passive, "Bolt"),
-		BURIEDBLOCK		("BB", R.drawable.t_passive, "Buried Block"),
-		CANNON			("CA", R.drawable.t_passive, "Cannon"),
-		CENTRE			("CE", R.drawable.t_passive, "Centre"),
-		CONCRETERING	("CR", R.drawable.t_passive, "Concrete Ring"),
-		CURRYSTOOL		("CS", R.drawable.t_passive, "Curry Stool"),
-		CUT				("CT", R.drawable.t_passive, "Cut"),
-		FBM				("FB", R.drawable.t_fbm, "FBM"),
-		FENOMARK		("FE", R.drawable.t_passive, "Fenomark"),
-		INTERSECTED		("IN", R.drawable.t_intersected, "Intersected Station"),
-		MONUMENT		("MO", R.drawable.t_passive, "Monument"),
-		OTHER			("OT", R.drawable.t_passive, "Other"),
-		PILLAR			("PI", R.drawable.t_pillar, "Pillar"),
-		PLATFORM		("PB", R.drawable.t_passive, "Platform Bolt"),
-		RIVET			("RI", R.drawable.t_passive, "Rivet"),
-		SPIDER			("SP", R.drawable.t_passive, "Spider"),
-		SURFACEBLOCK	("SB", R.drawable.t_passive, "Surface Block"),
-		USERADDED		("UA", R.drawable.t_passive, "Unknown - User Added"),
+		ACTIVE	 		("AC", R.drawable.t_passive		, R.drawable.ts_passive		, "Active"),
+		BERNTSEN		("BE", R.drawable.t_passive		, R.drawable.ts_passive		, "Berntsen"),
+		BLOCK			("BL", R.drawable.t_passive		, R.drawable.ts_passive		, "Block"),
+		BOLT			("BO", R.drawable.t_passive		, R.drawable.ts_passive		, "Bolt"),
+		BURIEDBLOCK		("BB", R.drawable.t_passive		, R.drawable.ts_passive		, "Buried Block"),
+		CANNON			("CA", R.drawable.t_passive		, R.drawable.ts_passive		, "Cannon"),
+		CENTRE			("CE", R.drawable.t_passive		, R.drawable.ts_passive		, "Centre"),
+		CONCRETERING	("CR", R.drawable.t_passive		, R.drawable.ts_passive		, "Concrete Ring"),
+		CURRYSTOOL		("CS", R.drawable.t_passive		, R.drawable.ts_passive		, "Curry Stool"),
+		CUT				("CT", R.drawable.t_passive		, R.drawable.ts_passive		, "Cut"),
+		FBM				("FB", R.drawable.t_fbm			, R.drawable.ts_fbm			, "FBM"),
+		FENOMARK		("FE", R.drawable.t_passive		, R.drawable.ts_passive		, "Fenomark"),
+		INTERSECTED		("IN", R.drawable.t_intersected	, R.drawable.ts_intersected	, "Intersected Station"),
+		MONUMENT		("MO", R.drawable.t_passive		, R.drawable.ts_passive		, "Monument"),
+		OTHER			("OT", R.drawable.t_passive		, R.drawable.ts_passive		, "Other"),
+		PILLAR			("PI", R.drawable.t_pillar		, R.drawable.ts_pillar		, "Pillar"),
+		PLATFORM		("PB", R.drawable.t_passive		, R.drawable.ts_passive		, "Platform Bolt"),
+		RIVET			("RI", R.drawable.t_passive		, R.drawable.ts_passive		, "Rivet"),
+		SPIDER			("SP", R.drawable.t_passive		, R.drawable.ts_passive		, "Spider"),
+		SURFACEBLOCK	("SB", R.drawable.t_passive		, R.drawable.ts_passive		, "Surface Block"),
+		USERADDED		("UA", R.drawable.t_passive		, R.drawable.ts_passive		, "Unknown - User Added"),
 		;
 
 		private final String   code;
 		private final String   descr;	
 		private final int      icon;	
-		Physical (String code, int icon, String descr) {
-			this.code = code;
-			this.icon = icon;
+		private final int      icon_h;	
+		Physical (String code, int icon, int icon_h, String descr) {
+			this.code   = code;
+			this.icon   = icon;
+			this.icon_h = icon_h;
 			this.descr  = descr;
 		}
 		public String code() {
@@ -56,6 +58,13 @@ public class Trig extends LatLon {
 		}
 		public int icon() {
 			return icon;
+		}
+		public int icon(Boolean highlight) {
+			if (highlight) {
+				return icon_h;
+			} else {
+				return icon;
+			}
 		}
 		public String toString() {
 			return descr;

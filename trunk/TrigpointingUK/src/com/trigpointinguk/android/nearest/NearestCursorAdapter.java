@@ -2,8 +2,10 @@ package com.trigpointinguk.android.nearest;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Typeface;
 import android.location.Location;
 import android.support.v4.widget.SimpleCursorAdapter;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,7 +27,11 @@ public class NearestCursorAdapter extends SimpleCursorAdapter {
 	private int mConditionIndex;
 	private int mLoggedIndex;
 	private int mTypeIndex;
+	private int mUnsyncedIndex;
+	private int mMarkedIndex;
 	private Location mCurrentLocation;
+	private static final String TAG = "NearestCursorAdapter";
+
 	
 	public NearestCursorAdapter(Context context, int layout, Cursor c,	String[] from, int[] to, Location currentLocation) {
 		this(context, layout, c, from, to);
@@ -38,12 +44,14 @@ public class NearestCursorAdapter extends SimpleCursorAdapter {
 		mInflater = LayoutInflater.from(context);
 
 		if (c != null) {
-			mNameIndex = c.getColumnIndex(DbHelper.TRIG_NAME);
-			mConditionIndex = c.getColumnIndex(DbHelper.TRIG_CONDITION);
-			mTypeIndex = c.getColumnIndex(DbHelper.TRIG_TYPE);
-			mLoggedIndex = c.getColumnIndex(DbHelper.TRIG_LOGGED);
-			mLatIndex = c.getColumnIndex(DbHelper.TRIG_LAT);	
-			mLonIndex = c.getColumnIndex(DbHelper.TRIG_LON);
+			mNameIndex = c.getColumnIndexOrThrow(DbHelper.TRIG_NAME);
+			mConditionIndex = c.getColumnIndexOrThrow(DbHelper.TRIG_CONDITION);
+			mTypeIndex = c.getColumnIndexOrThrow(DbHelper.TRIG_TYPE);
+			mLoggedIndex = c.getColumnIndexOrThrow(DbHelper.TRIG_LOGGED);
+			mLatIndex = c.getColumnIndexOrThrow(DbHelper.TRIG_LAT);	
+			mLonIndex = c.getColumnIndexOrThrow(DbHelper.TRIG_LON);
+			mUnsyncedIndex = c.getColumnIndexOrThrow(DbHelper.JOIN_UNSYNCED);
+			mMarkedIndex = c.getColumnIndexOrThrow(DbHelper.JOIN_MARKED);
 		}
 	}
 
@@ -58,9 +66,19 @@ public class NearestCursorAdapter extends SimpleCursorAdapter {
 		
 		tn.setText(cursor.getString(mNameIndex));
 		tc.setImageResource(Condition.fromCode(cursor.getString(mConditionIndex)).icon());
-		tl.setImageResource(Condition.fromCode(cursor.getString(mLoggedIndex)).icon());
-		tt.setImageResource(Trig.Physical.fromCode(cursor.getString(mTypeIndex)).icon());
-	
+		
+		// deal with marked trigpoints
+		Boolean marked = (cursor.getString(mMarkedIndex) != null);
+		if (marked) {tn.setTypeface(null, Typeface.BOLD);} else {tn.setTypeface(null, Typeface.NORMAL);}
+		tt.setImageResource(Trig.Physical.fromCode(cursor.getString(mTypeIndex)).icon(marked));
+		
+		// Use either synced condition from T:UK, or highlighted unsynced condition from logs
+		Boolean unsynced = (cursor.getString(mUnsyncedIndex) != null);
+		if (unsynced) {
+			tl.setImageResource(Condition.fromCode(cursor.getString(mUnsyncedIndex)).icon(unsynced));
+		} else {
+			tl.setImageResource(Condition.fromCode(cursor.getString(mLoggedIndex)).icon(unsynced));			
+		}
 		
 		if (mCurrentLocation != null) {
 			LatLon l = new LatLon(cursor.getDouble(mLatIndex), cursor.getDouble(mLonIndex));			
@@ -80,12 +98,14 @@ public class NearestCursorAdapter extends SimpleCursorAdapter {
 	public Cursor swapCursor(Cursor c, Location loc) {
 		mCurrentLocation = loc;
 		if (c != null) {
-			mNameIndex = c.getColumnIndex(DbHelper.TRIG_NAME);
-			mConditionIndex = c.getColumnIndex(DbHelper.TRIG_CONDITION);
-			mTypeIndex = c.getColumnIndex(DbHelper.TRIG_TYPE);
-			mLoggedIndex = c.getColumnIndex(DbHelper.TRIG_LOGGED);
-			mLatIndex = c.getColumnIndex(DbHelper.TRIG_LAT);	
-			mLonIndex = c.getColumnIndex(DbHelper.TRIG_LON);
+			mNameIndex = c.getColumnIndexOrThrow(DbHelper.TRIG_NAME);
+			mConditionIndex = c.getColumnIndexOrThrow(DbHelper.TRIG_CONDITION);
+			mTypeIndex = c.getColumnIndexOrThrow(DbHelper.TRIG_TYPE);
+			mLoggedIndex = c.getColumnIndexOrThrow(DbHelper.TRIG_LOGGED);
+			mLatIndex = c.getColumnIndexOrThrow(DbHelper.TRIG_LAT);	
+			mLonIndex = c.getColumnIndexOrThrow(DbHelper.TRIG_LON);
+			mUnsyncedIndex = c.getColumnIndexOrThrow(DbHelper.JOIN_UNSYNCED);
+			mMarkedIndex = c.getColumnIndexOrThrow(DbHelper.JOIN_MARKED);
 		}
 		return super.swapCursor(c);
 	}

@@ -108,5 +108,15 @@
                 android:text=""
                 android:padding="3dip" android:gravity="left|right" android:id="@+id/triginfo_fb" android:textStyle="bold"/>
         </TableRow>
-    </TableLayout>
+        <TableRow>
+
+            <CheckBox
+                android:id="@+id/mark"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_column="1"
+                android:layout_marginTop="20dp"
+                android:text="@string/markTrig" />
+		</TableRow>
+        </TableLayout>
 </ScrollView>

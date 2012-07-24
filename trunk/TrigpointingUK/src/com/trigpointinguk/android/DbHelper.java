@@ -20,7 +20,7 @@ import android.util.Log;
 public class DbHelper {
 	private static final String TAG					= "DbHelper";
 
-	private static final int 	DATABASE_VERSION 	= 8;
+	private static final int 	DATABASE_VERSION 	= 9;
 	private static final String DATABASE_NAME		= "trigpointinguk";
 	private static final String TRIG_TABLE			= "trig";
 	public 	static final String TRIG_ID				= "_id";
@@ -58,6 +58,10 @@ public class DbHelper {
 	public  static final String PHOTO_SUBJECT       = "subject";
 	public  static final String PHOTO_ISPUBLIC      = "ispublic";
 	public  static final String PHOTO_TUKLOGID      = "tuklogid";
+	public  static final String MARK_TABLE          = "mark";
+	public  static final String MARK_ID			    = "_id";	
+	public  static final String JOIN_UNSYNCED       = "unsynced";
+	public  static final String JOIN_MARKED         = "marked";
 
 
 	public  static final String DEFAULT_MAP_COUNT   = "400";
@@ -105,6 +109,9 @@ public class DbHelper {
 		+ PHOTO_TUKLOGID + " integer not null "
 		+ ");";
 
+	private static final String MARK_CREATE = "create table " + MARK_TABLE + "(" 
+			+ MARK_ID 		 + " integer primary key"
+			+ ");";
 	
 	private DatabaseHelper mDbHelper;
 	public SQLiteDatabase mDb;
@@ -123,6 +130,7 @@ public class DbHelper {
 			db.execSQL(TRIG_CREATE);
 			db.execSQL(LOG_CREATE);
 			db.execSQL(PHOTO_CREATE);
+			db.execSQL(MARK_CREATE);
 		}
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
@@ -131,6 +139,7 @@ public class DbHelper {
 			db.execSQL("DROP TABLE IF EXISTS " + TRIG_TABLE);
 			db.execSQL("DROP TABLE IF EXISTS " + LOG_TABLE);
 			db.execSQL("DROP TABLE IF EXISTS " + PHOTO_TABLE);
+			db.execSQL("DROP TABLE IF EXISTS " + MARK_TABLE);
 			onCreate(db);
 		}
 	}
@@ -175,7 +184,7 @@ public class DbHelper {
 	 * @param id
 	 * @return rowId or -1 if failed
 	 */
-	public long createTrig(int id, String name, String waypoint, Double lat, Double lon, Trig.Physical type, Condition condition, Condition logged, Trig.Current current, Trig.Historic historic, String fb) {
+	public long createTrig(long id, String name, String waypoint, Double lat, Double lon, Trig.Physical type, Condition condition, Condition logged, Trig.Current current, Trig.Historic historic, String fb) {
 		ContentValues initialValues = new ContentValues();
 		initialValues.put(TRIG_ID			, id);
 		initialValues.put(TRIG_NAME			, name);
@@ -196,7 +205,7 @@ public class DbHelper {
 	 * 
 	 * @return true if updated, false otherwise
 	 */
-	public boolean updateTrigLog(int id, Condition logged) {
+	public boolean updateTrigLog(long id, Condition logged) {
 		ContentValues args = new ContentValues();
 		args.put(TRIG_LOGGED, logged.code());
 		return mDb.update(TRIG_TABLE, args, TRIG_ID + "=" + id, null) > 0;
@@ -237,15 +246,36 @@ public class DbHelper {
 			strOrder = TRIG_NAME + " LIMIT " +  mPrefs.getString("listentries", "100");
 		}
 		Log.i(TAG, strOrder);
-		return mDb.query(TRIG_TABLE, new String[] {
-				TRIG_ID, 
-				TRIG_NAME, 
-				TRIG_LAT, 
-				TRIG_LON, 
-				TRIG_TYPE, 
-				TRIG_CONDITION, 
-				TRIG_LOGGED}, 
-				null, null, null, null, strOrder);
+		
+		final String qry = "SELECT "+
+				TRIG_TABLE +"."+ TRIG_ID +", "+
+				TRIG_TABLE +"."+ TRIG_NAME +", "+
+				TRIG_TABLE +"."+ TRIG_LAT +", "+
+				TRIG_TABLE +"."+ TRIG_LON +", "+
+				TRIG_TABLE +"."+ TRIG_TYPE +", "+
+				TRIG_TABLE +"."+ TRIG_CONDITION +", "+
+				TRIG_TABLE +"."+ TRIG_LOGGED + ", "+
+				LOG_TABLE  +"."+ LOG_CONDITION + " AS " + JOIN_UNSYNCED + ", " +
+				MARK_TABLE  +"."+ MARK_ID + " AS " + JOIN_MARKED + " " +
+				"FROM " + TRIG_TABLE + " "+
+				"LEFT OUTER JOIN " + LOG_TABLE + " "+
+				"ON " + TRIG_TABLE + "." + TRIG_ID + "=" + LOG_TABLE + "." + LOG_ID + " " +
+				"LEFT OUTER JOIN " + MARK_TABLE + " "+
+				"ON " + TRIG_TABLE + "." + TRIG_ID + "=" + MARK_TABLE + "." + MARK_ID + " " +
+				"ORDER BY " + strOrder;
+		Log.i(TAG, qry);
+		return mDb.rawQuery(qry, null);
+
+		
+//		return mDb.query(TRIG_TABLE, new String[] {
+//				TRIG_ID, 
+//				TRIG_NAME, 
+//				TRIG_LAT, 
+//				TRIG_LON, 
+//				TRIG_TYPE, 
+//				TRIG_CONDITION, 
+//				TRIG_LOGGED}, 
+//				null, null, null, null, strOrder);
 	}
 	
 	
@@ -306,7 +336,7 @@ public class DbHelper {
 	/**
 	 * Returns whether the trig table contains data
 	 * 
-	 * @return int 
+	 * @return Boolean 
 	 */
 	public Boolean isTrigTablePopulated () {
 		Cursor c =  mDb.query(TRIG_TABLE, new String[] {TRIG_ID}, null, null, null, null, null);
@@ -516,7 +546,7 @@ public class DbHelper {
 	 * @param ispublic 
 	 * @return rowId or -1 if failed
 	 */
-	public long updatePhotos(long trigId, int tukLogId) {
+	public long updatePhotos(long trigId, long tukLogId) {
 		Log.i(TAG, "updatePhotos");
 		ContentValues newValues = new ContentValues();
 		newValues.put(PHOTO_TUKLOGID	, tukLogId);
@@ -624,6 +654,34 @@ public class DbHelper {
     }
 
 	
-
+    public Boolean setMarkedTrig(long trig_id, Boolean mark) {
+		Log.i(TAG, "setMarkedTrig - " + trig_id + " - " + mark);
+		
+		if (mark) {
+			ContentValues initialValues = new ContentValues();
+			initialValues.put(MARK_ID			, trig_id);
+			mDb.insert(MARK_TABLE, null, initialValues);
+			return true;
+		} else {
+			mDb.delete(MARK_TABLE, MARK_ID + "=" + trig_id, null);
+			return false;
+		}
+    }
+    public Boolean isMarkedTrig(long trig_id) {
+		Log.i(TAG, "isMarkedTrig - " + trig_id);
+		
+		Cursor c = null;
+		try {
+			c =  mDb.query(MARK_TABLE, new String[] {MARK_ID}, MARK_ID + "=" + trig_id, null, null, null, null);
+			if (c.getCount() == 0 ) {
+				return false;
+			}
+			return true;
+		} finally {
+			if (c != null) {
+				c.close();
+			}
+		}
+    }
     
 }
