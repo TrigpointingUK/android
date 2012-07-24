@@ -29,6 +29,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnFocusChangeListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
@@ -40,6 +41,7 @@ import android.widget.EditText;
 import android.widget.Gallery;
 import android.widget.RatingBar;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
@@ -60,6 +62,8 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
     private SharedPreferences 	mPrefs;
     
 	private Long 				mTrigId;
+	private LatLon				mTrigLocation;
+	
     private ViewSwitcher 		mSwitcher;
     private DatePicker			mDate;
     private TimePicker			mTime;
@@ -71,6 +75,7 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
     private CheckBox			mAdminFlag;
     private CheckBox			mUserFlag;
     private Gallery				mGallery;
+    private TextView			mLocationError;
     
     private DbHelper 			mDb;
     private boolean				mHaveLog;
@@ -96,17 +101,18 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
 		Log.i(TAG, "Trig_id = "+mTrigId);
 		
 		// Get references to various views and form elements
-		mSwitcher 	= (ViewSwitcher)	findViewById(R.id.logswitcher);
-	   	mTime		= (TimePicker)		findViewById(R.id.logTime);
-	   	mDate		= (DatePicker)		findViewById(R.id.logDate);
-	   	mGridref 	= (EditText)		findViewById(R.id.logGridref);
-	   	mFb 		= (EditText)		findViewById(R.id.logFB);
-	   	mCondition	= (Spinner)			findViewById(R.id.logCondition);
-	   	mScore		= (RatingBar)		findViewById(R.id.logScore);
-	   	mComment	= (EditText)		findViewById(R.id.logComment);
-	   	mAdminFlag	= (CheckBox)		findViewById(R.id.logAdminFlag);
-	   	mUserFlag	= (CheckBox)		findViewById(R.id.logUserFlag);
-	    mGallery 	= (Gallery) 		findViewById(R.id.logGallery);
+		mSwitcher 		= (ViewSwitcher)	findViewById(R.id.logswitcher);
+	   	mTime			= (TimePicker)		findViewById(R.id.logTime);
+	   	mDate			= (DatePicker)		findViewById(R.id.logDate);
+	   	mGridref 		= (EditText)		findViewById(R.id.logGridref);
+	   	mLocationError 	= (TextView)		findViewById(R.id.locationError);
+	   	mFb 			= (EditText)		findViewById(R.id.logFB);
+	   	mCondition		= (Spinner)			findViewById(R.id.logCondition);
+	   	mScore			= (RatingBar)		findViewById(R.id.logScore);
+	   	mComment		= (EditText)		findViewById(R.id.logComment);
+	   	mAdminFlag		= (CheckBox)		findViewById(R.id.logAdminFlag);
+	   	mUserFlag		= (CheckBox)		findViewById(R.id.logUserFlag);
+	    mGallery 		= (Gallery) 		findViewById(R.id.logGallery);
 
 	    
     	// Setup time picker options which cannot be set in the config xml
@@ -138,6 +144,15 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
 		mDb = new DbHelper(this);
 		mDb.open();
 		
+		// Fetch trigpoint info
+		Cursor c = mDb.fetchTrigInfo(mTrigId);
+		c.moveToFirst();
+		Double lat = Double.valueOf(c.getString(c.getColumnIndex(DbHelper.TRIG_LAT)));
+		Double lon = Double.valueOf(c.getString(c.getColumnIndex(DbHelper.TRIG_LON)));
+		mTrigLocation = new LatLon(lat, lon);
+		c.close();
+
+
 		// Check to see whether log already exists
 		mHaveLog = (mDb.fetchLog(mTrigId) != null);
 		if (mHaveLog) {
@@ -197,8 +212,40 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
 			}
 		});	
 
+
+		
+		// check new grid references
+		mGridref.setOnFocusChangeListener(new OnFocusChangeListener() {			@Override
+			public void onFocusChange(View v, boolean hasFocus) {
+				if (!hasFocus) {
+					checkDistance();
+				}
+			}
+		});		
 	}
 
+	public void checkDistance() {
+		Log.i(TAG, "checkDistance");
+		try {
+			LatLon ll = new LatLon(mGridref.getText().toString());
+			Double dist = 1000 * ll.distanceTo(mTrigLocation);
+			Log.e(TAG, "trig " + mTrigLocation.getOSGB10() + " - " + mTrigLocation.getWGS());
+			Log.e(TAG, "log " + ll.getOSGB10() + " - " + ll.getWGS());
+			Log.e(TAG, "Gridref " + dist.intValue() + "m from database location");
+			if (dist >= 50) {
+				mLocationError.setText("Warning: " + dist.intValue() + "m from database location");
+				mLocationError.setTextColor(getResources().getColor(R.color.errorcolour));
+			} else {
+				mLocationError.setText(dist.intValue() + "m from database location");
+				mLocationError.setTextColor(getResources().getColor(R.color.okcolour));
+			}
+		} catch (IllegalArgumentException e) {
+			Log.e(TAG, e.getMessage());
+			mLocationError.setText(e.getMessage());
+			mLocationError.setTextColor(getResources().getColor(R.color.errorcolour));
+		}		
+	}
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		boolean result = super.onCreateOptionsMenu(menu);
@@ -352,6 +399,7 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
     	c.close();
     	
     	updateGallery();
+    	checkDistance();
 
     }
     
@@ -492,6 +540,7 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
 
 		LatLon ll = new LatLon(location);
 		mGridref.setText(ll.getOSGB10());
+		checkDistance();
 		
 		mProgressDialog.dismiss();
 		Toast.makeText(this, "GPS location added", Toast.LENGTH_SHORT).show();
