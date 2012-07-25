@@ -46,6 +46,8 @@ import com.trigpointinguk.android.types.Trig;
 
 
 public class MapActivity extends Activity implements MapListener {
+	private static final int DEFAULT_LON = -1450510;
+	private static final int DEFAULT_LAT = 50931280;
 	public static final String TAG = "MapActivity";
 	
 	public enum TileSource 		{NONE, MAPNIK, CYCLEMAP, MAPQUEST, CLOUDMADE, BING_AERIAL, BING_ROAD, BING_AERIAL_LABELS};	
@@ -324,8 +326,12 @@ public class MapActivity extends Activity implements MapListener {
 		try {
 			// set view from prefs
 			mMapController.setZoom(mPrefs.getInt("zoomLevel", 12));
-			mMapController.setCenter(new GeoPoint(mPrefs.getInt("latitude", 50931280), mPrefs.getInt("longitude", -1450510)));
-			BoundingBoxE6 bb = new BoundingBoxE6(mPrefs.getInt("north", 50997336), mPrefs.getInt("east", -1369857), mPrefs.getInt("south", 50875311), mPrefs.getInt("west", -1534652));
+			mMapController.setCenter(new GeoPoint(mPrefs.getInt("latitude", DEFAULT_LAT)
+												, mPrefs.getInt("longitude", DEFAULT_LON)));
+			BoundingBoxE6 bb = new BoundingBoxE6( mPrefs.getInt("north", mPrefs.getInt("latitude",  DEFAULT_LAT)  + 80000) 
+												, mPrefs.getInt("east",  mPrefs.getInt("longitude", DEFAULT_LON)  + 80000)
+												, mPrefs.getInt("south", mPrefs.getInt("latitude",  DEFAULT_LAT)  - 80000)
+												, mPrefs.getInt("west",  mPrefs.getInt("longitude", DEFAULT_LON)  - 80000) );
 			populateTrigOverlay(bb);
 		} catch (ClassCastException e) {
 			// bad coordinates, do nothing

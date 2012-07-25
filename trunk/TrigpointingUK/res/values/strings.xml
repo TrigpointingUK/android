@@ -147,5 +147,6 @@
 	<string name="yesplease">Yes please</string> 
 	<string name="nothanks">No thanks</string> 
 	<string name="radartitle">Cannot launch radar</string> 
-	<string name="markTrig">Mark</string>
+	<string name="markTrig">Mark</string> 
+	<string name="map">View on map</string>
 </resources>

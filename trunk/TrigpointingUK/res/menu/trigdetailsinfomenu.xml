@@ -4,4 +4,5 @@
     <item android:id="@+id/browser" android:title="@string/browser" android:icon="@drawable/ic_menu_info_details"></item>
     <item android:id="@+id/radar" android:title="@string/radar" android:icon="@drawable/ic_menu_goto"></item>
     <item android:id="@+id/directions" android:title="@string/directions" android:icon="@drawable/ic_menu_directions"></item>
+    <item android:id="@+id/map" android:title="@string/map" android:icon="@drawable/ic_menu_mapstyle"></item>
  </menu>

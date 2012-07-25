@@ -4,9 +4,12 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,7 +24,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.trigpointinguk.android.DbHelper;
+import com.trigpointinguk.android.MainActivity;
 import com.trigpointinguk.android.R;
+import com.trigpointinguk.android.mapping.MapActivity;
 import com.trigpointinguk.android.types.Condition;
 import com.trigpointinguk.android.types.LatLon;
 import com.trigpointinguk.android.types.Trig;
@@ -36,6 +41,8 @@ public class TrigDetailsInfoTab extends Activity {
 	private double   mLongitude;
 	private String   mWaypoint;
 	private CheckBox mMark;
+    private SharedPreferences mPrefs;
+
 	
 	private static final int RADAR = 1;
 	
@@ -48,6 +55,9 @@ public class TrigDetailsInfoTab extends Activity {
 		if (extras == null) {return;}
 		mTrigId = extras.getLong(DbHelper.TRIG_ID);
 		Log.i("TrigInfo", "Trig_id = "+mTrigId);
+
+		// get application preferences
+		mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
 		// get trig info from database
 		mDb = new DbHelper(TrigDetailsInfoTab.this);
@@ -148,6 +158,21 @@ public class TrigDetailsInfoTab extends Activity {
 	        	} catch (ActivityNotFoundException e) {
 					showDialog(RADAR);
 	        	} 
+	        	return true;	     
+	        case R.id.map:
+	        	Log.i(TAG, "map");
+	        	// remove existing map bounding box preferences
+	        	Editor editor = mPrefs.edit();
+	        	editor.remove("north");
+	        	editor.remove("south");
+	        	editor.remove("east");
+	        	editor.remove("west");
+	        	editor.putInt("zoomLevel", 12);
+	        	editor.putInt("latitude", (int)(mLatitude * 1E6));
+	        	editor.putInt("longitude", (int)(mLongitude * 1E6));
+	        	editor.commit();
+				Intent i = new Intent(TrigDetailsInfoTab.this, MapActivity.class);
+				startActivity(i);
 	        	return true;	     
 	        }
 			return super.onOptionsItemSelected(item);
