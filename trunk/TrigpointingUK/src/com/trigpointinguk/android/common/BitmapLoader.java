@@ -22,6 +22,7 @@ public class BitmapLoader {
 	}
 
 	public Bitmap getBitmap(String url, boolean reload) {
+		Log.i(TAG, "getBitmap " + url + " , reload : " + reload);
 		Bitmap bResult = null;
 
 		File file=mFileCache.getFile(url);
@@ -45,11 +46,13 @@ public class BitmapLoader {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+		} else {
+			Log.i(TAG, "Explicit request to reload from web");
 		}
 
 		//from web
 		try {
-			Log.i(TAG, "Downloading " + url);
+			Log.i(TAG, "Downloading from web " + url);
 			URLConnection conn = new URL(url).openConnection();
 			conn.setConnectTimeout(30000);
 			conn.setReadTimeout(30000);

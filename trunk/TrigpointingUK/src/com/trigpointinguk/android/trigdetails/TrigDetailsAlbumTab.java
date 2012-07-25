@@ -11,6 +11,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.trigpointinguk.android.DbHelper;
 import com.trigpointinguk.android.R;
@@ -24,6 +25,8 @@ public class TrigDetailsAlbumTab extends ListActivity {
 	private StringLoader 			mStrLoader;
     private ArrayList<TrigPhoto> 	mTrigPhotos;
     private TrigDetailsAlbumAdapter mTrigAlbumAdapter;
+	private TextView 				mEmptyView; 
+
     
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,6 +42,9 @@ public class TrigDetailsAlbumTab extends ListActivity {
 		mTrigPhotos = new ArrayList<TrigPhoto>();
         mTrigAlbumAdapter = new TrigDetailsAlbumAdapter(TrigDetailsAlbumTab.this, R.layout.trigalbumrow, mTrigPhotos); 
 		setListAdapter(mTrigAlbumAdapter);
+
+		// find view for empty list notification
+		mEmptyView = (TextView) findViewById(android.R.id.empty);
 
 		// get list of photos
         new PopulatePhotosTask().execute(false);	    
@@ -115,12 +121,14 @@ public class TrigDetailsAlbumTab extends ListActivity {
 	        return count;
 		}
 		protected void onPreExecute() {
+			mEmptyView.setText(R.string.downloadingPhotos);
 			// create string loader class
 	        mStrLoader = new StringLoader(TrigDetailsAlbumTab.this);
 		}
 		protected void onProgressUpdate(Integer... progress) {
 		}
 		protected void onPostExecute(Integer arg0) {
+			mEmptyView.setText(R.string.noPhotos);
 	        mTrigAlbumAdapter.notifyDataSetChanged();
 		}
 	}

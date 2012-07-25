@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 import com.trigpointinguk.android.DbHelper;
 import com.trigpointinguk.android.R;
@@ -18,10 +19,12 @@ import com.trigpointinguk.android.types.TrigLog;
 public class TrigDetailsLoglistTab extends ListActivity {
 	private static final String TAG="TrigDetailsLoglistTab";
 	
-	private long mTrigId;
-	private StringLoader mStrLoader;
-    private ArrayList<TrigLog> mTrigLogs;
-    private TrigDetailsLoglistAdapter mTrigLogsAdapter;
+	private long 						mTrigId;
+	private StringLoader 				mStrLoader;
+    private ArrayList<TrigLog> 			mTrigLogs;
+    private TrigDetailsLoglistAdapter 	mTrigLogsAdapter;
+	private TextView 					mEmptyView; 
+
 
 	
     public void onCreate(Bundle savedInstanceState) {
@@ -39,6 +42,9 @@ public class TrigDetailsLoglistTab extends ListActivity {
         mTrigLogsAdapter = new TrigDetailsLoglistAdapter(TrigDetailsLoglistTab.this, R.layout.triglogrow, mTrigLogs); 
 		setListAdapter(mTrigLogsAdapter);
 
+		// find view for empty list notification
+		mEmptyView = (TextView) findViewById(android.R.id.empty);
+		
 		// get list of photos
         new PopulateLogsTask().execute(false);
     }
@@ -107,12 +113,14 @@ public class TrigDetailsLoglistTab extends ListActivity {
 	        return count;
 		}
 		protected void onPreExecute() {
+			mEmptyView.setText(R.string.downloadingLogs);
 			// create string loader class
 	        mStrLoader = new StringLoader(TrigDetailsLoglistTab.this);
 		}
 		protected void onProgressUpdate(Integer... progress) {
 		}
 		protected void onPostExecute(Integer arg0) {
+			mEmptyView.setText(R.string.noLogs);
 	        mTrigLogsAdapter.notifyDataSetChanged();
 		}
 	}
