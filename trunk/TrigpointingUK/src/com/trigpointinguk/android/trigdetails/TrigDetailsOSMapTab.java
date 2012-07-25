@@ -20,7 +20,7 @@ import com.trigpointinguk.android.common.DisplayBitmapActivity;
 public class TrigDetailsOSMapTab extends Activity {
 	private static final String TAG = "TrigDetailsOSMapTab";
 
-	private int mTrigId;
+	private long mTrigId;
 	private DbHelper mDb;
 	String[] mUrls;
 
@@ -31,7 +31,7 @@ public class TrigDetailsOSMapTab extends Activity {
 		// get trig_id from extras
         Bundle extras = getIntent().getExtras();
 		if (extras == null) {return;}
-		mTrigId = extras.getInt(DbHelper.TRIG_ID);
+		mTrigId = extras.getLong(DbHelper.TRIG_ID);
 		Log.i(TAG, "Trig_id = "+mTrigId);
 		
 		// get trig info from database
@@ -73,7 +73,7 @@ public class TrigDetailsOSMapTab extends Activity {
 
 
 
-	public String[] getURLs (Integer trigid, Cursor c) {
+	public String[] getURLs (long mTrigId2, Cursor c) {
 		String url;
 		List<String> URLs = new ArrayList<String>();
 		
