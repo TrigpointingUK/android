@@ -5,7 +5,7 @@
 	<string name="noUser">Please set username in preferences</string>
 	<string name="btnNearest">Nearest</string>
 	<string name="btnMap">Map</string>
-	<string name="btnSearch">Search</string>
+	<string name="btnSearch">Filter</string>
 	<string name="noTrigs">Searching for nearby trigpoints</string>
 	<string name="downloadingPhotos">Downloading photo album</string>
 	<string name="downloadingLogs">Downloading logs</string>
@@ -151,4 +151,23 @@
 	<string name="radartitle">Cannot launch radar</string> 
 	<string name="markTrig">Mark</string> 
 	<string name="map">View on map</string>
+	
+	<string name="filterUnsynced">Unsynced</string>
+	<string name="filterUnsyncedDetails">Only show trigs with un-synced logs</string>
+	<string name="filterTypes">Types</string>
+	<string name="filterTypesDetails">Physical types of trigpoints to display</string>
+    <string-array name="filterTypesArray">
+        <item>Pillars only</item>
+        <item>Pillars and FBMs</item>
+        <item>Exclude intersected stations</item>
+        <item>All</item>
+    </string-array>
+    <string-array name="filterTypesArrayValues">
+        <item>trig.type = \'PI\'</item>
+        <item>trig.type in (\'PI\',\'FB\')</item>
+        <item>trig.type != (\'IN\')</item>
+        <item></item>
+    </string-array>
+	<string name="filterTypesDefault">trig.type != (\'IN\')</string>
+    	
 </resources>

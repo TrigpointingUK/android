@@ -82,7 +82,7 @@ public class DownloadTrigsActivity extends Activity {
 				db.deleteAll();
 
 				while ((strLine = br.readLine()) != null && !strLine.trim().equals(""))   {
-					Log.v(TAG,strLine);
+					//Log.v(TAG,strLine);
 					String[] csv=strLine.split("\t");
 					int id						= Integer.valueOf(csv[0]);
 					String waypoint				= csv[1];

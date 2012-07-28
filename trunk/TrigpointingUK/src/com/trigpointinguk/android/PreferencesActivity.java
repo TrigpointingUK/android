@@ -10,11 +10,27 @@ import android.util.Log;
 public class PreferencesActivity extends PreferenceActivity {
     public static final String PREFS_NAME = "TUKPrefsFile";
     public static final String TAG = "PreferenceActivity";
+    public static final String PREFERENCETYPE = "PreferenceType"; 
+    public static final int MAINPREFERENCES = 1; 
+    public static final int FILTERPREFERENCES = 2; 
+    private int mPreferenceType = MAINPREFERENCES;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		addPreferencesFromResource(R.xml.preferences); 
+		Bundle extras = getIntent().getExtras();
+		if (extras != null) {
+			mPreferenceType = extras.getInt(PREFERENCETYPE);
+		}
+		
+		switch (mPreferenceType) {
+		case MAINPREFERENCES:
+			addPreferencesFromResource(R.xml.preferences); 
+			break;
+		case FILTERPREFERENCES:
+			addPreferencesFromResource(R.xml.filter); 
+			break;
+		}
 	}
 
 	@Override
