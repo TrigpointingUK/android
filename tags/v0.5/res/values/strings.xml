@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TrigpointingUK</string>
+	<string name="dlgNoTrigs">No trigpoint database!  Download now?</string>
+	<string name="noUser">Please set username in preferences</string>
+	<string name="btnNearest">Nearest</string>
+	<string name="btnMap">Map</string>
+	<string name="btnSearch">Filter</string>
+	<string name="noTrigs">Searching for nearby trigpoints</string>
+	<string name="downloadingPhotos">Downloading photo album</string>
+	<string name="downloadingLogs">Downloading logs</string>
+	<string name="noPhotos">No photos for this trigpoint</string>
+	<string name="noLogs">No logs for this trigpoint</string>
+	<string name="reset">Reset</string>
+	<string name="refresh">Refresh</string>
+	<string name="directions">Get Directions</string>
+	<string name="radar">Radar Mode</string>
+	<string name="browser">Open in Browser</string>
+	<string name="siteName">TrigpointingUK</string>
+	<string name="downTrigs">Download Trig Database</string>
+	<string name="syncLogs">Sync Logs</string>
+	<string name="btnSync">Sync Logs</string>
+	<string name="btnCrash">Crash</string>
+	<string name="clearCache">Clear Cache</string>
+	<string name="downloadTitle">Download Trigpoint Database</string>
+	<string name="downloadBlurb">When you first install this app, and every now and then afterwards, you need to download a full set of trigpoint data from the TrigpointingUK.com server.  This data is stored on your phone, so that you can search for trigpoints even when out of phone reception.</string>
+	<string name="downloadStatus">Status: </string>
+	<string name="downloadIdleStatus">idle</string>
+	<string name="downloadInsertStatus">Connecting to T:UK</string>
+	<string name="downloadMaxTrigs">9800</string>	
+	<string name="btnDownload">Download</string>
+	<string name="btnDownloadFinished">Done</string>
+	<string name="btnCancel">Cancel</string>
+	<string name="nearest_all">All</string>
+	<string name="help_about">About</string>
+	<string name="colourScheme">Icon colourscheme</string>
+	<string name="downloadMapsTitle">Download Offline Maps</string>
+	<string name="downloadMapsBlurb">If you have a slow or expensive mobile internet connection, you may download a set of maps for the whole of the UK when convenient, to minimise the amount of map downloads in the field.  These are large files, so please ensure you have enough space on your SD card, and that you have a fast, cheap internet connection.</string>
+	<string name="downMaps">Download Offline Maps</string>
+	<string name="downloadMapsStatus">Status: </string>
+	<string name="downloadMapsIdleStatus">idle</string>
+	<string name="downloadMapsInsertStatus">saving to SD card</string>
+    <string-array name="downloadMapsArray">
+        <item>Mapnik - E+W (90MB)</item>
+        <item>MapQuest - E+W (387MB)</item>
+        <item>Cloudmade - E+W (78MB)</item>
+        <item>Mapnik - Scot (32MB)</item>
+        <item>MapQuest - Scot (310MB)</item>
+        <item>Cloudmade - Scot (29MB)</item>
+    </string-array>
+    <string-array name="downloadMapsArrayValues">
+        <item>http://trigpointinguk.googlecode.com/files/mapnik_ew_f01_z12_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/mapquest_ew_f01_z10_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_f02_z11_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_f03_z12_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_f04_z12_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_f05_z12_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_ew_f06_z12_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/cloudmade_ew_f01_z12_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/mapnik_s_f01_z12_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/mapquest_s_f01_z11_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_s_f02_z12_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_s_f03_z12_v01.zip,http://trigpointinguk.googlecode.com/files/mapquest_s_f04_z12_v01.zip</item>
+        <item>http://trigpointinguk.googlecode.com/files/cloudmade_s_f01_z12_v01.zip</item>
+    </string-array>
+    <integer-array name="downloadMapsArrayTiles">
+        <item>7474</item>
+        <item>7471</item>
+        <item>7471</item>
+        <item>6870</item>
+        <item>6870</item>
+        <item>6870</item>
+    </integer-array>
+
+	<string name="prefs">Preferences</string>
+	<string name="prefsAccount">Account Details</string>
+	<string name="prefsUsername">Username</string>
+	<string name="PrefsUsernameDetails">Your username on TrigpointingUK</string>
+	<string name="prefsPassword">Password</string>
+	<string name="PrefsPasswordDetails">Your password on TrigpointingUK</string>
+	<string name="prefsAutoSync">AutoSync</string>
+	<string name="PrefsAutoSyncDetails">Sync logs on app startup?</string>
+	<string name="prefsChoose">Please chose</string>
+	<string name="prefsCount">List size</string>
+	<string name="prefsCountDetails">Number of items in Nearest Trigs list</string>
+    <string-array name="prefsCountArray">
+        <item>10</item>
+        <item>100</item>
+        <item>1000</item>
+        <item>All</item>
+    </string-array>
+    <string-array name="prefsCountArrayValues">
+        <item>10</item>
+        <item>100</item>
+        <item>1000</item>
+        <item>20000</item>
+    </string-array>
+	<string name="prefsMapCount">Map icons</string>
+	<string name="prefsMapCountDetails">Approx number of icons shown on map</string>
+    <string-array name="prefsMapCountArray">
+        <item>10</item>
+        <item>20</item>
+        <item>100</item>
+        <item>1000</item>
+        <item>All</item>
+    </string-array>
+    <string-array name="prefsMapCountArrayValues">
+        <item>40</item>
+        <item>80</item>
+        <item>400</item>
+        <item>4000</item>
+        <item>10000</item>
+    </string-array>
+    <string name="DefaultName">Username</string>
+	<string name="logDate">Date:</string>
+	<string name="logTime">Time:</string>
+	<string name="logScore">Score:</string>
+	<string name="logComment">Comment:</string>
+	<string name="logCondition">Condition:</string>
+	<string name="logGridref">Logged Grid Reference:</string>
+	<string name="logFB">Flush Bracket:</string>
+	<string name="logFlag">Flag log for action by Site Admins</string>
+	<string name="logGetLocation">Get location</string>
+	<color name="errorcolour">#f00000</color>
+	<color name="okcolour">#00f000</color>
+	<string name="logPhotos">Photos:</string>
+	<string name="logAddPhoto">Add Photo</string>
+	<string name="logUploadNow">Sync Now</string>
+	<string name="logSyncLater">Sync Later</string>
+	<string name="logDelete">Delete Log</string>
+	<string name="logUserFlag">Flag log to warn other T:UK users</string>
+	<string name="photoName">Caption:</string>
+	<string name="photoDescr">Description:</string>
+	<string name="photoSubject">Subject:</string>
+	<string name="photoIsPublic">Place in public domain?</string>
+	<string name="photoSave">Save</string>
+	<string name="photoRemove">Remove</string>
+    <string name="photoThumbnail">Thumbnail</string>
+	<string name="addLog">Log this trigpoint</string>
+	<string name="prefsExperimental">Developer mode</string>
+	<string name="prefsExperimentalDetails">Access code under development (unstable)</string>
+	<string name="prefsBehaviour">Application preferences</string>
+	<string name="prefsDevelopment">Development options</string>
+	<string name="prefsAcra">Crash reports</string> 
+	<string name="prefsAcraEnabled">Send crash reports to T:UK (some privacy issues)</string> 
+	<string name="prefsAcraDisabled">Do not send crash reports to T:UK</string> 
+	<string name="prefsAcraSyslog">Include syslog</string>
+	<string name="prefsAcraSyslogEnabled">Crash reports contain syslog information (more privacy issues)</string> 
+	<string name="prefsAcraSyslogDisabled">Crash reports do not contain syslog information</string> 
+	<string name="syncToTUK">Sending logs to T:UK</string> 
+	<string name="syncPhotosToTUK">Sending photos to T:UK</string> 
+	<string name="syncLogsFromTUK">Downloading logs from T:UK</string> 
+	<string name="toastAddUsername">Please add username to preferences!</string> 
+	<string name="toastAddPassword">Please add password to preferences!</string> 
+	<string name="radarexplain">In order to use the radar mode, you need to install an app called Gps Status.  Would you like to go to the app\'s Google Play page?</string> 
+	<string name="yesplease">Yes please</string> 
+	<string name="nothanks">No thanks</string> 
+	<string name="radartitle">Cannot launch radar</string> 
+	<string name="markTrig">Mark</string> 
+	<string name="map">View on map</string>
+	
+	<string name="filterUnsynced">Unsynced</string>
+	<string name="filterUnsyncedDetails">Only show trigs with un-synced logs</string>
+	<string name="filterTypes">Types</string>
+	<string name="filterTypesDetails">Physical types of trigpoints to display</string>
+    <string-array name="filterTypesArray">
+        <item>Pillars only</item>
+        <item>Pillars and FBMs</item>
+        <item>Exclude intersected stations</item>
+        <item>All</item>
+    </string-array>
+    <string-array name="filterTypesArrayValues">
+        <item>trig.type = \'PI\'</item>
+        <item>trig.type in (\'PI\',\'FB\')</item>
+        <item>trig.type != (\'IN\')</item>
+        <item></item>
+    </string-array>
+	<string name="filterTypesDefault">trig.type != (\'IN\')</string>
+    	
+</resources>
