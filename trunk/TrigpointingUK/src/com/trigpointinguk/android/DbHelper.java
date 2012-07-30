@@ -2,6 +2,7 @@ package com.trigpointinguk.android;
 
 import org.osmdroid.util.BoundingBoxE6;
 
+import com.trigpointinguk.android.filter.Filter;
 import com.trigpointinguk.android.types.Condition;
 import com.trigpointinguk.android.types.PhotoSubject;
 import com.trigpointinguk.android.types.Trig;
@@ -22,7 +23,7 @@ public class DbHelper {
 
 	private static final int 	DATABASE_VERSION 	= 9;
 	private static final String DATABASE_NAME		= "trigpointinguk";
-	private static final String TRIG_TABLE			= "trig";
+	public  static final String TRIG_TABLE			= "trig";
 	public 	static final String TRIG_ID				= "_id";
 	public 	static final String TRIG_NAME			= "name";
 	public 	static final String TRIG_WAYPOINT		= "waypoint";
@@ -34,7 +35,7 @@ public class DbHelper {
 	public 	static final String TRIG_CURRENT		= "current";
 	public 	static final String TRIG_HISTORIC		= "historic";
 	public 	static final String TRIG_FB				= "fb";
-	private static final String LOG_TABLE			= "log";
+	public  static final String LOG_TABLE			= "log";
 	public 	static final String LOG_ID				= "_id";
 	public 	static final String LOG_YEAR			= "year";
 	public 	static final String LOG_MONTH			= "month";
@@ -247,6 +248,9 @@ public class DbHelper {
 		}
 		Log.i(TAG, strOrder);
 		
+		String strWhere = new Filter(mCtx).filterWhere();
+		Log.i(TAG, "where : " + strWhere);
+		
 		final String qry = "SELECT "+
 				TRIG_TABLE +"."+ TRIG_ID +", "+
 				TRIG_TABLE +"."+ TRIG_NAME +", "+
@@ -262,20 +266,11 @@ public class DbHelper {
 				"ON " + TRIG_TABLE + "." + TRIG_ID + "=" + LOG_TABLE + "." + LOG_ID + " " +
 				"LEFT OUTER JOIN " + MARK_TABLE + " "+
 				"ON " + TRIG_TABLE + "." + TRIG_ID + "=" + MARK_TABLE + "." + MARK_ID + " " +
+				strWhere + " " +
 				"ORDER BY " + strOrder;
 		Log.i(TAG, qry);
 		return mDb.rawQuery(qry, null);
 
-		
-//		return mDb.query(TRIG_TABLE, new String[] {
-//				TRIG_ID, 
-//				TRIG_NAME, 
-//				TRIG_LAT, 
-//				TRIG_LON, 
-//				TRIG_TYPE, 
-//				TRIG_CONDITION, 
-//				TRIG_LOGGED}, 
-//				null, null, null, null, strOrder);
 	}
 	
 	

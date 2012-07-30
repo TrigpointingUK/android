@@ -4,7 +4,7 @@ import com.trigpointinguk.android.R;
 
 
 public enum Condition {
-	NOTLOGGED		(" ", R.drawable.c_nolog					, R.drawable.cs_nolog					, "Not Logged"),
+	NOTLOGGED		("Z", R.drawable.c_nolog					, R.drawable.cs_nolog					, "Not Logged"),
 	COULDNTFIND		("N", R.drawable.c_possiblymissing			, R.drawable.cs_possiblymissing			, "Couldn't Find"),
 	GOOD			("G", R.drawable.c_good						, R.drawable.cs_good					, "Good"),
 	SLIGHTLYDAMAGED	("S", R.drawable.c_slightlydamaged			, R.drawable.cs_slightlydamaged			, "Slightly Damaged"),

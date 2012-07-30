@@ -152,8 +152,12 @@
 	<string name="markTrig">Mark</string> 
 	<string name="map">View on map</string>
 	
+	<string name="filterAll">All</string>
+	<string name="filterMarked">Marked</string>
 	<string name="filterUnsynced">Unsynced</string>
-	<string name="filterUnsyncedDetails">Only show trigs with un-synced logs</string>
+	<string name="filterLogged">Logged</string>
+	<string name="filterNotLogged">Not logged</string>
+	
 	<string name="filterTypes">Types</string>
 	<string name="filterTypesDetails">Physical types of trigpoints to display</string>
     <string-array name="filterTypesArray">
@@ -162,12 +166,4 @@
         <item>Exclude intersected stations</item>
         <item>All</item>
     </string-array>
-    <string-array name="filterTypesArrayValues">
-        <item>trig.type = \'PI\'</item>
-        <item>trig.type in (\'PI\',\'FB\')</item>
-        <item>trig.type != (\'IN\')</item>
-        <item></item>
-    </string-array>
-	<string name="filterTypesDefault">trig.type != (\'IN\')</string>
-    	
 </resources>

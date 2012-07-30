@@ -8,7 +8,6 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -17,16 +16,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.trigpointinguk.android.common.ClearCacheTask;
+import com.trigpointinguk.android.filter.FilterActivity;
 import com.trigpointinguk.android.logging.SyncTask;
 import com.trigpointinguk.android.mapping.DownloadMapsActivity;
 import com.trigpointinguk.android.mapping.MapActivity;
 import com.trigpointinguk.android.nearest.NearestActivity;
-import com.trigpointinguk.android.trigdetails.TrigDetailsInfoTab;
 
 public class MainActivity extends Activity {
     public static final String TAG ="MainActivity";
@@ -97,10 +95,7 @@ public class MainActivity extends Activity {
         btnSearch.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-	            Intent i = new Intent(MainActivity.this, PreferencesActivity.class);
-	    		Bundle extras = new Bundle();
-	    	    extras.putInt(PreferencesActivity.PREFERENCETYPE, PreferencesActivity.FILTERPREFERENCES);
-	    		i.putExtras(extras);
+	            Intent i = new Intent(MainActivity.this, FilterActivity.class);
 	            startActivityForResult(i, R.id.btnSearch);
 			}
 		});

@@ -27,9 +27,6 @@ public class PreferencesActivity extends PreferenceActivity {
 		case MAINPREFERENCES:
 			addPreferencesFromResource(R.xml.preferences); 
 			break;
-		case FILTERPREFERENCES:
-			addPreferencesFromResource(R.xml.filter); 
-			break;
 		}
 	}
 
