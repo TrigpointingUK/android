@@ -111,9 +111,9 @@ public class MainActivity extends Activity {
         } else {
         	// disable crash button
         	btnCrash.setVisibility(View.INVISIBLE);
-            // disable search button
-            btnSearch.setEnabled(false);
         }
+        // disable search button
+        btnSearch.setEnabled(false);
     }
 
  	

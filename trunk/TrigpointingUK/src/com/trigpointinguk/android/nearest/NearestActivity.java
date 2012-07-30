@@ -10,12 +10,17 @@ import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.trigpointinguk.android.DbHelper;
+import com.trigpointinguk.android.DownloadTrigsActivity;
+import com.trigpointinguk.android.MainActivity;
 import com.trigpointinguk.android.R;
+import com.trigpointinguk.android.filter.FilterActivity;
 import com.trigpointinguk.android.trigdetails.TrigDetailsActivity;
 import com.trigpointinguk.android.types.LatLon;
 
@@ -95,6 +100,27 @@ public class NearestActivity extends ListActivity {
 		}
 	}
 
+	@Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        boolean result = super.onCreateOptionsMenu(menu);
+		getMenuInflater().inflate(R.menu.nearestmenu, menu);
+        return result;
+    }    
+    
+    
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		Intent i;
+        switch (item.getItemId()) {
+        
+        case R.id.filter:
+            i = new Intent(NearestActivity.this, FilterActivity.class);
+            startActivityForResult(i, R.id.filter);
+            return true;
+        }
+		return super.onOptionsItemSelected(item);
+	}
+        
 	@Override
 	protected void onDestroy() {
 		mLocationManager.removeUpdates(mLocationListener);

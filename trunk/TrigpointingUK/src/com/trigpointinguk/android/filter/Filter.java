@@ -3,6 +3,7 @@ package com.trigpointinguk.android.filter;
 import com.trigpointinguk.android.DbHelper;
 import com.trigpointinguk.android.R;
 import com.trigpointinguk.android.types.Condition;
+import com.trigpointinguk.android.types.Trig;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -15,8 +16,11 @@ public class Filter {
 	public static final String 	FILTERTYPE			= "filterType";
 	private static final int	TYPESPILLAR			= 0;
 	private static final int	TYPESPILLARFBM		= 1;
-	private static final int	TYPESNOINTERSECTED	= 2;
-	private static final int	TYPESALL			= 3;
+	private static final int	TYPESFBM			= 2;
+	private static final int	TYPESPASSIVE		= 3;
+	private static final int	TYPESINTERSECTED	= 4;
+	private static final int	TYPESNOINTERSECTED	= 5;
+	private static final int	TYPESALL			= 6;
 
 	
 	private final SharedPreferences mPrefs;
@@ -25,9 +29,9 @@ public class Filter {
 		mPrefs = PreferenceManager.getDefaultSharedPreferences(context);
 	}
 	
-	public String filterWhere() {
+	public String filterWhere(String initialtok) {
 		StringBuilder sql = new StringBuilder();
-		String tok = "WHERE ";
+		String tok = " " + initialtok + " ";
 		
 		
 		// Deal with RADIO
@@ -62,6 +66,53 @@ public class Filter {
 			break;
 		}
 
+
+		
+		
+		// Deal with TYPES
+		switch (mPrefs.getInt(FILTERTYPE, TYPESNOINTERSECTED)) {
+		case TYPESPILLAR:
+			sql.append(tok)
+			   .append(DbHelper.TRIG_TABLE).append(".").append(DbHelper.TRIG_TYPE)
+			   .append(" = '").append(Trig.Physical.PILLAR.code()).append("' ");
+			tok=" AND ";
+			break;
+		case TYPESPILLARFBM:
+			sql.append(tok)
+			   .append(DbHelper.TRIG_TABLE).append(".").append(DbHelper.TRIG_TYPE)
+			   .append(" IN ('")
+			   .append(Trig.Physical.PILLAR.code()).append("', '")
+			   .append(Trig.Physical.FBM.code()).append("' )");
+			tok=" AND ";
+			break;
+		case TYPESFBM:
+			sql.append(tok)
+			   .append(DbHelper.TRIG_TABLE).append(".").append(DbHelper.TRIG_TYPE)
+			   .append(" = '").append(Trig.Physical.FBM.code()).append("' ");
+			tok=" AND ";
+			break;
+		case TYPESPASSIVE:
+			sql.append(tok)
+			   .append(DbHelper.TRIG_TABLE).append(".").append(DbHelper.TRIG_TYPE)
+			   .append(" NOT IN ('")
+			   .append(Trig.Physical.PILLAR.code()).append("', '")
+			   .append(Trig.Physical.FBM.code()).append("' ,'")
+			   .append(Trig.Physical.INTERSECTED.code()).append("' )");
+			tok=" AND ";
+			break;
+		case TYPESINTERSECTED:
+			sql.append(tok)
+			   .append(DbHelper.TRIG_TABLE).append(".").append(DbHelper.TRIG_TYPE)
+			   .append(" = '").append(Trig.Physical.INTERSECTED.code()).append("' ");
+			tok=" AND ";
+			break;
+		case TYPESNOINTERSECTED:
+			sql.append(tok)
+			   .append(DbHelper.TRIG_TABLE).append(".").append(DbHelper.TRIG_TYPE)
+			   .append(" <> '").append(Trig.Physical.INTERSECTED.code()).append("' ");
+			tok=" AND ";
+			break;
+		}
 		
 		return sql.toString();
 	}

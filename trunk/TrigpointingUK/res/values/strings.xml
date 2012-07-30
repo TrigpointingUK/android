@@ -5,7 +5,7 @@
 	<string name="noUser">Please set username in preferences</string>
 	<string name="btnNearest">Nearest</string>
 	<string name="btnMap">Map</string>
-	<string name="btnSearch">Filter</string>
+	<string name="btnSearch"></string>
 	<string name="noTrigs">Searching for nearby trigpoints</string>
 	<string name="downloadingPhotos">Downloading photo album</string>
 	<string name="downloadingLogs">Downloading logs</string>
@@ -163,6 +163,9 @@
     <string-array name="filterTypesArray">
         <item>Pillars only</item>
         <item>Pillars and FBMs</item>
+        <item>FBMs only</item>
+        <item>Passive types only</item>
+        <item>Intersected stations only</item>
         <item>Exclude intersected stations</item>
         <item>All</item>
     </string-array>

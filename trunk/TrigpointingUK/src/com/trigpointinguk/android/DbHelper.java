@@ -248,7 +248,7 @@ public class DbHelper {
 		}
 		Log.i(TAG, strOrder);
 		
-		String strWhere = new Filter(mCtx).filterWhere();
+		String strWhere = new Filter(mCtx).filterWhere("WHERE");
 		Log.i(TAG, "where : " + strWhere);
 		
 		final String qry = "SELECT "+
@@ -285,7 +285,7 @@ public class DbHelper {
 				TRIG_LAT, 
 				mPrefs.getString("mapcount", DEFAULT_MAP_COUNT));	
    
-		String strWhere = String.format("%s between %s and %s  and  %s between %s and %s",
+		String strWhere = String.format("WHERE %s between %s and %s  and  %s between %s and %s",
 				TRIG_LON, 
 				box.getLonWestE6()/1000000.0, 
 				box.getLonEastE6()/1000000.0, 
@@ -293,10 +293,30 @@ public class DbHelper {
 				box.getLatSouthE6()/1000000.0, 
 				box.getLatNorthE6()/1000000.0); 
 
-		
+		strWhere += new Filter(mCtx).filterWhere("AND");
 		Log.i(TAG, strWhere);
 		Log.i(TAG, strOrder);
-		return mDb.query(TRIG_TABLE, new String[] {
+		
+		final String qry = "SELECT "+
+				TRIG_TABLE +"."+ TRIG_ID +", "+
+				TRIG_TABLE +"."+ TRIG_NAME +", "+
+				TRIG_TABLE +"."+ TRIG_LAT +", "+
+				TRIG_TABLE +"."+ TRIG_LON +", "+
+				TRIG_TABLE +"."+ TRIG_TYPE +", "+
+				TRIG_TABLE +"."+ TRIG_CONDITION +", "+
+				TRIG_TABLE +"."+ TRIG_LOGGED + " "+
+				"FROM " + TRIG_TABLE + " "+
+				"LEFT OUTER JOIN " + LOG_TABLE + " "+
+				"ON " + TRIG_TABLE + "." + TRIG_ID + "=" + LOG_TABLE + "." + LOG_ID + " " +
+				"LEFT OUTER JOIN " + MARK_TABLE + " "+
+				"ON " + TRIG_TABLE + "." + TRIG_ID + "=" + MARK_TABLE + "." + MARK_ID + " " +
+				strWhere + " " +
+				"ORDER BY " + strOrder;
+		Log.i(TAG, qry);
+		return mDb.rawQuery(qry, null);
+		
+		
+/*		return mDb.query(TRIG_TABLE, new String[] {
 				TRIG_ID, 
 				TRIG_NAME, 
 				TRIG_LAT, 
@@ -305,7 +325,7 @@ public class DbHelper {
 				TRIG_CONDITION, 
 				TRIG_LOGGED}, 
 				strWhere, null, null, null, strOrder);
-	}
+*/	}
 	
 	/**
 	 * Return a Cursor suitable for the triglist screen

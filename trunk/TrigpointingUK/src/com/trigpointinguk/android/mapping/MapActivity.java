@@ -37,6 +37,7 @@ import android.widget.Toast;
 
 import com.trigpointinguk.android.DbHelper;
 import com.trigpointinguk.android.R;
+import com.trigpointinguk.android.filter.FilterActivity;
 import com.trigpointinguk.android.trigdetails.TrigDetailsActivity;
 import com.trigpointinguk.android.types.Condition;
 import com.trigpointinguk.android.types.Trig;
@@ -243,18 +244,15 @@ public class MapActivity extends Activity implements MapListener {
 		// Icon colouring options
 		case R.id.byCondition:
 			mIconColouring = IconColouring.BYCONDITION;
-			mTooManyTrigs = true; // fudge to ensure redraw
-			populateTrigOverlay(mMapView.getBoundingBox());
+			refreshMap();
 			break;
 		case R.id.none:
 			mIconColouring = IconColouring.NONE;
-			mTooManyTrigs = true; // fudge to ensure redraw
-			populateTrigOverlay(mMapView.getBoundingBox());
+			refreshMap();
 			break;
 		case R.id.byLogged:
 			mIconColouring = IconColouring.BYLOGGED;
-			mTooManyTrigs = true; // fudge to ensure redraw
-			populateTrigOverlay(mMapView.getBoundingBox());
+			refreshMap();
 			break;
 			
 		// Other
@@ -272,6 +270,10 @@ public class MapActivity extends Activity implements MapListener {
 				mMyLocationOverlay.enableCompass();
 			}
 			return true;
+		case R.id.filter:
+            i = new Intent(MapActivity.this, FilterActivity.class);
+            startActivityForResult(i, R.id.filter);
+            return true;
 		}
 
 		return super.onOptionsItemSelected(item);
@@ -297,6 +299,12 @@ public class MapActivity extends Activity implements MapListener {
 		super.onPause();
 	}
 
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		Log.i(TAG, "onActivityResult");
+		refreshMap();
+	}
+
 
 	@Override
 	protected void onResume() {
@@ -311,6 +319,10 @@ public class MapActivity extends Activity implements MapListener {
 		super.onDestroy();
 	}
 
+	private void refreshMap() {
+		mTooManyTrigs = true; // fudge to ensure redraw
+		populateTrigOverlay(mMapView.getBoundingBox());
+	}
 
 	private void loadViewFromPrefs() {
 		try {

@@ -26,5 +26,5 @@
     <item android:id="@+id/downloadmaps" android:title="@string/downMaps" android:icon="@drawable/ic_menu_more"></item>
     <item android:checkable="true" android:title="Track My Location" android:titleCondensed="My Location" android:id="@+id/location" android:checked="false" android:icon="@drawable/ic_menu_mylocation"></item>
     <item android:titleCondensed="Compass" android:id="@+id/compass" android:title="Show Compass" android:checkable="true" android:checked="true" android:icon="@drawable/ic_menu_compass"></item>
-    
+    <item android:title="Filter" android:icon="@drawable/ic_menu_search" android:id="@+id/filter"></item>
 </menu>
