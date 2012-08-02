@@ -25,8 +25,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
@@ -253,27 +251,7 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
 			mLocationError.setText(e.getMessage());
 			mLocationError.setTextColor(getResources().getColor(R.color.errorcolour));
 		}		
-	}
-	
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		boolean result = super.onCreateOptionsMenu(menu);
-		getMenuInflater().inflate(R.menu.logtrigmenu, menu);
-		return result;
-	}    
-
-	public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-        case R.id.addphoto:
-			choosePhoto();
-            return true;
-        case R.id.addlocation:
-        	getLocation();
-        	return true;
-        }
-        return false;
-    }
- 
+	} 
     
 	@Override
 	protected void onPause() {
