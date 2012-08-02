@@ -304,7 +304,9 @@ public class DbHelper {
 				TRIG_TABLE +"."+ TRIG_LON +", "+
 				TRIG_TABLE +"."+ TRIG_TYPE +", "+
 				TRIG_TABLE +"."+ TRIG_CONDITION +", "+
-				TRIG_TABLE +"."+ TRIG_LOGGED + " "+
+				TRIG_TABLE +"."+ TRIG_LOGGED + ", "+
+				LOG_TABLE  +"."+ LOG_CONDITION + " AS " + JOIN_UNSYNCED + ", " +
+				MARK_TABLE  +"."+ MARK_ID + " AS " + JOIN_MARKED + " " +
 				"FROM " + TRIG_TABLE + " "+
 				"LEFT OUTER JOIN " + LOG_TABLE + " "+
 				"ON " + TRIG_TABLE + "." + TRIG_ID + "=" + LOG_TABLE + "." + LOG_ID + " " +

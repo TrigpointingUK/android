@@ -26,7 +26,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -38,6 +37,7 @@ import android.widget.Toast;
 import com.trigpointinguk.android.DbHelper;
 import com.trigpointinguk.android.R;
 import com.trigpointinguk.android.filter.FilterActivity;
+import com.trigpointinguk.android.mapping.MapIcon.colourScheme;
 import com.trigpointinguk.android.trigdetails.TrigDetailsActivity;
 import com.trigpointinguk.android.types.Condition;
 import com.trigpointinguk.android.types.Trig;
@@ -52,7 +52,6 @@ public class MapActivity extends Activity implements MapListener {
 	public static final String TAG = "MapActivity";
 	
 	public enum TileSource 		{NONE, MAPNIK, CYCLEMAP, MAPQUEST, CLOUDMADE, BING_AERIAL, BING_ROAD, BING_AERIAL_LABELS};	
-	public enum IconColouring 	{NONE, BYCONDITION, BYLOGGED};	
 
 	private MapView            mMapView;
 	private MapController      mMapController;
@@ -63,10 +62,10 @@ public class MapActivity extends Activity implements MapListener {
 	private DbHelper    	   mDb;
 	
 	private ItemizedIconOverlay<OverlayItem> mTrigOverlay;
-	private BoundingBoxE6      mBigBB         = new BoundingBoxE6(0, 0, 0, 0);
-	private IconColouring      mIconColouring = IconColouring.NONE;
-	private TileSource         mTileSource    = TileSource.NONE;
-	private boolean            mTooManyTrigs;
+	private BoundingBoxE6      		mBigBB         = new BoundingBoxE6(0, 0, 0, 0);
+	private MapIcon.colourScheme    mIconColouring = colourScheme.NONE;
+	private TileSource         		mTileSource    = TileSource.NONE;
+	private boolean            		mTooManyTrigs;
 	
 	/** Called when the activity is first created. */
 	@Override
@@ -96,14 +95,14 @@ public class MapActivity extends Activity implements MapListener {
 		// setup trigpoint overlay
 		mTrigOverlay = new ItemizedIconOverlay<OverlayItem>(
 				new ArrayList<OverlayItem>(),
-				this.getResources().getDrawable(R.drawable.mapicon_00_pillar_green),
+				this.getResources().getDrawable(MapIcon.defaultIcon),
 				new OnItemGestureListener<OverlayItem>() {
 					@Override
 					public boolean onItemSingleTapUp(final int index, final OverlayItem item) {
 						// When icon is tapped, jump to TrigDetails activity
 						Intent i = new Intent(MapActivity.this, TrigDetailsActivity.class);
 						i.putExtra(DbHelper.TRIG_ID, (long)Long.parseLong(item.mTitle));
-						startActivity(i);
+						startActivityForResult(i, index);
 						return true; // We 'handled' this event.
 					}
 
@@ -243,15 +242,15 @@ public class MapActivity extends Activity implements MapListener {
 
 		// Icon colouring options
 		case R.id.byCondition:
-			mIconColouring = IconColouring.BYCONDITION;
+			mIconColouring = colourScheme.BYCONDITION;
 			refreshMap();
 			break;
 		case R.id.none:
-			mIconColouring = IconColouring.NONE;
+			mIconColouring = colourScheme.NONE;
 			refreshMap();
 			break;
 		case R.id.byLogged:
-			mIconColouring = IconColouring.BYLOGGED;
+			mIconColouring = colourScheme.BYLOGGED;
 			refreshMap();
 			break;
 			
@@ -329,11 +328,11 @@ public class MapActivity extends Activity implements MapListener {
 			// set tilesource from prefs
 			setTileProvider(TileSource.valueOf(mPrefs.getString("tileSource", TileSource.MAPNIK.toString())));
 			// set colouring from prefs
-			mIconColouring = IconColouring.valueOf(mPrefs.getString("iconColouring", IconColouring.NONE.toString()));
+			mIconColouring = colourScheme.valueOf(mPrefs.getString("iconColouring", colourScheme.NONE.toString()));
 		} catch (IllegalArgumentException e) {
 			// invalid preference
 			setTileProvider(TileSource.MAPNIK);
-			mIconColouring = IconColouring.NONE;
+			mIconColouring = colourScheme.NONE;
 		}
 		try {
 			// set view from prefs
@@ -374,6 +373,8 @@ public class MapActivity extends Activity implements MapListener {
 
 	private void populateTrigOverlay(BoundingBoxE6 bb) {
 		ArrayList<OverlayItem> newitems = new ArrayList<OverlayItem>();
+		
+		MapIcon mapIcon = new MapIcon(this);
 
 		// Only repopulate if the new bounding box extends beyond region previously queried
 		if (bb.getLatNorthE6() < mBigBB.getLatNorthE6() 
@@ -406,18 +407,14 @@ public class MapActivity extends Activity implements MapListener {
 					GeoPoint point = new GeoPoint((int)(c.getDouble(c.getColumnIndex(DbHelper.TRIG_LAT))*1000000), (int)(c.getDouble(c.getColumnIndex(DbHelper.TRIG_LON))*1000000));
 					OverlayItem oi = new OverlayItem(c.getString(c.getColumnIndex(DbHelper.TRIG_ID)), 
 													 c.getString(c.getColumnIndex(DbHelper.TRIG_NAME)), point);
-					switch (mIconColouring) {
-					case BYCONDITION:
-						oi.setMarker(getIcon(Trig.Physical.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_TYPE))), 
-								Condition.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_CONDITION)))));
-						break;
-					case BYLOGGED:
-						oi.setMarker(getIcon(Trig.Physical.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_TYPE))), 
-								Condition.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_LOGGED)))));
-						break;
-					default:
-						oi.setMarker(getIcon(Trig.Physical.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_TYPE)))));
-					}
+						
+					oi.setMarker(mapIcon.getDrawable(	mIconColouring, 
+														Trig.Physical.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_TYPE))),
+														Condition.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_CONDITION))),
+														Condition.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_LOGGED))),
+														Condition.fromCode(c.getString(c.getColumnIndex(DbHelper.JOIN_UNSYNCED))),
+														c.getString(c.getColumnIndex(DbHelper.JOIN_MARKED)) != null
+													) );
 					oi.setMarkerHotspot(HotspotPlace.CENTER);
 					newitems.add(oi);
 					c.moveToNext();
@@ -431,85 +428,5 @@ public class MapActivity extends Activity implements MapListener {
 		}
 		mMapView.invalidate();
 	}
-	
-	private Drawable getIcon(Trig.Physical type) {
-		switch (type) {
-		case PILLAR:
-			return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_green);
-		case FBM:
-			return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_green);
-		default:
-			return this.getResources().getDrawable(R.drawable.mapicon_02_passive_green);
-		}
-	}
-	
-	private Drawable getIcon(Trig.Physical type, Condition logged) {
-		switch (type) {
-		case PILLAR:
-			switch (logged) {
-			case UNKNOWN: 
-			case NOTLOGGED: 
-				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_grey);
-			case GOOD:
-			case SLIGHTLYDAMAGED:
-			case DAMAGED:
-			case TOPPLED:
-				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_green);
-			case VISIBLE:
-				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_yellow);
-			case POSSIBLYMISSING:
-			case MISSING:
-			case INACCESSIBLE:
-			case COULDNTFIND:
-				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_red);
-			default:
-				return this.getResources().getDrawable(R.drawable.mapicon_00_pillar_grey);
-			}	
-			
-		case FBM:
-			switch (logged) {
-			case UNKNOWN: 
-			case NOTLOGGED:
-				return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_grey);
-			case GOOD:
-			case SLIGHTLYDAMAGED:
-			case DAMAGED:
-			case TOPPLED:
-				return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_green);
-			case VISIBLE:
-				return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_yellow);
-			case POSSIBLYMISSING:
-			case MISSING:
-			case INACCESSIBLE:
-			case COULDNTFIND:
-				return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_red);
-			default:
-				return this.getResources().getDrawable(R.drawable.mapicon_01_fbm_grey);
-			}	
-
-		default:
-			switch (logged) {
-			case UNKNOWN: 
-			case NOTLOGGED:
-				return this.getResources().getDrawable(R.drawable.mapicon_02_passive_grey);
-			case GOOD:
-			case SLIGHTLYDAMAGED:
-			case DAMAGED:
-			case TOPPLED:
-				return this.getResources().getDrawable(R.drawable.mapicon_02_passive_green);
-			case VISIBLE:
-				return this.getResources().getDrawable(R.drawable.mapicon_02_passive_yellow);
-			case POSSIBLYMISSING:
-			case MISSING:
-			case INACCESSIBLE:
-			case COULDNTFIND:
-				return this.getResources().getDrawable(R.drawable.mapicon_02_passive_red);
-			default:
-				return this.getResources().getDrawable(R.drawable.mapicon_02_passive_grey);
-			}	
-		}
-	}
-	
-	
 	
 }
