@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/ll1"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" android:weightSum="1" android:orientation="vertical">
+    <LinearLayout
+        android:id="@+id/ll2"
+        android:baselineAligned="true" android:layout_height="128dp" android:layout_width="fill_parent" android:layout_weight="0.1">
+        <ImageView android:id="@+id/imageView1" android:src="@drawable/tuk_logo" android:layout_width="129dp" android:layout_height="114dp" android:layout_marginLeft="10dip" android:layout_marginTop="10dip"></ImageView>
+        <LinearLayout
+            android:id="@+id/ll3"
+            android:orientation="vertical"
+            android:layout_gravity="center_vertical" android:layout_width="fill_parent" android:weightSum="1" android:layout_height="fill_parent" android:layout_marginLeft="2dp">
+            <TextView android:textAppearance="?android:attr/textAppearanceLarge" android:id="@+id/textView1" android:text="@string/siteName" android:layout_height="0dp" android:gravity="center" android:layout_width="fill_parent" android:layout_weight="0.50"></TextView>
+            <TextView android:textAppearance="?android:attr/textAppearanceSmall" android:layout_width="fill_parent" android:layout_height="0dp" android:text="@string/DefaultName" android:id="@+id/txtUserName" android:gravity="center_horizontal" android:layout_weight="0.50"></TextView>
+        </LinearLayout>
+    </LinearLayout>
+    <LinearLayout android:id="@+id/linearLayout1" android:layout_width="fill_parent" android:layout_height="0dp" android:layout_weight="0.4">
+        <Button android:id="@+id/btnNearest" android:height="100px" android:layout_width="0dp" android:text="@string/btnNearest" android:layout_weight="1" android:layout_height="fill_parent"></Button>
+        <Button android:id="@+id/btnMap" android:height="100px" android:layout_width="0dp" android:text="@string/btnMap" android:layout_weight="1" android:layout_height="fill_parent"></Button>
+        <Button android:id="@+id/btnSearch" android:height="100px" android:layout_width="0dp" android:text="@string/btnSearch" android:layout_weight="1" android:layout_height="fill_parent"></Button>
+    </LinearLayout>
+    <LinearLayout android:id="@+id/linearLayout2" android:orientation="vertical" android:layout_width="fill_parent" android:layout_weight="0.33" android:layout_height="0dp">
+        <Button android:layout_height="wrap_content" android:text="@string/btnSync" android:layout_width="fill_parent" android:id="@+id/btnSync"></Button>
+        <Button android:layout_height="wrap_content" android:text="@string/btnCrash" android:layout_width="fill_parent" android:id="@+id/btnCrash"></Button>
+        </LinearLayout>
+</LinearLayout>
