@@ -55,6 +55,6 @@ public enum Condition {
 			}  
 		}
 		//throw new IllegalArgumentException("Invalid condition: " + code); 
-		return null;
+		return UNKNOWN;
 	}
 }

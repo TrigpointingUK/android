@@ -407,12 +407,19 @@ public class MapActivity extends Activity implements MapListener {
 					GeoPoint point = new GeoPoint((int)(c.getDouble(c.getColumnIndex(DbHelper.TRIG_LAT))*1000000), (int)(c.getDouble(c.getColumnIndex(DbHelper.TRIG_LON))*1000000));
 					OverlayItem oi = new OverlayItem(c.getString(c.getColumnIndex(DbHelper.TRIG_ID)), 
 													 c.getString(c.getColumnIndex(DbHelper.TRIG_NAME)), point);
-						
+					
+					// forward nulls
+					String strUnsynced = c.getString(c.getColumnIndex(DbHelper.JOIN_UNSYNCED));
+					Condition unsynced = null;
+					if (strUnsynced != null) {
+						unsynced = Condition.fromCode(strUnsynced);
+					}
+					
 					oi.setMarker(mapIcon.getDrawable(	mIconColouring, 
 														Trig.Physical.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_TYPE))),
 														Condition.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_CONDITION))),
 														Condition.fromCode(c.getString(c.getColumnIndex(DbHelper.TRIG_LOGGED))),
-														Condition.fromCode(c.getString(c.getColumnIndex(DbHelper.JOIN_UNSYNCED))),
+														unsynced,
 														c.getString(c.getColumnIndex(DbHelper.JOIN_MARKED)) != null
 													) );
 					oi.setMarkerHotspot(HotspotPlace.CENTER);
