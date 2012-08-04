@@ -21,7 +21,7 @@ import android.util.Log;
 public class DbHelper {
 	private static final String TAG					= "DbHelper";
 
-	private static final int 	DATABASE_VERSION 	= 9;
+	private static final int 	DATABASE_VERSION 	= 10;
 	private static final String DATABASE_NAME		= "trigpointinguk";
 	public  static final String TRIG_TABLE			= "trig";
 	public 	static final String TRIG_ID				= "_id";

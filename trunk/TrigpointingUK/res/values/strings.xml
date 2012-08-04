@@ -27,7 +27,7 @@
 	<string name="downloadStatus">Status: </string>
 	<string name="downloadIdleStatus">idle</string>
 	<string name="downloadInsertStatus">Connecting to T:UK</string>
-	<string name="downloadMaxTrigs">9800</string>	
+	<string name="downloadMaxTrigs">10500</string>	
 	<string name="btnDownload">Download</string>
 	<string name="btnDownloadFinished">Done</string>
 	<string name="btnCancel">Cancel</string>

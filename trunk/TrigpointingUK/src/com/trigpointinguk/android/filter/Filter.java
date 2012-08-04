@@ -70,7 +70,7 @@ public class Filter {
 		
 		
 		// Deal with TYPES
-		switch (mPrefs.getInt(FILTERTYPE, TYPESNOINTERSECTED)) {
+		switch (mPrefs.getInt(FILTERTYPE, TYPESPILLAR)) {
 		case TYPESPILLAR:
 			sql.append(tok)
 			   .append(DbHelper.TRIG_TABLE).append(".").append(DbHelper.TRIG_TYPE)
