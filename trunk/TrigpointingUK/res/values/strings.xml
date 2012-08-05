@@ -169,4 +169,15 @@
         <item>Exclude intersected stations</item>
         <item>All</item>
     </string-array>
+    
+	<string name="prefsUnits">Units</string>
+	<string name="prefsUnitsDetails">Show distances in metric or imperial</string>
+    <string-array name="prefsUnitsArray">
+        <item>Metric</item>
+        <item>Imperial</item>
+    </string-array>
+    <string-array name="prefsUnitsArrayValues">
+        <item>metric</item>
+        <item>imperial</item>
+    </string-array>
 </resources>

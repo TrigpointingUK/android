@@ -50,6 +50,7 @@ import com.trigpointinguk.android.common.FileCache;
 import com.trigpointinguk.android.common.Utils;
 import com.trigpointinguk.android.types.Condition;
 import com.trigpointinguk.android.types.LatLon;
+import com.trigpointinguk.android.types.LatLon.UNITS;
 import com.trigpointinguk.android.types.PhotoSubject;
 import com.trigpointinguk.android.types.TrigPhoto;
 
@@ -58,6 +59,9 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
     private static final int    CHOOSE_PHOTO  = 1;
     private static final int    EDIT_PHOTO  = 2;
     private SharedPreferences 	mPrefs;
+
+    private LatLon.UNITS		mUnits;
+    private String				mStrUnits;
     
 	private Long				mTrigId;
 	private LatLon				mTrigLocation;
@@ -97,6 +101,16 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
 		}
 		if (mTrigId == null) {mTrigId=0L;}
 		Log.i(TAG, "Trig_id = "+mTrigId);
+		
+		// should we list m or yards?
+		if (mPrefs.getString("units", "metric").equals("metric")) {
+			mUnits = UNITS.METRES;
+			mStrUnits = "m";
+		} else {
+			mUnits = UNITS.YARDS;
+			mStrUnits = "yds";
+		}
+
 		
 		// Get references to various views and form elements
 		mSwitcher 		= (ViewSwitcher)	findViewById(R.id.logswitcher);
@@ -235,15 +249,15 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
 		Log.i(TAG, "checkDistance");
 		try {
 			LatLon ll = new LatLon(mGridref.getText().toString());
-			Double dist = 1000 * ll.distanceTo(mTrigLocation);
+			Double dist = ll.distanceTo(mTrigLocation, mUnits);
 			Log.e(TAG, "trig " + mTrigLocation.getOSGB10() + " - " + mTrigLocation.getWGS());
 			Log.e(TAG, "log " + ll.getOSGB10() + " - " + ll.getWGS());
-			Log.e(TAG, "Gridref " + dist.intValue() + "m from database location");
+			Log.e(TAG, "Gridref " + dist.intValue() + " " + mUnits + " from database location");
 			if (dist >= 50) {
-				mLocationError.setText("Warning: " + dist.intValue() + "m from database location");
+				mLocationError.setText("Warning: " + dist.intValue() + mStrUnits + " from database location");
 				mLocationError.setTextColor(getResources().getColor(R.color.errorcolour));
 			} else {
-				mLocationError.setText(dist.intValue() + "m from database location");
+				mLocationError.setText(dist.intValue() + mStrUnits + " from database location");
 				mLocationError.setTextColor(getResources().getColor(R.color.okcolour));
 			}
 		} catch (IllegalArgumentException e) {

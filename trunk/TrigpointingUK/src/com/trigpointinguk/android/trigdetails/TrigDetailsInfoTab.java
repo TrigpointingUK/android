@@ -24,7 +24,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.trigpointinguk.android.DbHelper;
-import com.trigpointinguk.android.MainActivity;
 import com.trigpointinguk.android.R;
 import com.trigpointinguk.android.mapping.MapActivity;
 import com.trigpointinguk.android.types.Condition;

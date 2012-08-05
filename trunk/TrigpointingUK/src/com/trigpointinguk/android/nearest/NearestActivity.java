@@ -17,8 +17,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.trigpointinguk.android.DbHelper;
-import com.trigpointinguk.android.DownloadTrigsActivity;
-import com.trigpointinguk.android.MainActivity;
 import com.trigpointinguk.android.R;
 import com.trigpointinguk.android.filter.FilterActivity;
 import com.trigpointinguk.android.trigdetails.TrigDetailsActivity;

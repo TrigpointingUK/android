@@ -1,11 +1,12 @@
 package com.trigpointinguk.android.nearest;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Typeface;
 import android.location.Location;
+import android.preference.PreferenceManager;
 import android.support.v4.widget.SimpleCursorAdapter;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,7 @@ import com.trigpointinguk.android.DbHelper;
 import com.trigpointinguk.android.R;
 import com.trigpointinguk.android.types.Condition;
 import com.trigpointinguk.android.types.LatLon;
+import com.trigpointinguk.android.types.LatLon.UNITS;
 import com.trigpointinguk.android.types.Trig;
 
 public class NearestCursorAdapter extends SimpleCursorAdapter {
@@ -30,7 +32,8 @@ public class NearestCursorAdapter extends SimpleCursorAdapter {
 	private int mUnsyncedIndex;
 	private int mMarkedIndex;
 	private Location mCurrentLocation;
-	private static final String TAG = "NearestCursorAdapter";
+	private LatLon.UNITS mUnits;
+	//private static final String TAG = "NearestCursorAdapter";
 
 	
 	public NearestCursorAdapter(Context context, int layout, Cursor c,	String[] from, int[] to, Location currentLocation) {
@@ -42,7 +45,15 @@ public class NearestCursorAdapter extends SimpleCursorAdapter {
 			String[] from, int[] to) {
 		super(context, layout, c, from, to, 0);
 		mInflater = LayoutInflater.from(context);
-
+		
+		// should we list km or miles?
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+		if (prefs.getString("units", "metric").equals("metric")) {
+			mUnits = UNITS.KM;
+		} else {
+			mUnits = UNITS.MILES;
+		}
+		
 		if (c != null) {
 			mNameIndex = c.getColumnIndexOrThrow(DbHelper.TRIG_NAME);
 			mConditionIndex = c.getColumnIndexOrThrow(DbHelper.TRIG_CONDITION);
@@ -82,7 +93,7 @@ public class NearestCursorAdapter extends SimpleCursorAdapter {
 		
 		if (mCurrentLocation != null) {
 			LatLon l = new LatLon(cursor.getDouble(mLatIndex), cursor.getDouble(mLonIndex));			
-			td.setText(String.format("%3.1f", l.distanceTo(mCurrentLocation)));
+			td.setText(String.format("%3.1f", l.distanceTo(mCurrentLocation, mUnits)));
 			ta.setImageResource(R.drawable.arrow_00_s + (int)((l.bearingFrom(mCurrentLocation)+191.25)/22.5));
 		} else {
 			td.setText("");

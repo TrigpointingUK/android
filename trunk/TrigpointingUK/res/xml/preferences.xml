@@ -7,8 +7,11 @@
 	    <EditTextPreference android:summary="@string/PrefsPasswordDetails" android:title="@string/prefsPassword" android:dialogTitle="@string/prefsPassword" android:key="password" android:inputType="textPassword"></EditTextPreference>
 	</PreferenceCategory>
  
-	<PreferenceCategory android:key="behaviour_category" android:title="@string/prefsBehaviour"><CheckBoxPreference android:summary="@string/PrefsAutoSyncDetails" android:key="autosync" android:title="@string/prefsAutoSync" android:defaultValue="false"/><ListPreference android:entries="@array/prefsCountArray" android:entryValues="@array/prefsCountArrayValues" android:summary="@string/prefsCountDetails" android:title="@string/prefsCount" android:key="listentries" android:defaultValue="100"/>
+	<PreferenceCategory android:key="behaviour_category" android:title="@string/prefsBehaviour">
+	    <CheckBoxPreference android:summary="@string/PrefsAutoSyncDetails" android:key="autosync" android:title="@string/prefsAutoSync" android:defaultValue="false"/>
+	    <ListPreference android:entries="@array/prefsCountArray" android:entryValues="@array/prefsCountArrayValues" android:summary="@string/prefsCountDetails" android:title="@string/prefsCount" android:key="listentries" android:defaultValue="100"/>
 	    <ListPreference android:entries="@array/prefsMapCountArray" android:entryValues="@array/prefsMapCountArrayValues" android:key="mapcount" android:summary="@string/prefsCountDetails" android:title="@string/prefsMapCount" android:defaultValue="400"></ListPreference>
+	    <ListPreference android:entries="@array/prefsUnitsArray" android:entryValues="@array/prefsUnitsArrayValues" android:key="units" android:summary="@string/prefsUnitsDetails" android:title="@string/prefsUnits" android:defaultValue="metric"></ListPreference>
 	</PreferenceCategory>
 	
 	<PreferenceCategory android:key="development_category" android:title="@string/prefsDevelopment">

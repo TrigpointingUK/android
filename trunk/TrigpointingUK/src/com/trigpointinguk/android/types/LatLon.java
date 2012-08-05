@@ -22,15 +22,15 @@ public class LatLon implements Serializable {
 	private Double mEastings;
 	private Double mNorthings;
 
-	public static final double AIRYMAJ = 6377563.396;
-	public static final double AIRYMIN = 6356256.909;
-	public static final double AIRYECC = ((AIRYMAJ * AIRYMAJ) - (AIRYMIN * AIRYMIN)) / (AIRYMAJ * AIRYMAJ);
+	private static final double AIRYMAJ = 6377563.396;
+	private static final double AIRYMIN = 6356256.909;
+	private static final double AIRYECC = ((AIRYMAJ * AIRYMAJ) - (AIRYMIN * AIRYMIN)) / (AIRYMAJ * AIRYMAJ);
 		
-	public static final double WGSMAJ = 6378137.000;
-	public static final double WGSMIN = 6356752.3141;
-	public static final double WGSECC = ((WGSMAJ * WGSMAJ) - (WGSMIN * WGSMIN)) / (WGSMAJ * WGSMAJ);
+	private static final double WGSMAJ = 6378137.000;
+	private static final double WGSMIN = 6356752.3141;
+	private static final double WGSECC = ((WGSMAJ * WGSMAJ) - (WGSMIN * WGSMIN)) / (WGSMAJ * WGSMAJ);
 		
-
+	public enum UNITS {KM, MILES, METRES, YARDS};
 	
 	
 	public LatLon() {
@@ -129,26 +129,42 @@ public class LatLon implements Serializable {
 	}
 	
 	
-	public Double distanceTo(Double lat, Double lon) {
+	public Double distanceTo(Double lat, Double lon, UNITS units) {
 		Double d;
+		double radius = 0;
 		if (lat == null || lon == null) {return null;}
 		double lat1 = Math.toRadians(mLat);
 		double lat2 = Math.toRadians(lat);
 		double lon1 = Math.toRadians(mLon);
 		double lon2 = Math.toRadians(lon);
 
+		switch (units) {
+		case KM:
+			radius = 6371;
+			break;
+		case MILES:
+			radius = 3959;
+			break;
+		case METRES:
+			radius = 6371000;
+			break;
+		case YARDS:
+			radius = 3959*1760;
+			break;
+		}
+		
 		d = Math.acos(Math.sin(lat1)*Math.sin(lat2) + 
 					  Math.cos(lat1)*Math.cos(lat2) *
-					  Math.cos(lon2-lon1) ) * 6371;
+					  Math.cos(lon2-lon1) ) * radius;
 		return d;
 	}
 	
-	public Double distanceTo(LatLon l) {
-		return distanceTo(l.mLat, l.mLon);
+	public Double distanceTo(LatLon l, UNITS u) {
+		return distanceTo(l.mLat, l.mLon, u);
 	}
 
-	public Double distanceTo(Location l) {
-		return distanceTo(l.getLatitude(), l.getLongitude());
+	public Double distanceTo(Location l, UNITS u) {
+		return distanceTo(l.getLatitude(), l.getLongitude(), u);
 	}
 	
 	public Double bearingTo(LatLon l) {
