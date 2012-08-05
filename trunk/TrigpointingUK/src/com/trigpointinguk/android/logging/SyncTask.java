@@ -428,6 +428,9 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
 
 			mDb.mDb.beginTransaction();
             
+			// blank out any existing logs;
+			mDb.deleteAllTrigLogs();
+			
 			// first record contains log count
 			if ((strLine=br.readLine()) != null) {
 				mMax = Integer.parseInt(strLine);

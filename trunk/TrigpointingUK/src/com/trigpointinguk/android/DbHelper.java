@@ -212,6 +212,12 @@ public class DbHelper {
 		return mDb.update(TRIG_TABLE, args, TRIG_ID + "=" + id, null) > 0;
 	}
 
+	public boolean deleteAllTrigLogs() {
+		ContentValues args = new ContentValues();
+		args.put(TRIG_LOGGED, Condition.NOTLOGGED.code());
+		return mDb.update(TRIG_TABLE, args, null, null) > 0;
+	}
+	
 
 	/**
 	 * Delete all trigs
