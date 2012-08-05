@@ -7,14 +7,28 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 
 import com.trigpointinguk.android.types.Condition;
 import com.trigpointinguk.android.types.Trig;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -24,22 +38,32 @@ import android.widget.TextView;
 
 public class DownloadTrigsActivity extends Activity {
 
-	private TextView mStatus;
-	private ProgressBar mProgress;
-	private Button mDownloadBtn;
-	private Integer mDownloadCount = 0;
-	private boolean mRunning = false;
-	private static int mProgressMax;
+	private TextView 		mStatus;
+	private ProgressBar 	mProgress;
+	private Button 			mDownloadBtn;
+	private Integer 		mDownloadCount = 0;
+	private boolean 		mRunning = false;
+	private static int 		mProgressMax = 10000; // value unimportant
+	private int 			mAppVersion;
+	
 	private static final String TAG = "DownloadTrigsActivity";
 	private enum DownloadStatus {OK, CANCELLED, ERROR};
-	private AsyncTask <Void, Integer, DownloadStatus> mTask;
+	private enum ProgressType 	{UPDATE, NEWMAX};
+	private AsyncTask<Void, ProgressType, DownloadStatus> mTask;
 
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.download);
 		
-		mProgressMax=Integer.parseInt(getResources().getString(R.string.downloadMaxTrigs));
+		try {
+			mAppVersion = this.getPackageManager().getPackageInfo(this.getPackageName(), 0).versionCode;
+		} catch (NameNotFoundException e) {
+			Log.e(TAG,"Couldn't get versionCode!");
+			mAppVersion = 99999;
+		}		
+		
 		mStatus = (TextView) findViewById(R.id.downloadStatus);
 		mStatus.setText(R.string.downloadIdleStatus);
 		mProgress = (ProgressBar) findViewById(R.id.downloadProgress);
@@ -61,7 +85,7 @@ public class DownloadTrigsActivity extends Activity {
 	}
 
 
-	private class PopulateTrigsTask extends AsyncTask<Void, Integer, DownloadStatus> {
+	private class PopulateTrigsTask extends AsyncTask<Void, ProgressType, DownloadStatus> {
 		@Override
 		protected DownloadStatus doInBackground(Void... arg0) {
 
@@ -73,12 +97,18 @@ public class DownloadTrigsActivity extends Activity {
 				db.open();
 				db.mDb.beginTransaction();
 
-				URL url = new URL("http://www.trigpointinguk.com/trigs/down-android-trigs.php");
+				URL url = new URL("http://www.trigpointinguk.com/trigs/down-android-trigs.php?appversion="+String.valueOf(mAppVersion));
 				URLConnection ucon = url.openConnection();
 				InputStream is = ucon.getInputStream();
 				GZIPInputStream zis = new GZIPInputStream(new BufferedInputStream(is));
 				BufferedReader br = new BufferedReader(new InputStreamReader(zis));
 
+				if ((strLine = br.readLine()) != null) {
+					mProgressMax = Integer.valueOf(strLine);
+					Log.i(TAG, "Downloading " + mProgressMax + " trigs");
+					publishProgress(ProgressType.NEWMAX);
+				}
+				
 				db.deleteAll();
 
 				while ((strLine = br.readLine()) != null && !strLine.trim().equals(""))   {
@@ -97,11 +127,11 @@ public class DownloadTrigsActivity extends Activity {
 					Trig.Historic historic		= Trig.Historic.fromCode(csv[9]);
 					db.createTrig(id, name, waypoint, lat, lon, type, condition, logged, current, historic, fb);
 					if (i++%10==9){
+						mDownloadCount=i;
 						if (isCancelled()) {
-							mDownloadCount=i;
 							return DownloadStatus.CANCELLED;
 						} else {
-							publishProgress(i);
+							publishProgress(ProgressType.UPDATE);
 						}
 					}
 				} 
@@ -125,9 +155,16 @@ public class DownloadTrigsActivity extends Activity {
 			mRunning = true;
 		}
 		@Override
-		protected void onProgressUpdate(Integer... progress) {
-			mProgress.setProgress(progress[0]);
-			mStatus.setText("Inserted " + progress[0] + " trigs");
+		protected void onProgressUpdate(ProgressType... progress) {
+			switch (progress[0]) {
+			case UPDATE:
+				mProgress.setProgress(mDownloadCount);
+				mStatus.setText("Inserted " + mDownloadCount + " trigs");
+				break;
+			case NEWMAX:
+				mProgress.setMax(mProgressMax);
+				break;
+			}
 		}
 		@Override
 		protected void onPostExecute(DownloadStatus arg0) {
