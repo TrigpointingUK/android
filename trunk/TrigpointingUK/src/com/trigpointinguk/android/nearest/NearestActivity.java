@@ -73,13 +73,35 @@ public class NearestActivity extends ListActivity {
 			public void onProviderDisabled(String provider) {}
 		};
 
+	}
+
+
+	
+	
+	
+	@Override
+	protected void onPause() {
+		// stop listening to the GPS
+		mLocationManager.removeUpdates(mLocationListener);
+		super.onPause();
+	}
+
+
+
+
+
+	@Override
+	protected void onResume() {
+		super.onResume();
 		// Register the listener with the Location Manager to receive location updates
 		mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000*30, 250, mLocationListener);
 		mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000*300, 250, mLocationListener);
 	}
 
 
-	
+
+
+
 	private void refreshList() {
 		if (!mTaskRunning) {new FindTrigsTask().execute();}
 	}
@@ -121,7 +143,6 @@ public class NearestActivity extends ListActivity {
         
 	@Override
 	protected void onDestroy() {
-		mLocationManager.removeUpdates(mLocationListener);
 		mDb.close();
 		super.onDestroy();
 	}

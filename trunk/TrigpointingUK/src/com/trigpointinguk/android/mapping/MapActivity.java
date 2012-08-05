@@ -85,7 +85,6 @@ public class MapActivity extends Activity implements MapListener {
 
 		// setup current location overlay
 		mMyLocationOverlay = new MyLocationOverlay(this, mMapView);      
-		mMyLocationOverlay.enableMyLocation();
 		mMapView.getOverlays().add(mMyLocationOverlay);
 
 		// add scalebar
@@ -281,8 +280,9 @@ public class MapActivity extends Activity implements MapListener {
 
 	@Override
 	protected void onPause() {
+		mMyLocationOverlay.disableMyLocation();
+		
 		Editor editor = mPrefs.edit();
-
 		IGeoPoint mapCenter = mMapView.getMapCenter();
 		editor.putInt("latitude", mapCenter.getLatitudeE6());
 		editor.putInt("longitude", mapCenter.getLongitudeE6());
@@ -307,8 +307,9 @@ public class MapActivity extends Activity implements MapListener {
 
 	@Override
 	protected void onResume() {
-		loadViewFromPrefs();
 		super.onResume();
+		loadViewFromPrefs();
+		mMyLocationOverlay.enableMyLocation();
 	}
 
 
