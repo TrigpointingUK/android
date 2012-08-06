@@ -132,7 +132,7 @@ public class NearestActivity extends ListActivity {
 		
 		if (null != mCurrentLocation) {
 			LatLon ll = new LatLon(mCurrentLocation);
-			mStrLocation.setText(String.format("%s   (from %s)" 
+			mStrLocation.setText(String.format("Near to %s   (from %s)" 
 					, mCurrentLocation.getProvider().equals("gps") ? ll.getOSGB10() : ll.getOSGB6()
 					, mCurrentLocation.getProvider()
 			));
