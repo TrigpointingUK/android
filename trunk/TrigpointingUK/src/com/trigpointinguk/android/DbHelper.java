@@ -7,6 +7,7 @@ import com.trigpointinguk.android.types.Condition;
 import com.trigpointinguk.android.types.PhotoSubject;
 import com.trigpointinguk.android.types.Trig;
 
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -254,7 +255,7 @@ public class DbHelper {
 		}
 		Log.i(TAG, strOrder);
 		
-		String strWhere = new Filter(mCtx).filterWhere("WHERE");
+		String strWhere = new Filter((Activity) mCtx).filterWhere("WHERE");
 		Log.i(TAG, "where : " + strWhere);
 		
 		final String qry = "SELECT "+
@@ -299,7 +300,7 @@ public class DbHelper {
 				box.getLatSouthE6()/1000000.0, 
 				box.getLatNorthE6()/1000000.0); 
 
-		strWhere += new Filter(mCtx).filterWhere("AND");
+		strWhere += new Filter((Activity)mCtx).filterWhere("AND");
 		Log.i(TAG, strWhere);
 		Log.i(TAG, strOrder);
 		

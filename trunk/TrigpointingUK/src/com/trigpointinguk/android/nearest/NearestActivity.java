@@ -3,35 +3,47 @@ package com.trigpointinguk.android.nearest;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.RadioButton;
 import android.widget.TextView;
 
 import com.trigpointinguk.android.DbHelper;
 import com.trigpointinguk.android.R;
+import com.trigpointinguk.android.filter.Filter;
 import com.trigpointinguk.android.filter.FilterActivity;
 import com.trigpointinguk.android.trigdetails.TrigDetailsActivity;
 import com.trigpointinguk.android.types.LatLon;
 
 
 public class NearestActivity extends ListActivity {
-	private Location mCurrentLocation;
-	private NearestCursorAdapter mListAdapter;
-	private DbHelper mDb;
-	static int mUpdateCount = 0;
-	static int mLocationCount = 0;
-	private boolean mTaskRunning = false;
-	private LocationListener mLocationListener;
-	private LocationManager mLocationManager; 
+	private Location 				mCurrentLocation;
+	private NearestCursorAdapter 	mListAdapter;
+	private DbHelper 				mDb;
+	static int 						mUpdateCount = 0;
+	static int 						mLocationCount = 0;
+	private boolean 				mTaskRunning = false;
+	private LocationListener 		mLocationListener;
+	private LocationManager 		mLocationManager;
+	TextView						mStrLocation;
+	TextView						mStrFilter;
+	ImageView						mImgFilterPillar;
+	ImageView						mImgFilterFBM;
+	ImageView						mImgFilterPassive;
+	ImageView						mImgFilterIntersected;
+	private SharedPreferences       mPrefs;
 	private static final String TAG = "NearestActivity";
 	private static final int DETAILS = 1;
 	
@@ -40,6 +52,16 @@ public class NearestActivity extends ListActivity {
 		super.onCreate(savedInstanceState);		
 		setContentView(R.layout.triglist);
 
+		// find view references
+		mStrLocation 			= (TextView)  findViewById(R.id.trigListLocation);
+		mStrFilter	 			= (TextView)  findViewById(R.id.trigListHeader);
+		mImgFilterPillar 		= (ImageView) findViewById(R.id.filterPillar);
+		mImgFilterFBM	 		= (ImageView) findViewById(R.id.filterFbm);
+		mImgFilterPassive 		= (ImageView) findViewById(R.id.filterPassive);
+		mImgFilterIntersected 	= (ImageView) findViewById(R.id.filterIntersected);
+
+		mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+		
 		// create various objects
 		mDb = new DbHelper(NearestActivity.this);
 		mDb.open();
@@ -53,16 +75,14 @@ public class NearestActivity extends ListActivity {
 		mCurrentLocation = mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 		Location newLoc = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 		if (isBetterLocation(newLoc, mCurrentLocation)) {mCurrentLocation = newLoc;}
-		updateHeader("cached");
+		updateLocationHeader("cached");
 		if (mCurrentLocation != null && !mTaskRunning) {new FindTrigsTask().execute();}
 		
-
-
 		// Define a listener that responds to location updates
 		mLocationListener = new LocationListener() {
 			public void onLocationChanged(Location location) {
 				mLocationCount++;
-				updateHeader("listener");
+				updateLocationHeader("listener");
 				if (isBetterLocation(location, mCurrentLocation)) {
 					mCurrentLocation = location;
 					refreshList();
@@ -96,6 +116,7 @@ public class NearestActivity extends ListActivity {
 		// Register the listener with the Location Manager to receive location updates
 		mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000*30, 250, mLocationListener);
 		mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000*300, 250, mLocationListener);
+		updateFilterHeader();
 	}
 
 
@@ -107,19 +128,51 @@ public class NearestActivity extends ListActivity {
 	}
 	
 	
-	private void updateHeader(String comment) {
-		final TextView strLocation = (TextView) findViewById(R.id.trigListLocation);
+	private void updateLocationHeader(String comment) {
 		
 		if (null != mCurrentLocation) {
 			LatLon ll = new LatLon(mCurrentLocation);
-			strLocation.setText(String.format("%s %s %d %d %s" 
+			mStrLocation.setText(String.format("%s   (from %s)" 
 					, mCurrentLocation.getProvider().equals("gps") ? ll.getOSGB10() : ll.getOSGB6()
-					, mCurrentLocation.getProvider(), mUpdateCount, mLocationCount, comment));
+					, mCurrentLocation.getProvider()
+			));
+			Log.d(TAG, "Location update count : " + mUpdateCount + " Location count : " + mLocationCount + " " + comment);
 		} else {
-			strLocation.setText("Location is unknown "+ comment);
+			mStrLocation.setText("Location is unknown");
+			Log.d(TAG, "Location unknown : " + mUpdateCount + " Location count : " + mLocationCount + " " + comment);
 		}
 	}
 
+	private void updateFilterHeader() {
+		Filter filter = new Filter(this);
+		if (filter.isPillars()) {
+			mImgFilterPillar.setImageResource(R.drawable.ts_pillar);
+		} else {
+			mImgFilterPillar.setImageResource(R.drawable.t_pillar);
+		}
+
+		if (filter.isFBMs()) {
+			mImgFilterFBM.setImageResource(R.drawable.ts_fbm);
+		} else {
+			mImgFilterFBM.setImageResource(R.drawable.t_fbm);
+		}
+	
+		if (filter.isPassives()) {
+			mImgFilterPassive.setImageResource(R.drawable.ts_passive);
+		} else {
+			mImgFilterPassive.setImageResource(R.drawable.t_passive);
+		}
+		
+		if (filter.isIntersecteds()) {
+			mImgFilterIntersected.setImageResource(R.drawable.ts_intersected);
+		} else {
+			mImgFilterIntersected.setImageResource(R.drawable.t_intersected);
+		}
+
+		mStrFilter.setText(mPrefs.getString(Filter.FILTERRADIOTEXT, "All") + " trigpoints");
+
+	}
+	
 	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
         boolean result = super.onCreateOptionsMenu(menu);
@@ -162,6 +215,7 @@ public class NearestActivity extends ListActivity {
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		Log.i(TAG, "onActivityResult");
 		refreshList();
+		updateFilterHeader();
 	}
 
 
@@ -191,7 +245,7 @@ public class NearestActivity extends ListActivity {
 				e.printStackTrace();
 				mListAdapter.swapCursor(null, mCurrentLocation);
 			}
-			updateHeader("task");
+			updateLocationHeader("task");
 			mTaskRunning = false;
 		}
 		protected void onPreExecute() {

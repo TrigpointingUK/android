@@ -1,18 +1,19 @@
 package com.trigpointinguk.android.filter;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+
 import com.trigpointinguk.android.DbHelper;
 import com.trigpointinguk.android.R;
 import com.trigpointinguk.android.types.Condition;
 import com.trigpointinguk.android.types.Trig;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
-
 
 
 public class Filter {
 	public static final String 	FILTERRADIO			= "filterRadio";
+	public static final String 	FILTERRADIOTEXT		= "filterRadioText";
 	public static final String 	FILTERTYPE			= "filterType";
 	private static final int	TYPESPILLAR			= 0;
 	private static final int	TYPESPILLARFBM		= 1;
@@ -21,6 +22,7 @@ public class Filter {
 	private static final int	TYPESINTERSECTED	= 4;
 	private static final int	TYPESNOINTERSECTED	= 5;
 	private static final int	TYPESALL			= 6;
+	private static final int	TYPESDEFAULT		= 0;
 
 	
 	private final SharedPreferences mPrefs;
@@ -28,6 +30,49 @@ public class Filter {
 	public Filter (Context context) {
 		mPrefs = PreferenceManager.getDefaultSharedPreferences(context);
 	}
+	
+	public boolean isPillars() {
+		switch (mPrefs.getInt(FILTERTYPE, TYPESDEFAULT)) {
+		case TYPESPILLAR:
+		case TYPESPILLARFBM:
+		case TYPESNOINTERSECTED:
+		case TYPESALL:
+			return true;
+		default:
+			return false;
+		}
+	}
+	public boolean isFBMs() {
+		switch (mPrefs.getInt(FILTERTYPE, TYPESDEFAULT)) {
+		case TYPESFBM:
+		case TYPESPILLARFBM:
+		case TYPESNOINTERSECTED:
+		case TYPESALL:
+			return true;
+		default:
+			return false;
+		}
+	}
+	public boolean isPassives() {
+		switch (mPrefs.getInt(FILTERTYPE, TYPESDEFAULT)) {
+		case TYPESPASSIVE:
+		case TYPESNOINTERSECTED:
+		case TYPESALL:
+			return true;
+		default:
+			return false;
+		}
+	}
+	public boolean isIntersecteds() {
+		switch (mPrefs.getInt(FILTERTYPE, TYPESDEFAULT)) {
+		case TYPESINTERSECTED:
+		case TYPESALL:
+			return true;
+		default:
+			return false;
+		}
+	}
+
 	
 	public String filterWhere(String initialtok) {
 		StringBuilder sql = new StringBuilder();
@@ -70,7 +115,7 @@ public class Filter {
 		
 		
 		// Deal with TYPES
-		switch (mPrefs.getInt(FILTERTYPE, TYPESPILLAR)) {
+		switch (mPrefs.getInt(FILTERTYPE, TYPESDEFAULT)) {
 		case TYPESPILLAR:
 			sql.append(tok)
 			   .append(DbHelper.TRIG_TABLE).append(".").append(DbHelper.TRIG_TYPE)
