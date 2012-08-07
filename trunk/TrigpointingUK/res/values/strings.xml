@@ -184,4 +184,7 @@
         <item>imperial</item>
     </string-array>
         <string name="heading">Live compass</string>
+        <string name="sendLogEmails">Email logs</string>
+        <string name="sendLogEmailsYes">Send me email reminders of logs</string>
+        <string name="sendLogEmailsNo">Do not send me emails</string>
 </resources>

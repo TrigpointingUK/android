@@ -231,6 +231,7 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
     	nameValuePairs.add(new BasicNameValuePair("userflag"	, c.getString(c.getColumnIndex(DbHelper.LOG_FLAGUSERS))));
     	nameValuePairs.add(new BasicNameValuePair("score"		, c.getString(c.getColumnIndex(DbHelper.LOG_SCORE))));
     	nameValuePairs.add(new BasicNameValuePair("condition"	, c.getString(c.getColumnIndex(DbHelper.LOG_CONDITION))));
+    	nameValuePairs.add(new BasicNameValuePair("sendemail"	, String.valueOf(mPrefs.getBoolean("sendLogEmails",false))));
     	nameValuePairs.add(new BasicNameValuePair("appversion"  , String.valueOf(mAppVersion)));
 	    
 		try {
@@ -539,7 +540,7 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
 		Log.d(TAG, "onPostExecute " + status);
 		if (!isCancelled()) {
 			if (status == SUCCESS) {
-				Toast.makeText(mCtx, "Synced with TrigpointingUK", Toast.LENGTH_SHORT).show();
+				Toast.makeText(mCtx, "Synced with TrigpointingUK " + mErrorMessage, Toast.LENGTH_SHORT).show();
 			} else {
 				Toast.makeText(mCtx, "Error syncing with TrigpointingUK - " + mErrorMessage, Toast.LENGTH_LONG).show();					
 			}
