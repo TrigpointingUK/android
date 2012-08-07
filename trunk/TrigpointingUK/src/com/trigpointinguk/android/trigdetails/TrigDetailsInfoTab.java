@@ -58,6 +58,25 @@ public class TrigDetailsInfoTab extends Activity {
 		// get application preferences
 		mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
+		mMark = (CheckBox) findViewById(R.id.mark);
+		mMark.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				mDb.setMarkedTrig(mTrigId, isChecked);
+			}
+		});
+		
+    }
+
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		populateFields();
+	}
+
+	
+	private void populateFields() {
 		// get trig info from database
 		mDb = new DbHelper(TrigDetailsInfoTab.this);
 		mDb.open();		
@@ -107,16 +126,11 @@ public class TrigDetailsInfoTab extends Activity {
 		tv.setText(c.getString(c.getColumnIndex(DbHelper.TRIG_FB)));
 
 		c.close();
-		
-		mMark = (CheckBox) findViewById(R.id.mark);
+
 		mMark.setChecked(mDb.isMarkedTrig(mTrigId));
-		mMark.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-			@Override
-			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-			mDb.setMarkedTrig(mTrigId, isChecked);
-			}
-		});
-    }
+		
+	
+	}
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -171,12 +185,19 @@ public class TrigDetailsInfoTab extends Activity {
 	        	editor.putInt("longitude", (int)(mLongitude * 1E6));
 	        	editor.commit();
 				Intent i = new Intent(TrigDetailsInfoTab.this, MapActivity.class);
-				startActivity(i);
+				startActivityForResult(i, R.id.map);
 	        	return true;	     
 	        }
 			return super.onOptionsItemSelected(item);
 	}
 	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		populateFields();
+		
+	}
+
 	protected Dialog onCreateDialog(int id) {
 	    Dialog dialog;
 	    switch(id) {
