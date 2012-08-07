@@ -107,7 +107,7 @@ public class NearestCursorAdapter extends SimpleCursorAdapter {
 	static final int 	nDivisions = 16; // number of arrows
 	static final double anglePerDivision = 360.0 / nDivisions;
 	static final double halfAnglePerDivision = anglePerDivision / 2.0;
-	private int getArrow(double bearing) {
+	public int getArrow(double bearing) {
 		int division = (int) Math.floor(  (bearing + halfAnglePerDivision + mOrientationOffset) / anglePerDivision) % nDivisions;
 		if (division < 0) {division += nDivisions;}
 		return R.drawable.arrow_00_n + division;

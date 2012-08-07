@@ -2,5 +2,6 @@
 <menu
   xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:title="Filter" android:icon="@drawable/ic_menu_search" android:id="@+id/filter"></item>
+    <item android:id="@+id/heading" android:title="@string/heading" android:checkable="true" android:checked="false" android:icon="@drawable/ic_menu_compass"></item>
     
 </menu>

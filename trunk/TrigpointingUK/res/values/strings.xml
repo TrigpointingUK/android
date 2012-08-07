@@ -115,6 +115,8 @@
 	<string name="logGetLocation">Get location</string>
 	<color name="errorcolour">#f00000</color>
 	<color name="okcolour">#00f000</color>
+	<color name="compassEnabled">#FF0000</color>
+	<color name="compassDisabled">#A0A0A0</color>
 	<string name="logPhotos">Photos:</string>
 	<string name="logAddPhoto">Add Photo</string>
 	<string name="logUploadNow">Sync Now</string>
@@ -179,4 +181,5 @@
         <item>metric</item>
         <item>imperial</item>
     </string-array>
+        <string name="heading">Live compass</string>
 </resources>

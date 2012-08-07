@@ -4,6 +4,7 @@ import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -46,10 +47,12 @@ public class NearestActivity extends ListActivity implements SensorEventListener
 	private LocationManager 		mLocationManager;
 	TextView						mStrLocation;
 	TextView						mStrFilter;
+	TextView						mNorthText;
 	ImageView						mImgFilterPillar;
 	ImageView						mImgFilterFBM;
 	ImageView						mImgFilterPassive;
 	ImageView						mImgFilterIntersected;
+	ImageView						mCompassArrow;
 	private SharedPreferences       mPrefs;
 	private float[] 				mGravity;
 	private float[] 				mGeomagnetic;
@@ -57,6 +60,8 @@ public class NearestActivity extends ListActivity implements SensorEventListener
 	private Sensor 					accelerometer;
 	private Sensor 					magnetometer;
 	private int mOrientation;
+	private boolean mUsingCompass;
+	private static final String     USECOMPASS="useCompass";
 	private static final String TAG = "NearestActivity";
 	private static final int DETAILS = 1;
 	
@@ -68,11 +73,13 @@ public class NearestActivity extends ListActivity implements SensorEventListener
 		// find view references
 		mStrLocation 			= (TextView)  findViewById(R.id.trigListLocation);
 		mStrFilter	 			= (TextView)  findViewById(R.id.trigListHeader);
+		mNorthText	 			= (TextView)  findViewById(R.id.north);
 		mImgFilterPillar 		= (ImageView) findViewById(R.id.filterPillar);
 		mImgFilterFBM	 		= (ImageView) findViewById(R.id.filterFbm);
 		mImgFilterPassive 		= (ImageView) findViewById(R.id.filterPassive);
 		mImgFilterIntersected 	= (ImageView) findViewById(R.id.filterIntersected);
-
+		mCompassArrow			= (ImageView) findViewById(R.id.compassArrow);
+		
 		mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 		
 		// create various objects
@@ -126,9 +133,13 @@ public class NearestActivity extends ListActivity implements SensorEventListener
 	
 	@Override
 	protected void onPause() {
+		// save compass preference
+		Editor editor = mPrefs.edit();
+		editor.putBoolean(USECOMPASS, mUsingCompass);
+		editor.commit();
 		// stop listening to the GPS and compass
 		mLocationManager.removeUpdates(mLocationListener);
-	    mSensorManager.unregisterListener(this);
+		useCompass(false);
 		super.onPause();
 	}
 
@@ -142,15 +153,29 @@ public class NearestActivity extends ListActivity implements SensorEventListener
 		// Register the listener with the Location Manager to receive location updates
 		mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000*30, 250, mLocationListener);
 		mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000*300, 250, mLocationListener);
-
-		mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-	    mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_NORMAL);
-
+		// Decide whether to use the compass
+		useCompass(mPrefs.getBoolean(USECOMPASS, false));
+		// Setup header icons
 		updateFilterHeader();
 	}
 
 
-
+	private void useCompass(boolean use) {
+		mUsingCompass = use;
+		if (mUsingCompass) {
+			mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+		    mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_NORMAL);
+		    mNorthText.setTextColor(getResources().getColor(R.color.compassEnabled));
+	    } else {
+		    mSensorManager.unregisterListener(this);
+		    mHeading = 0;
+		    mCompassArrow.setImageResource(mListAdapter.getArrow(0));
+		    mNorthText.setTextColor(getResources().getColor(R.color.compassDisabled));
+        	mListAdapter.setHeading(0);
+        	mListAdapter.notifyDataSetChanged();
+		}
+	}
+	
 
 
 	private void refreshList() {
@@ -220,6 +245,9 @@ public class NearestActivity extends ListActivity implements SensorEventListener
             i = new Intent(NearestActivity.this, FilterActivity.class);
             startActivityForResult(i, R.id.filter);
             return true;
+        case R.id.heading:
+        	useCompass(!mUsingCompass);
+        	return true;
         }
 		return super.onOptionsItemSelected(item);
 	}
@@ -366,7 +394,10 @@ public class NearestActivity extends ListActivity implements SensorEventListener
 	        mGeomagnetic = event.values;
 	        break;
 		}
-	    if (mGravity != null && mGeomagnetic != null) {
+
+		if (!mUsingCompass) {return;}
+		
+		if (mGravity != null && mGeomagnetic != null) {
 	    	float R[] = new float[9];
 	        float I[] = new float[9];
 	        boolean success = SensorManager.getRotationMatrix(R, I, mGravity, mGeomagnetic);
@@ -377,6 +408,7 @@ public class NearestActivity extends ListActivity implements SensorEventListener
 	        	Log.d(TAG, "Heading = " + mHeading);
 	        	mListAdapter.setHeading(mHeading);
 	        	mListAdapter.notifyDataSetChanged();
+			    mCompassArrow.setImageResource(mListAdapter.getArrow(-mHeading));
 	        }
 	    }
 	}
