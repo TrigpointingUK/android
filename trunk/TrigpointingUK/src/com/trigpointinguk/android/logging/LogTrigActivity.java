@@ -42,6 +42,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 import android.widget.ViewSwitcher;
 
 import com.trigpointinguk.android.DbHelper;
@@ -67,6 +68,7 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
 	private LatLon				mTrigLocation;
 	
     private ViewSwitcher 		mSwitcher;
+    private ToggleButton		mSendTime;
     private DatePicker			mDate;
     private TimePicker			mTime;
     private EditText			mGridref;
@@ -114,6 +116,7 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
 		
 		// Get references to various views and form elements
 		mSwitcher 		= (ViewSwitcher)	findViewById(R.id.logswitcher);
+		mSendTime		= (ToggleButton)	findViewById(R.id.sendTime);
 	   	mTime			= (TimePicker)		findViewById(R.id.logTime);
 	   	mDate			= (DatePicker)		findViewById(R.id.logDate);
 	   	mGridref 		= (EditText)		findViewById(R.id.logGridref);
@@ -167,7 +170,7 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
 
 		// Check to see whether log already exists
 		mHaveLog = (mDb.fetchLog(mTrigId) != null);
-		if (mHaveLog) {
+		if (!mHaveLog) {
 			mSwitcher.showNext();
 		}
 		
@@ -215,6 +218,16 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
 			}
 		});	
 
+		// Setup change listener for sendTime button
+		mSendTime.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+	        	updateTimeVisibility();
+			}
+		});	
+
+
+		
 		// Setup button to upload the log
 		Button uploadBtn = (Button) findViewById(R.id.logUploadNow);
 		uploadBtn.setOnClickListener(new OnClickListener() {
@@ -378,8 +391,10 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
     							 this);
 
     	// set Time
+    	mSendTime.setChecked	(c.getInt(c.getColumnIndex(DbHelper.LOG_SENDTIME)) > 0);
     	mTime.setCurrentHour  	(c.getInt(c.getColumnIndex(DbHelper.LOG_HOUR)));
     	mTime.setCurrentMinute 	(c.getInt(c.getColumnIndex(DbHelper.LOG_MINUTES)));
+    	updateTimeVisibility();
     	
     	// set Text fields    	
     	mComment.setText 		(c.getString(c.getColumnIndex(DbHelper.LOG_COMMENT)));
@@ -402,6 +417,10 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
     	updateGallery();
     	checkDistance();
 
+    }
+    
+    private void updateTimeVisibility () {
+    	mTime.setEnabled(mSendTime.isChecked());
     }
     
     private void updateGallery() {
@@ -433,10 +452,21 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
     	try {
     		mDb.mDb.beginTransaction();
     		mDb.deleteLog(mTrigId);
-    		mDb.createLog(mTrigId, mDate.getYear(), mDate.getMonth(), mDate.getDayOfMonth(), 
-				mTime.getCurrentHour(), mTime.getCurrentMinute(), mGridref.getText().toString(), mFb.getText().toString(), 
-				(Condition) mCondition.getSelectedItem(), (int) mScore.getRating(), 
-				mComment.getText().toString(), mAdminFlag.isChecked()?1:0, mUserFlag.isChecked()?1:0);
+    		mDb.createLog(mTrigId, 
+    			mDate.getYear(), 
+    			mDate.getMonth(), 
+    			mDate.getDayOfMonth(),
+    			mSendTime.isChecked()?1:0,
+				mTime.getCurrentHour(), 
+				mTime.getCurrentMinute(), 
+				mGridref.getText().toString(), 
+				mFb.getText().toString(), 
+				(Condition) mCondition.getSelectedItem(), 
+				(int) mScore.getRating(), 
+				mComment.getText().toString(),
+				mAdminFlag.isChecked()?1:0, 
+				mUserFlag.isChecked()?1:0);
+    		
     		mDb.mDb.setTransactionSuccessful();
         	Log.i(TAG, "Transaction Successful");
     	} catch (Exception e) {
@@ -450,8 +480,20 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
     private void createNewLog() {
     	// Create an empty log with default values for time, score etc
     	Calendar now = Calendar.getInstance();
-    	mDb.createLog(mTrigId, now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH), 
-    			now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE), "", "", Condition.NOTLOGGED, 5, "", 0, 0);
+    	mDb.createLog(mTrigId, 
+    			now.get(Calendar.YEAR), 
+    			now.get(Calendar.MONTH), 
+    			now.get(Calendar.DAY_OF_MONTH),
+    			1,
+    			now.get(Calendar.HOUR_OF_DAY), 
+    			now.get(Calendar.MINUTE), 
+    			"", 
+    			"", 
+    			Condition.NOTLOGGED, 
+    			5, 
+    			"", 
+    			0, 
+    			0);
     }
     
     private void deleteLog() {

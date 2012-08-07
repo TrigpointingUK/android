@@ -22,7 +22,7 @@ import android.util.Log;
 public class DbHelper {
 	private static final String TAG					= "DbHelper";
 
-	private static final int 	DATABASE_VERSION 	= 10;
+	private static final int 	DATABASE_VERSION 	= 11;
 	private static final String DATABASE_NAME		= "trigpointinguk";
 	public  static final String TRIG_TABLE			= "trig";
 	public 	static final String TRIG_ID				= "_id";
@@ -41,6 +41,7 @@ public class DbHelper {
 	public 	static final String LOG_YEAR			= "year";
 	public 	static final String LOG_MONTH			= "month";
 	public 	static final String LOG_DAY				= "day";
+	public  static final String LOG_SENDTIME        = "sendtime";
 	public 	static final String LOG_HOUR			= "hour";
 	public 	static final String LOG_MINUTES			= "minutes";
 	public 	static final String LOG_GRIDREF			= "gridref";
@@ -88,6 +89,7 @@ public class DbHelper {
 		+ LOG_YEAR	     + " integer not null, "
 		+ LOG_MONTH		 + " integer not null, "
 		+ LOG_DAY		 + " integer not null, "
+		+ LOG_SENDTIME	 + " integer not null, "
 		+ LOG_HOUR		 + " integer not null, "
 		+ LOG_MINUTES	 + " integer not null, "
 		+ LOG_GRIDREF    + " text, " 
@@ -380,7 +382,7 @@ public class DbHelper {
 	 * @param id
 	 * @return rowId or -1 if failed
 	 */
-	public long createLog(long id, int year, int month, int day, int hour, int minutes, String gridref, String fb, 
+	public long createLog(long id, int year, int month, int day, int sendtime, int hour, int minutes, String gridref, String fb, 
 						Condition condition, int score, String comment, int flagadmins, int flagusers) {
 		Log.i(TAG, "createLog - " + id);
 		
@@ -389,6 +391,7 @@ public class DbHelper {
 		initialValues.put(LOG_YEAR			, year);
 		initialValues.put(LOG_MONTH			, month);
 		initialValues.put(LOG_DAY			, day);
+		initialValues.put(LOG_SENDTIME		, sendtime);
 		initialValues.put(LOG_HOUR			, hour);
 		initialValues.put(LOG_MINUTES		, minutes);
 		initialValues.put(LOG_GRIDREF		, gridref);
@@ -429,6 +432,7 @@ public class DbHelper {
             		LOG_YEAR, 
             		LOG_MONTH, 
             		LOG_DAY, 
+            		LOG_SENDTIME, 
             		LOG_HOUR, 
             		LOG_MINUTES, 
             		LOG_GRIDREF, 
@@ -472,6 +476,7 @@ public class DbHelper {
             		LOG_YEAR, 
             		LOG_MONTH, 
             		LOG_DAY, 
+            		LOG_SENDTIME,
             		LOG_HOUR, 
             		LOG_MINUTES, 
             		LOG_GRIDREF, 

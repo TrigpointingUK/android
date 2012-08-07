@@ -221,6 +221,7 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
     	nameValuePairs.add(new BasicNameValuePair("year"		, c.getString(c.getColumnIndex(DbHelper.LOG_YEAR))));
     	nameValuePairs.add(new BasicNameValuePair("month"		, c.getString(c.getColumnIndex(DbHelper.LOG_MONTH))));
     	nameValuePairs.add(new BasicNameValuePair("day"			, c.getString(c.getColumnIndex(DbHelper.LOG_DAY))));
+    	nameValuePairs.add(new BasicNameValuePair("sendtime"	, c.getString(c.getColumnIndex(DbHelper.LOG_SENDTIME))));
     	nameValuePairs.add(new BasicNameValuePair("hour"		, c.getString(c.getColumnIndex(DbHelper.LOG_HOUR))));
     	nameValuePairs.add(new BasicNameValuePair("minutes"		, c.getString(c.getColumnIndex(DbHelper.LOG_MINUTES))));
     	nameValuePairs.add(new BasicNameValuePair("comment"		, c.getString(c.getColumnIndex(DbHelper.LOG_COMMENT))));

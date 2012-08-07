@@ -123,6 +123,8 @@
 	<string name="logSyncLater">Sync Later</string>
 	<string name="logDelete">Delete Log</string>
 	<string name="logUserFlag">Flag log to warn other T:UK users</string>
+	<string name="logTimeYes">Log time</string>
+	<string name="logTimeNo">No time</string>
 	<string name="photoName">Caption:</string>
 	<string name="photoDescr">Description:</string>
 	<string name="photoSubject">Subject:</string>
