@@ -34,7 +34,9 @@ public class NearestCursorAdapter extends SimpleCursorAdapter {
 	private Location mCurrentLocation;
 	private LatLon.UNITS mUnits;
 	//private static final String TAG = "NearestCursorAdapter";
-
+	private double mHeading = 0;
+	private double mOrientationOffset = 0;
+	
 	
 	public NearestCursorAdapter(Context context, int layout, Cursor c,	String[] from, int[] to, Location currentLocation) {
 		this(context, layout, c, from, to);
@@ -94,20 +96,29 @@ public class NearestCursorAdapter extends SimpleCursorAdapter {
 		if (mCurrentLocation != null) {
 			LatLon l = new LatLon(cursor.getDouble(mLatIndex), cursor.getDouble(mLonIndex));			
 			td.setText(String.format("%3.1f", l.distanceTo(mCurrentLocation, mUnits)));
-			ta.setImageResource(R.drawable.arrow_00_s + (int)((l.bearingFrom(mCurrentLocation)+191.25)/22.5));
+			ta.setImageResource(getArrow (l.bearingFrom(mCurrentLocation)-mHeading) );  
 		} else {
 			td.setText("");
 			ta.setImageResource(R.drawable.arrow_x);
 		}
 	}
 
+
+	static final int 	nDivisions = 16; // number of arrows
+	static final double anglePerDivision = 360.0 / nDivisions;
+	static final double halfAnglePerDivision = anglePerDivision / 2.0;
+	private int getArrow(double bearing) {
+		int division = (int) Math.floor(  (bearing + halfAnglePerDivision + mOrientationOffset) / anglePerDivision) % nDivisions;
+		if (division < 0) {division += nDivisions;}
+		return R.drawable.arrow_00_n + division;
+	}	
+	
 	@Override
 	public View newView(Context context, Cursor cursor, ViewGroup parent) {
 		return mInflater.inflate(R.layout.trigrow, null);
 	}
 
 	public Cursor swapCursor(Cursor c, Location loc) {
-		mCurrentLocation = loc;
 		if (c != null) {
 			mNameIndex = c.getColumnIndexOrThrow(DbHelper.TRIG_NAME);
 			mConditionIndex = c.getColumnIndexOrThrow(DbHelper.TRIG_CONDITION);
@@ -118,7 +129,25 @@ public class NearestCursorAdapter extends SimpleCursorAdapter {
 			mUnsyncedIndex = c.getColumnIndexOrThrow(DbHelper.JOIN_UNSYNCED);
 			mMarkedIndex = c.getColumnIndexOrThrow(DbHelper.JOIN_MARKED);
 		}
+		mCurrentLocation = loc;
 		return super.swapCursor(c);
+	}
+
+	public void setHeading (double heading) {
+		mHeading = heading;		
+	}
+	public void setOrientation (int orientation) {
+		switch (orientation) {
+		case 0:  // normal
+			mOrientationOffset = 0.0;
+			break;
+		case 1:  // CCW screen rotation
+			mOrientationOffset = -90.0;
+			break;
+		case 3:  // CW screen rotation
+			mOrientationOffset = +90.0;
+			break;
+		}
 	}
 
 }

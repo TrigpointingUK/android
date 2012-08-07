@@ -5,6 +5,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -12,12 +16,13 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.RadioButton;
 import android.widget.TextView;
 
 import com.trigpointinguk.android.DbHelper;
@@ -28,8 +33,10 @@ import com.trigpointinguk.android.trigdetails.TrigDetailsActivity;
 import com.trigpointinguk.android.types.LatLon;
 
 
-public class NearestActivity extends ListActivity {
+public class NearestActivity extends ListActivity implements SensorEventListener {
+	private Cursor 					mCursor;
 	private Location 				mCurrentLocation;
+	private double 					mHeading = 0;
 	private NearestCursorAdapter 	mListAdapter;
 	private DbHelper 				mDb;
 	static int 						mUpdateCount = 0;
@@ -44,6 +51,12 @@ public class NearestActivity extends ListActivity {
 	ImageView						mImgFilterPassive;
 	ImageView						mImgFilterIntersected;
 	private SharedPreferences       mPrefs;
+	private float[] 				mGravity;
+	private float[] 				mGeomagnetic;
+	private SensorManager 			mSensorManager;
+	private Sensor 					accelerometer;
+	private Sensor 					magnetometer;
+	private int mOrientation;
 	private static final String TAG = "NearestActivity";
 	private static final int DETAILS = 1;
 	
@@ -93,6 +106,18 @@ public class NearestActivity extends ListActivity {
 			public void onProviderDisabled(String provider) {}
 		};
 
+		mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+		accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+		magnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+		
+		// Is the screen rotated?
+		WindowManager windowManager =  (WindowManager) getSystemService(WINDOW_SERVICE);
+		Display display = windowManager.getDefaultDisplay();
+		mOrientation = display.getOrientation();
+		
+		Log.i(TAG, "getOrientation(): " + mOrientation);
+		mListAdapter.setOrientation(mOrientation);
+		 
 	}
 
 
@@ -101,8 +126,9 @@ public class NearestActivity extends ListActivity {
 	
 	@Override
 	protected void onPause() {
-		// stop listening to the GPS
+		// stop listening to the GPS and compass
 		mLocationManager.removeUpdates(mLocationListener);
+	    mSensorManager.unregisterListener(this);
 		super.onPause();
 	}
 
@@ -116,6 +142,10 @@ public class NearestActivity extends ListActivity {
 		// Register the listener with the Location Manager to receive location updates
 		mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000*30, 250, mLocationListener);
 		mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000*300, 250, mLocationListener);
+
+		mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+	    mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_NORMAL);
+
 		updateFilterHeader();
 	}
 
@@ -240,7 +270,8 @@ public class NearestActivity extends ListActivity {
 		protected void onPostExecute(Cursor c) {			
 			Log.i(TAG, "FindTrigsTask.onPostExecute " + c);
 			try {
-				mListAdapter.swapCursor(c, mCurrentLocation);
+				mCursor = c;
+				mListAdapter.swapCursor(mCursor, mCurrentLocation);
 			} catch (Exception e) {
 				e.printStackTrace();
 				mListAdapter.swapCursor(null, mCurrentLocation);
@@ -317,6 +348,37 @@ public class NearestActivity extends ListActivity {
 			return provider2 == null;
 		}
 		return provider1.equals(provider2);
+	}
+
+
+
+
+	// handle compass events
+	@Override
+	public void onAccuracyChanged(Sensor sensor, int accuracy) {}	
+	@Override
+	public void onSensorChanged(SensorEvent event) {
+		switch (event.sensor.getType()) {
+		case Sensor.TYPE_ACCELEROMETER:
+			mGravity = event.values;
+			break;
+		case Sensor.TYPE_MAGNETIC_FIELD:
+	        mGeomagnetic = event.values;
+	        break;
+		}
+	    if (mGravity != null && mGeomagnetic != null) {
+	    	float R[] = new float[9];
+	        float I[] = new float[9];
+	        boolean success = SensorManager.getRotationMatrix(R, I, mGravity, mGeomagnetic);
+	        if (success) {
+	        	float orientation[] = new float[3];
+	        	SensorManager.getOrientation(R, orientation);
+	        	mHeading = orientation[0] * 180.0/Math.PI; // orientation contains: azimuth[0], pitch[1] and roll[2]
+	        	Log.d(TAG, "Heading = " + mHeading);
+	        	mListAdapter.setHeading(mHeading);
+	        	mListAdapter.notifyDataSetChanged();
+	        }
+	    }
 	}
 
 
