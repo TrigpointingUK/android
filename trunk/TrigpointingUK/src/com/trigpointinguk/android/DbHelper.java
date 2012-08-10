@@ -372,6 +372,122 @@ public class DbHelper {
 		return true;
 	}
 
+	/**
+	 * Returns number of logged pillars
+	 * 
+	 * @return int
+	 */
+	public int countLoggedPillars () {
+		Log.i(TAG, "countLoggedPillars");
+		Cursor c = null;
+		try {
+			c =  mDb.query(TRIG_TABLE, new String[] {TRIG_ID}, 
+					TRIG_TYPE + "='" + Trig.Physical.PILLAR.code()+"' and " + TRIG_LOGGED + "!= '" + Condition.NOTLOGGED.code()+ "'", 
+					null, null, null, null);
+			return c.getCount();
+		} finally {
+			if (c != null) {
+				c.close();
+			}
+		}
+	}
+	/**
+	 * Returns number of logged FBMs
+	 * 
+	 * @return int
+	 */
+	public int countLoggedFbms () {
+		Log.i(TAG, "countLoggedFbms");
+		Cursor c = null;
+		try {
+			c =  mDb.query(TRIG_TABLE, new String[] {TRIG_ID}, 
+					TRIG_TYPE + "='" + Trig.Physical.FBM.code()+"' and " + TRIG_LOGGED + "!= '" + Condition.NOTLOGGED.code()+ "'", 
+					null, null, null, null);
+			return c.getCount();
+		} finally {
+			if (c != null) {
+				c.close();
+			}
+		}
+	}
+	/**
+	 * Returns number of logged Intersecteds
+	 * 
+	 * @return int
+	 */
+	public int countLoggedIntersecteds () {
+		Log.i(TAG, "countLoggedIntersecteds");
+		Cursor c = null;
+		try {
+			c =  mDb.query(TRIG_TABLE, new String[] {TRIG_ID}, 
+					TRIG_TYPE + "='" + Trig.Physical.INTERSECTED.code()+"' and " + TRIG_LOGGED + "!= '" + Condition.NOTLOGGED.code()+ "'", 
+					null, null, null, null);
+			return c.getCount();
+		} finally {
+			if (c != null) {
+				c.close();
+			}
+		}
+	}
+	/**
+	 * Returns number of logged Passives
+	 * 
+	 * @return int
+	 */
+	public int countLoggedPassives () {
+		Log.i(TAG, "countLoggedPassives");
+		Cursor c = null;
+		try {
+			c =  mDb.query(TRIG_TABLE, new String[] {TRIG_ID}, 
+					TRIG_TYPE + " NOT IN ('" + Trig.Physical.PILLAR.code()+"','"+
+								Trig.Physical.INTERSECTED.code()+"','"+Trig.Physical.FBM.code()+"') " +
+					"and " + TRIG_LOGGED + "!= '" + Condition.NOTLOGGED.code()+ "'", 
+					null, null, null, null);
+			return c.getCount();
+		} finally {
+			if (c != null) {
+				c.close();
+			}
+		}
+	}
+	/**
+	 * Returns number of unsynced logs
+	 * 
+	 * @return int
+	 */
+	public int countUnsynced () {
+		Log.i(TAG, "countUnsynced");
+		Cursor c = null;
+		try {
+			c =  mDb.query(LOG_TABLE, new String[] {LOG_ID}, 
+					null, 
+					null, null, null, null);
+			return c.getCount();
+		} finally {
+			if (c != null) {
+				c.close();
+			}
+		}
+	}
+	/**
+	 * Returns number of unsynced photos
+	 * 
+	 * @return int
+	 */
+	public int countPhotos () {
+		Log.i(TAG, "countPhotos");
+		Cursor c = null;
+		try {
+			c =  mDb.query(PHOTO_TABLE, new String[] {PHOTO_ID}, 
+					null, 
+					null, null, null, null);
+			return c.getCount();
+		} finally {
+			if (c != null) {
+				c.close();
+			}
+		}
+	}
 	
 	
 	/**

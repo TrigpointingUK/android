@@ -8,6 +8,7 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -16,25 +17,42 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.trigpointinguk.android.common.ClearCacheTask;
 import com.trigpointinguk.android.filter.FilterActivity;
+import com.trigpointinguk.android.logging.SyncListener;
 import com.trigpointinguk.android.logging.SyncTask;
 import com.trigpointinguk.android.mapping.DownloadMapsActivity;
 import com.trigpointinguk.android.mapping.MapActivity;
 import com.trigpointinguk.android.nearest.NearestActivity;
 
-public class MainActivity extends Activity {
-    public static final String TAG ="MainActivity";
-    public static final int NOTRIGS = 1;
+public class MainActivity extends Activity implements SyncListener {
+    public static final String 	TAG ="MainActivity";
+    public static final int 	NOTRIGS = 1;
 	private static final String RUNBEFORE = "RUNBEFORE";
-    private SharedPreferences mPrefs;
+    private SharedPreferences 	mPrefs;
+    private ImageView			mPillarIcon;
+    private ImageView			mFbmIcon;
+    private ImageView			mPassiveIcon;
+    private ImageView			mIntersectedIcon;
+    private ImageView			mUnsyncedIcon;
+    private ImageView			mPhotosIcon;
+    private TextView			mPillarCount;
+    private TextView			mFbmCount;
+    private TextView			mPassiveCount;
+    private TextView			mIntersectedCount;
+    private TextView			mUnsyncedCount;
+    private TextView			mPhotosCount;
+    private Button				mSyncBtn;
+    
     
  	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.i(TAG, "onCreate");
 
         // retrieve saved instance state
         Boolean runbefore = false;
@@ -46,6 +64,20 @@ public class MainActivity extends Activity {
         setContentView(R.layout.main);
         mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
+        mPillarIcon 		= (ImageView) 		findViewById(R.id.countPillarImage);
+        mPillarCount		= (TextView)		findViewById(R.id.countPillarText);
+        mFbmIcon 			= (ImageView) 		findViewById(R.id.countFbmImage);
+        mFbmCount			= (TextView)		findViewById(R.id.countFbmText);
+        mPassiveIcon 		= (ImageView) 		findViewById(R.id.countPassiveImage);
+        mPassiveCount		= (TextView)		findViewById(R.id.countPassiveText);
+        mIntersectedIcon 	= (ImageView) 		findViewById(R.id.countIntersectedImage);
+        mIntersectedCount	= (TextView)		findViewById(R.id.countIntersectedText);
+        mUnsyncedCount		= (TextView)		findViewById(R.id.countUnsyncedText);
+        mUnsyncedIcon		= (ImageView) 		findViewById(R.id.countUnsyncedImage);
+        mPhotosCount		= (TextView)		findViewById(R.id.countPhotosText);
+        mPhotosIcon			= (ImageView) 		findViewById(R.id.countPhotosImage);
+        mSyncBtn 			= (Button) 			findViewById(R.id.btnSync);
+        
         // Add user's name to view
         TextView user = (TextView) findViewById(R.id.txtUserName);
         user.setText(mPrefs.getString("username", getResources().getText(R.string.noUser).toString()));
@@ -66,14 +98,13 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View arg0) {
 				Intent i = new Intent(MainActivity.this, NearestActivity.class);
-				startActivity(i);
+				startActivityForResult(i, R.id.btnNearest);
 			}
 		});       
-        final Button btnSync = (Button) findViewById(R.id.btnSync);
-        btnSync.setOnClickListener(new OnClickListener() {
+        mSyncBtn.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				new SyncTask(MainActivity.this, null).execute();
+				new SyncTask(MainActivity.this, MainActivity.this).execute();
 			}
 		});
         final Button btnCrash = (Button) findViewById(R.id.btnCrash);
@@ -88,7 +119,7 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View arg0) {
 				Intent i = new Intent(MainActivity.this, MapActivity.class);
-				startActivity(i);
+				startActivityForResult(i, R.id.btnMap);
 			}
 		});
         final Button btnSearch = (Button) findViewById(R.id.btnSearch);
@@ -102,7 +133,7 @@ public class MainActivity extends Activity {
         
         //autosync
         if (mPrefs.getBoolean("autosync", false) && !runbefore) {
-			new SyncTask(MainActivity.this, null).execute();        	
+			new SyncTask(MainActivity.this, this).execute();        	
         }   
         
         //Experimental
@@ -205,8 +236,108 @@ public class MainActivity extends Activity {
 
     		break;
     	}
+		new PopulateCountsTask().execute();
     }
+ 
+    
+    
+	@Override
+	protected void onResume() {
+		super.onResume();
+		new PopulateCountsTask().execute();
+	}
 
+
+	@Override
+	public void onSynced(int status) {
+		Log.i(TAG, "onSynced");
+		new PopulateCountsTask().execute();
+	}
+
+
+
+
+
+	private class PopulateCountsTask extends AsyncTask<Void, Void, Void> {
+		int nPillar 		= 0;
+		int nFbm			= 0;
+		int nPassive		= 0;
+		int nIntersected 	= 0;
+		int nUnsynced 		= 0;
+		int nPhotos 		= 0;
+		DbHelper mDb = new DbHelper(MainActivity.this);
+		@Override
+		protected Void doInBackground(Void... arg0) {
+			nPillar 		= mDb.countLoggedPillars();
+			nFbm 			= mDb.countLoggedFbms();
+			nPassive 		= mDb.countLoggedPassives();
+			nIntersected 	= mDb.countLoggedIntersecteds();
+			nUnsynced 		= mDb.countUnsynced();
+			nPhotos 		= mDb.countPhotos();
+			return null;
+		}
+		@Override
+		protected void onPreExecute() {
+			mDb.open();
+	        mPillarIcon.setImageResource(R.drawable.t_pillar);
+	        mPillarCount.setText("");
+	        mFbmIcon.setImageResource(R.drawable.t_fbm);
+	        mFbmCount.setText("");
+	        mPassiveIcon.setImageResource(R.drawable.t_passive);
+	        mPassiveCount.setText("");
+	        mIntersectedIcon.setImageResource(R.drawable.t_intersected);
+	        mIntersectedCount.setText("");
+	        mUnsyncedIcon.setVisibility(View.INVISIBLE);
+	        mUnsyncedCount.setText("");
+	        mPhotosIcon.setVisibility(View.INVISIBLE);
+	        mPhotosCount.setText("");
+	        mSyncBtn.setTextColor(getResources().getColor(android.R.color.primary_text_light));
+		}
+		@Override
+		protected void onProgressUpdate(Void... progress) {
+		}
+		@Override
+		protected void onPostExecute(Void arg0) {
+			if (nPillar > 0) {
+				mPillarIcon.setImageResource(R.drawable.ts_pillar);
+		        mPillarCount.setText(String.valueOf(nPillar));				
+			}
+			if (nFbm > 0) {
+				mFbmIcon.setImageResource(R.drawable.ts_fbm);
+		        mFbmCount.setText(String.valueOf(nFbm));				
+			}
+			if (nPassive > 0) {
+				mPassiveIcon.setImageResource(R.drawable.ts_passive);
+		        mPassiveCount.setText(String.valueOf(nPassive));				
+			}
+			if (nIntersected > 0) {
+				mIntersectedIcon.setImageResource(R.drawable.ts_intersected);
+		        mIntersectedCount.setText(String.valueOf(nIntersected));				
+			}
+			if (nUnsynced > 0) {
+		        mUnsyncedIcon.setVisibility(View.VISIBLE);
+		        mUnsyncedCount.setText(String.valueOf(nUnsynced));
+			}
+			if (nPhotos > 0) {
+		        mPhotosIcon.setVisibility(View.VISIBLE);
+		        mPhotosCount.setText(String.valueOf(nPhotos));
+			}
+			
+			if (nUnsynced > 0 || nPhotos > 0) {
+		        mSyncBtn.setTextColor(getResources().getColor(R.color.syncNow));
+			} else {
+		        mSyncBtn.setTextColor(getResources().getColor(android.R.color.primary_text_light));
+			}
+		}
+		@Override
+		protected void onCancelled() {
+		}
+
+	}
+
+
+    
+    
 
 }
 

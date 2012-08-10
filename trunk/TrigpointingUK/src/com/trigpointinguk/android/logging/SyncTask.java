@@ -71,6 +71,7 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
     private static final int 	BLANKPROGRESS	= 4;
     private static final int 	MESSAGECOUNT	= 5;
     
+    private static final String PREFS_LOGCOUNT  ="logCount";
     
     public static final int 	SUCCESS 	= 0;
     public static final int 	NOROWS 		= 1;
@@ -418,9 +419,11 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
         String strLine;                
 		int i=0;
 		
+		
 		try {
 			publishProgress(BLANKPROGRESS);
 			publishProgress(MESSAGE, R.string.syncLogsFromTUK);
+			publishProgress(MAX, mPrefs.getInt(PREFS_LOGCOUNT, 1));
 			URL url = new URL("http://www.trigpointinguk.com/trigs/down-android-mylogs.php?username="+URLEncoder.encode(mUsername)+"&appversion="+mAppVersion);
 			Log.d(TAG, "Getting " + url);
             URLConnection ucon = url.openConnection();
@@ -461,6 +464,9 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
         		mDb.mDb.endTransaction();
         	}
         }
+
+		// store the log count to pre-populate the progress bar next time
+		mPrefs.edit().putInt(PREFS_LOGCOUNT,i).commit();
         
 		return SUCCESS;		
 	}
@@ -510,23 +516,23 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
     	String message;
     	switch (progress[0]) {
     	case MAX:
-        	Log.d(TAG, "Max progress set to " + progress[1]);
+        	//Log.d(TAG, "Max progress set to " + progress[1]);
         	mProgressDialog.setIndeterminate(false);
         	mProgressDialog.setMax(progress[1]);
         	mProgressDialog.setProgress(0);
     		break;
     	case PROGRESS:
-        	Log.d(TAG, "Progress set to " + progress[1]);
+        	//Log.d(TAG, "Progress set to " + progress[1]);
         	mProgressDialog.setProgress(progress[1]);
         	break;
     	case MESSAGE:
     		message = mCtx.getResources().getString(progress[1]);
-    		Log.d(TAG, "Progress message set to " + message);
+    		//Log.d(TAG, "Progress message set to " + message);
     		mProgressDialog.setMessage(message);
     		break;
     	case MESSAGECOUNT:
     		message = "Uploading photo " + progress[1] + " of " + progress[2];
-    		Log.d(TAG, "Progress message set to " + message);
+    		//Log.d(TAG, "Progress message set to " + message);
     		mProgressDialog.setMessage(message);
     		break;
     	case BLANKPROGRESS:

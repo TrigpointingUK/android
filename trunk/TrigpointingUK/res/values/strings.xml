@@ -117,6 +117,7 @@
 	<color name="okcolour">#00f000</color>
 	<color name="compassEnabled">#FF0000</color>
 	<color name="compassDisabled">#A0A0A0</color>
+	<color name="syncNow">#FF0000</color>
 	<string name="logPhotos">Photos:</string>
 	<string name="logAddPhoto">Add Photo</string>
 	<string name="logUploadNow">Sync Now</string>
@@ -187,4 +188,10 @@
         <string name="sendLogEmails">Email logs</string>
         <string name="sendLogEmailsYes">Send me email reminders of logs</string>
         <string name="sendLogEmailsNo">Do not send me emails</string>
+        <string name="textPillar">Pillar</string>
+        <string name="textFBM">FBM</string>
+        <string name="textPassive">Passive</string>
+        <string name="textIntersected">Intersected</string>
+        <string name="textLogo">Logo</string>
+        <string name="textUnsynced">Unsynced</string>
 </resources>
