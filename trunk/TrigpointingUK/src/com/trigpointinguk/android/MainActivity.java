@@ -328,6 +328,9 @@ public class MainActivity extends Activity implements SyncListener {
 			} else {
 		        mSyncBtn.setTextColor(getResources().getColor(android.R.color.primary_text_light));
 			}
+			if (mDb != null) {
+				mDb.close();
+			}
 		}
 		@Override
 		protected void onCancelled() {

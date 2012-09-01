@@ -122,6 +122,8 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
 			if (ERROR == sendPhotosToTUK(trigId)) {
 				return ERROR;
 			}
+			mDb.close();
+			mDb.open();
 			if (trigId.length == 0) {
 				if (ERROR == readLogsFromTUK()) {
 					return ERROR;
@@ -162,7 +164,8 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
 			}
 			publishProgress(PROGRESS, ++i);
 		} while (c.moveToNext());
-			
+		
+		c.close();
 		return SUCCESS;
 	}
 	
@@ -203,7 +206,8 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
 			mPreviousByteCount += mActiveByteCount;
 			mActiveByteCount = 0;
 		} while (c.moveToNext());
-			
+		
+		c.close();
 		return SUCCESS;
 	}
 	

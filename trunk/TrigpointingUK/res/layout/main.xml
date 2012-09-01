@@ -10,7 +10,7 @@
     <LinearLayout
         android:id="@+id/ll2"
         android:layout_width="fill_parent"
-        android:layout_height="100dp"
+        android:layout_height="120dp"
         android:layout_weight="0.27"
         android:baselineAligned="true" >
 
@@ -37,19 +37,20 @@
             <TextView
                 android:id="@+id/textView1"
                 android:layout_width="fill_parent"
-                android:layout_height="0dp"
-                android:layout_weight="0.40"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_weight="0.48"
                 android:gravity="center"
                 android:text="@string/siteName"
                 android:textAppearance="?android:attr/textAppearanceLarge" >
+
             </TextView>
 
             <TextView
                 android:id="@+id/txtUserName"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.10"
-                android:gravity="center_horizontal"
+                android:gravity="center"
                 android:text="@string/DefaultName"
                 android:textAppearance="?android:attr/textAppearanceMedium" >
 
@@ -177,9 +178,9 @@
         <Button
             android:id="@+id/btnNearest"
             android:layout_width="0dp"
-            android:layout_height="140dp"
+            android:layout_height="100dp"
             android:layout_weight="1.00"
-            android:height="100px"
+            android:height="50dp"
             android:text="@string/btnNearest" >
         </Button>
 
@@ -188,7 +189,7 @@
             android:layout_width="0dp"
             android:layout_height="fill_parent"
             android:layout_weight="1"
-            android:height="100px"
+            android:height="50dp"
             android:text="@string/btnMap" >
         </Button>
 
@@ -197,7 +198,7 @@
             android:layout_width="0dp"
             android:layout_height="fill_parent"
             android:layout_weight="1"
-            android:height="100px"
+            android:height="50dp"
             android:text="@string/btnSearch" >
         </Button>
     </LinearLayout>
