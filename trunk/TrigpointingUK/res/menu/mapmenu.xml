@@ -11,6 +11,7 @@
             <item android:title="Bing Aerial" android:id="@+id/bingaerial"></item>
             <item android:title="Bing Aerial with Labels" android:id="@+id/bingaeriallabels"></item>
             <item android:title="Bing Road" android:id="@+id/bingroad"></item>
+            <item android:title="Bing OSGB" android:id="@+id/bingosgb"></item>
             </group>
         </menu>
     </item>

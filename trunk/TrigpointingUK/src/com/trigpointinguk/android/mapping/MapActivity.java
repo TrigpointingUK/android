@@ -51,7 +51,7 @@ public class MapActivity extends Activity implements MapListener {
 	private static final int DEFAULT_LAT = 50931280;
 	public static final String TAG = "MapActivity";
 	
-	public enum TileSource 		{NONE, MAPNIK, CYCLEMAP, MAPQUEST, CLOUDMADE, BING_AERIAL, BING_ROAD, BING_AERIAL_LABELS};	
+	public enum TileSource 		{NONE, MAPNIK, CYCLEMAP, MAPQUEST, CLOUDMADE, BING_AERIAL, BING_ROAD, BING_AERIAL_LABELS, BING_OSGB};	
 
 	private MapView            mMapView;
 	private MapController      mMapController;
@@ -66,6 +66,7 @@ public class MapActivity extends Activity implements MapListener {
 	private MapIcon.colourScheme    mIconColouring = colourScheme.NONE;
 	private TileSource         		mTileSource    = TileSource.NONE;
 	private boolean            		mTooManyTrigs;
+	private com.trigpointinguk.android.mapping.ResourceProxyImpl mResourceProxy;
 	
 	/** Called when the activity is first created. */
 	@Override
@@ -77,6 +78,7 @@ public class MapActivity extends Activity implements MapListener {
 		mDb.open();
 
 		// basic map setup
+		mResourceProxy = new ResourceProxyImpl(getApplicationContext());
 		mMapView = (MapView) findViewById(R.id.mapview);  
 		mMapView.setBuiltInZoomControls(true);
 		mMapView.setMultiTouchControls(true);
@@ -84,7 +86,7 @@ public class MapActivity extends Activity implements MapListener {
 
 
 		// setup current location overlay
-		mMyLocationOverlay = new MyLocationOverlay(this, mMapView);      
+		mMyLocationOverlay = new MyLocationOverlay(this, mMapView, mResourceProxy);      
 		mMapView.getOverlays().add(mMyLocationOverlay);
 
 		// add scalebar
@@ -153,6 +155,12 @@ public class MapActivity extends Activity implements MapListener {
             bingTileSource3.setStyle(BingMapTileSource.IMAGERYSET_ROAD);
 			mMapView.setTileSource(bingTileSource3);
 			break;
+		case BING_OSGB:
+            BingMapTileSource.retrieveBingKey(getApplicationContext());
+            BingMapTileSource bingTileSource4 = new BingMapTileSource(null);
+            bingTileSource4.setStyle(BingMapTileSource.IMAGERYSET_OSGB);
+			mMapView.setTileSource(bingTileSource4);
+			break;
 		case NONE:
 			mMapView.setTileSource(TileSourceFactory.MAPNIK);
 			break;
@@ -205,6 +213,9 @@ public class MapActivity extends Activity implements MapListener {
 		case BING_ROAD:
 			menu.findItem(R.id.bingroad).setChecked(true);
 			break;
+		case BING_OSGB:
+			menu.findItem(R.id.bingosgb).setChecked(true);
+			break;
 		case NONE:
 			menu.findItem(R.id.mapnik).setChecked(true);
 			break;
@@ -237,6 +248,9 @@ public class MapActivity extends Activity implements MapListener {
 			break;
 		case R.id.bingroad:
 			setTileProvider(TileSource.BING_ROAD);
+			break;
+		case R.id.bingosgb:
+			setTileProvider(TileSource.BING_OSGB);
 			break;
 
 		// Icon colouring options
