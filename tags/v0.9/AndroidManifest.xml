@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+      package="com.trigpointinguk.android" android:versionName="v0.9" android:versionCode="9">
+    <uses-sdk android:minSdkVersion="7" android:targetSdkVersion="7" />
+    <uses-permission android:name="android.permission.INTERNET"></uses-permission>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"></uses-permission>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"></uses-permission>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"></uses-permission>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"></uses-permission>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></uses-permission>
+    <uses-permission android:name="android.permission.VIBRATE"></uses-permission>
+    <uses-permission android:name="android.permission.READ_LOGS"></uses-permission>
+
+    <application android:icon="@drawable/icon" android:label="@string/app_name" android:name="MainApplication" android:debuggable="true">
+        <activity android:label="@string/app_name" android:name="MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".nearest.NearestActivity"></activity>
+        <activity android:configChanges="keyboardHidden|orientation" android:name="DownloadTrigsActivity"></activity>
+        <activity android:name="PreferencesActivity"></activity>
+        <activity android:configChanges="keyboardHidden|orientation" android:name=".mapping.DownloadMapsActivity"></activity>
+        <activity android:name=".trigdetails.TrigDetailsActivity"></activity>
+        <activity android:name=".trigdetails.TrigDetailsAlbumTab"></activity>
+        <activity android:name=".trigdetails.TrigDetailsInfoTab"></activity>
+        <activity android:name=".trigdetails.TrigDetailsLoglistTab"></activity>
+        <activity android:name=".trigdetails.TrigDetailsOSMapTab"></activity>
+        <activity android:name=".mapping.MapActivity"></activity>
+        <meta-data android:value="6668b1358f29457b88baf287a692ae97" android:name="CLOUDMADE_KEY"></meta-data>
+        <meta-data android:value="AmX-6eFz_aE2rrhkXUprU3HRV2BNMrCYQoKodIFdfNEcZosjAEbsNetB00GFktP5" android:name="BING_KEY"></meta-data>
+        <activity android:name="HelpPageActivity"></activity>
+        <activity android:name=".common.DisplayBitmapActivity"></activity>
+        <activity android:name=".logging.LogTrigActivity"></activity>
+        <activity android:name=".logging.LogPhotoActivity"></activity>
+        <activity android:name=".filter.FilterActivity"></activity>
+    </application>
+</manifest>

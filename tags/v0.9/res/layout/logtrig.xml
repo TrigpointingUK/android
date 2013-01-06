@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ViewSwitcher xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/logswitcher"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" >
+
+    <ScrollView
+        android:id="@+id/sv1"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent" >
+
+        <LinearLayout
+            android:id="@+id/trigloglayout"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:weightSum="1" >
+
+            <TextView
+                android:id="@+id/textView1"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="0.05"
+                android:text="@string/logDate"
+                android:textAppearance="?android:attr/textAppearanceMedium" >
+            </TextView>
+
+            <DatePicker
+                android:id="@+id/logDate"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="0.05" >
+            </DatePicker>
+
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="0.05"
+                android:text="@string/logTime"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <LinearLayout
+                android:id="@+id/ll6a"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="0.05"
+                android:orientation="horizontal" >
+
+                <TimePicker
+                    android:id="@+id/logTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left" />
+
+                <ToggleButton
+                    android:id="@+id/sendTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:checked="true"
+                    android:text="ToggleButton"
+                    android:textOff="@string/logTimeNo"
+                    android:textOn="@string/logTimeYes" />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/textView6"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="0.05"
+                android:text="@string/logGridref"
+                android:textAppearance="?android:attr/textAppearanceMedium" >
+            </TextView>
+
+            <LinearLayout
+                android:id="@+id/ll6"
+                android:layout_width="fill_parent"
+                android:layout_height="0dp"
+                android:layout_weight="0.05"
+                android:orientation="horizontal" >
+
+                <EditText
+                    android:id="@+id/logGridref"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="5"
+                    android:inputType="text" >
+                </EditText>
+
+                <Button
+                    android:id="@+id/logGetLocation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:text="@string/logGetLocation" >
+                </Button>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/locationError"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="0.05"
+                android:text=""
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="@color/errorcolour" >
+            </TextView>
+
+            <TextView
+                android:id="@+id/textView7"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="0.05"
+                android:text="@string/logFB"
+                android:textAppearance="?android:attr/textAppearanceMedium" >
+            </TextView>
+
+            <EditText
+                android:id="@+id/logFB"
+                android:layout_width="fill_parent"
+                android:layout_height="0dp"
+                android:layout_weight="0.05"
+                android:inputType="text" >
+            </EditText>
+
+            <TextView
+                android:id="@+id/textView5"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="0.05"
+                android:text="@string/logCondition"
+                android:textAppearance="?android:attr/textAppearanceMedium" >
+            </TextView>
+
+            <Spinner
+                android:id="@+id/logCondition"
+                android:layout_width="fill_parent"
+                android:layout_height="0dp"
+                android:layout_weight="0.05" >
+            </Spinner>
+
+            <TextView
+                android:id="@+id/textView3"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="0.05"
+                android:text="@string/logScore"
+                android:textAppearance="?android:attr/textAppearanceMedium" >
+            </TextView>
+
+            <RatingBar
+                android:id="@+id/logScore"
+                style="@style/trigRatingBar"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_marginBottom="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_weight="0.05"
+                android:max="10"
+                android:numStars="10"
+                android:rating="5"
+                android:stepSize="1" >
+            </RatingBar>
+
+            <TextView
+                android:id="@+id/textView4"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="0.05"
+                android:text="@string/logComment"
+                android:textAppearance="?android:attr/textAppearanceMedium" >
+            </TextView>
+
+            <EditText
+                android:id="@+id/logComment"
+                android:layout_width="fill_parent"
+                android:layout_height="0dp"
+                android:layout_weight="0.05"
+                android:gravity="top"
+                android:inputType="textMultiLine"
+                android:lines="5" >
+            </EditText>
+
+            <TextView
+                android:id="@+id/textView8"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="0.05"
+                android:text="@string/logPhotos"
+                android:textAppearance="?android:attr/textAppearanceMedium" >
+            </TextView>
+
+            <Gallery
+                android:id="@+id/logGallery"
+                android:layout_width="fill_parent"
+                android:layout_height="0dp"
+                android:layout_weight="0.05" >
+            </Gallery>
+
+            <Button
+                android:id="@+id/logAddPhoto"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="0.05"
+                android:text="@string/logAddPhoto" >
+            </Button>
+
+            <CheckBox
+                android:id="@+id/logAdminFlag"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="0.05"
+                android:text="@string/logFlag" >
+            </CheckBox>
+
+            <CheckBox
+                android:id="@+id/logUserFlag"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="0.05"
+                android:text="@string/logUserFlag" >
+            </CheckBox>
+
+            <LinearLayout
+                android:id="@+id/ll7"
+                android:layout_width="fill_parent"
+                android:layout_height="0dp"
+                android:layout_marginTop="20dp"
+                android:layout_weight="0.05" >
+
+                <Button
+                    android:id="@+id/logUploadNow"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/logUploadNow" >
+                </Button>
+
+                <Button
+                    android:id="@+id/logSyncLater"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/logSyncLater" >
+                </Button>
+
+                <Button
+                    android:id="@+id/logDelete"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/logDelete" >
+                </Button>
+            </LinearLayout>
+        </LinearLayout>
+
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/ll8"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical" >
+
+        <Button
+            android:id="@+id/addLog"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="@string/addLog" >
+        </Button>
+    </LinearLayout>
+
+</ViewSwitcher>
