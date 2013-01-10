@@ -1,0 +1,7 @@
+Can I run it on the iPad/iPhone etc?
+
+No, I do not own any such iTems, nor do I want to.  
+
+However, because all my source code is made freely available under the GPL, anyone is free to port it to the iPhone, or any other platform, if they so choose.  I personally hope they will not, but consumer freedom is more important than software developers' instinct for control.  If Apple ever realise this, as Google and others already have, then I may support their hardware.
+
+In the meantime, I find developing on the Android platform to be far more challenging and interesting, because of the huge consumer choice available in terms of handsets and tablets, which all need to be supported.
