@@ -82,7 +82,7 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
     
 	public SyncTask(Context pCtx, SyncListener listener) {
 		this.mCtx = pCtx;
-		this.mSyncListener = listener;
+		this.mSyncListener = listener;		
 		try {
 			mAppVersion = mCtx.getPackageManager().getPackageInfo(mCtx.getPackageName(), 0).versionCode;
 		} catch (NameNotFoundException e) {
@@ -91,7 +91,17 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
 		}
 	}
 	
+	public void detach() {
+		mCtx = null;
+		mSyncListener = null;
+		mProgressDialog.dismiss();
+	}
 	
+	public void attach(Context pCtx, SyncListener listener) {
+		this.mCtx = pCtx;
+		this.mSyncListener = listener;
+		showDialog("Continuing sync");
+	}
 	
 	protected Integer doInBackground(Long... trigId) {
 		Log.d(TAG, "doInBackground");
@@ -492,6 +502,10 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
 	
     protected void onPreExecute() {
 		Log.d(TAG, "onPreExecute");
+		if (mCtx == null) {
+			Toast.makeText(mCtx, "Sync failed!", Toast.LENGTH_LONG).show();
+			return;
+		}
 		
 		// Check that we have a username and password, so that we can sync existing logs
 		mPrefs = PreferenceManager.getDefaultSharedPreferences(mCtx);
@@ -505,19 +519,29 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
 			this.cancel(true);
 			return;
 		} 
-		
+		showDialog("Connecting to T:UK");
+		mErrorMessage = "";
+    }
+    
+    
+    protected void showDialog(String message) {
 		mProgressDialog = new ProgressDialog(mCtx);
 		mProgressDialog.setIndeterminate(false);
 		mProgressDialog.setCancelable(true);
 		mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-		mProgressDialog.setMessage("Connecting to T:UK");
-		mProgressDialog.show();
-
-		mErrorMessage = "";
+		mProgressDialog.setMessage(message);
+		mProgressDialog.show();    	
     }
     
     protected void onProgressUpdate(Integer... progress) {
     	String message;
+
+    	if (mCtx == null) {
+			Log.i(TAG, "onProgressUpdate - no attached activity");
+			return;
+		}
+
+    	
     	switch (progress[0]) {
     	case MAX:
         	//Log.d(TAG, "Max progress set to " + progress[1]);
