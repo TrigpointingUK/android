@@ -84,7 +84,7 @@ public class Filter {
 		case R.id.filterLogged:
 			sql.append(tok).append("(")
 			   .append(DbHelper.TRIG_TABLE).append(".").append(DbHelper.TRIG_LOGGED)
-			   .append(" <> '").append(Condition.NOTLOGGED.code()).append("' ")
+			   .append(" <> '").append(Condition.TRIGNOTLOGGED.code()).append("' ")
 			   .append(" OR ")
 			   .append(DbHelper.LOG_TABLE).append(".").append(DbHelper.LOG_ID).append(" IS NOT NULL")
 			   .append(")");
@@ -93,7 +93,7 @@ public class Filter {
 		case R.id.filterNotLogged:
 			sql.append(tok).append("(")
 			   .append(DbHelper.TRIG_TABLE).append(".").append(DbHelper.TRIG_LOGGED)
-			   .append(" = '").append(Condition.NOTLOGGED.code()).append("' ")
+			   .append(" = '").append(Condition.TRIGNOTLOGGED.code()).append("' ")
 			   .append(" AND ")
 			   .append(DbHelper.LOG_TABLE).append(".").append(DbHelper.LOG_ID).append(" IS NULL")
 			   .append(")");

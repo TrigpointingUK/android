@@ -164,7 +164,8 @@ public class MapIcon {
 		case BYLOGGED:
 			switch (useCondition) {
 			case UNKNOWN: 
-			case NOTLOGGED: 
+			case CONDITIONNOTLOGGED: 
+			case TRIGNOTLOGGED: 
 				colour = iconColour.GREY;
 				break;
 			case GOOD:

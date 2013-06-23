@@ -2,11 +2,6 @@ package com.trigpointinguk.android;
 
 import org.osmdroid.util.BoundingBoxE6;
 
-import com.trigpointinguk.android.filter.Filter;
-import com.trigpointinguk.android.types.Condition;
-import com.trigpointinguk.android.types.PhotoSubject;
-import com.trigpointinguk.android.types.Trig;
-
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
@@ -18,11 +13,18 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.location.Location;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.widget.Toast;
+
+import com.trigpointinguk.android.filter.Filter;
+import com.trigpointinguk.android.logging.SyncTask;
+import com.trigpointinguk.android.types.Condition;
+import com.trigpointinguk.android.types.PhotoSubject;
+import com.trigpointinguk.android.types.Trig;
 
 public class DbHelper {
 	private static final String TAG					= "DbHelper";
 
-	private static final int 	DATABASE_VERSION 	= 11;
+	private static final int 	DATABASE_VERSION 	= 12;
 	private static final String DATABASE_NAME		= "trigpointinguk";
 	public  static final String TRIG_TABLE			= "trig";
 	public 	static final String TRIG_ID				= "_id";
@@ -125,8 +127,10 @@ public class DbHelper {
 
 
 	private static class DatabaseHelper extends SQLiteOpenHelper {
+		Context mCtx;
 		DatabaseHelper(Context context) {
 			super(context, DATABASE_NAME, null, DATABASE_VERSION);
+			this.mCtx = context;
 		}
 		@Override
 		public void onCreate(SQLiteDatabase db) {
@@ -138,6 +142,14 @@ public class DbHelper {
 		}
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+			if (oldVersion==11 && newVersion==12) {
+				Log.w(TAG, "Upgrading from 11 to 12 - require a resync!");
+				Toast.makeText(mCtx, "Database updated - please sync logs", Toast.LENGTH_LONG).show();
+				ContentValues args = new ContentValues();
+				args.put(TRIG_LOGGED, Condition.TRIGNOTLOGGED.code());
+				db.update(TRIG_TABLE, args, null, null);
+				return;
+			}
 			Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
 					+ newVersion + ", which will destroy all old data");
 			db.execSQL("DROP TABLE IF EXISTS " + TRIG_TABLE);
@@ -217,7 +229,7 @@ public class DbHelper {
 
 	public boolean deleteAllTrigLogs() {
 		ContentValues args = new ContentValues();
-		args.put(TRIG_LOGGED, Condition.NOTLOGGED.code());
+		args.put(TRIG_LOGGED, Condition.TRIGNOTLOGGED.code());
 		return mDb.update(TRIG_TABLE, args, null, null) > 0;
 	}
 	
@@ -382,7 +394,7 @@ public class DbHelper {
 		Cursor c = null;
 		try {
 			c =  mDb.query(TRIG_TABLE, new String[] {TRIG_ID}, 
-					TRIG_TYPE + "='" + Trig.Physical.PILLAR.code()+"' and " + TRIG_LOGGED + "!= '" + Condition.NOTLOGGED.code()+ "'", 
+					TRIG_TYPE + "='" + Trig.Physical.PILLAR.code()+"' and " + TRIG_LOGGED + "!= '" + Condition.TRIGNOTLOGGED.code()+ "'", 
 					null, null, null, null);
 			return c.getCount();
 		} finally {
@@ -401,7 +413,7 @@ public class DbHelper {
 		Cursor c = null;
 		try {
 			c =  mDb.query(TRIG_TABLE, new String[] {TRIG_ID}, 
-					TRIG_TYPE + "='" + Trig.Physical.FBM.code()+"' and " + TRIG_LOGGED + "!= '" + Condition.NOTLOGGED.code()+ "'", 
+					TRIG_TYPE + "='" + Trig.Physical.FBM.code()+"' and " + TRIG_LOGGED + "!= '" + Condition.TRIGNOTLOGGED.code()+ "'", 
 					null, null, null, null);
 			return c.getCount();
 		} finally {
@@ -420,7 +432,7 @@ public class DbHelper {
 		Cursor c = null;
 		try {
 			c =  mDb.query(TRIG_TABLE, new String[] {TRIG_ID}, 
-					TRIG_TYPE + "='" + Trig.Physical.INTERSECTED.code()+"' and " + TRIG_LOGGED + "!= '" + Condition.NOTLOGGED.code()+ "'", 
+					TRIG_TYPE + "='" + Trig.Physical.INTERSECTED.code()+"' and " + TRIG_LOGGED + "!= '" + Condition.TRIGNOTLOGGED.code()+ "'", 
 					null, null, null, null);
 			return c.getCount();
 		} finally {
@@ -441,7 +453,7 @@ public class DbHelper {
 			c =  mDb.query(TRIG_TABLE, new String[] {TRIG_ID}, 
 					TRIG_TYPE + " NOT IN ('" + Trig.Physical.PILLAR.code()+"','"+
 								Trig.Physical.INTERSECTED.code()+"','"+Trig.Physical.FBM.code()+"') " +
-					"and " + TRIG_LOGGED + "!= '" + Condition.NOTLOGGED.code()+ "'", 
+					"and " + TRIG_LOGGED + "!= '" + Condition.TRIGNOTLOGGED.code()+ "'", 
 					null, null, null, null);
 			return c.getCount();
 		} finally {

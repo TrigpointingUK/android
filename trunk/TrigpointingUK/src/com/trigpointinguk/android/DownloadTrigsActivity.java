@@ -109,7 +109,7 @@ public class DownloadTrigsActivity extends Activity {
 					Trig.Physical type			= Trig.Physical.fromCode(csv[5]);
 					String fb					= csv[6];
 					Condition condition			= Condition.fromCode(csv[7]);
-					Condition logged			= Condition.NOTLOGGED;
+					Condition logged			= Condition.TRIGNOTLOGGED;
 					Trig.Current current		= Trig.Current.fromCode(csv[8]);
 					Trig.Historic historic		= Trig.Historic.fromCode(csv[9]);
 					db.createTrig(id, name, waypoint, lat, lon, type, condition, logged, current, historic, fb);

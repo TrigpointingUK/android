@@ -134,7 +134,9 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
  		mTime.setIs24HourView(true);
 
 		// Setup condition spinner
-		ArrayAdapter<Condition> adapter = new ArrayAdapter<Condition> (this, android.R.layout.simple_spinner_item, Condition.values());
+ 		List<Condition> loggableConditions = new ArrayList<Condition>(Arrays.asList(Condition.values()));
+ 		loggableConditions.remove(Condition.TRIGNOTLOGGED);
+		ArrayAdapter<Condition> adapter = new ArrayAdapter<Condition> (this, android.R.layout.simple_spinner_item, loggableConditions);
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		mCondition.setAdapter(adapter);
 
@@ -489,7 +491,7 @@ public class LogTrigActivity extends Activity implements OnDateChangedListener, 
     			now.get(Calendar.MINUTE), 
     			"", 
     			"", 
-    			Condition.NOTLOGGED, 
+    			Condition.CONDITIONNOTLOGGED, 
     			5, 
     			"", 
     			0, 
