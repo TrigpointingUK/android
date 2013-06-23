@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:title="Map Style" android:id="@+id/MapStyle" android:titleCondensed="Map Style" android:icon="@drawable/ic_menu_mapstyle">
+        <menu>
+            <group android:checkableBehavior="single" android:id="@+id/TileSource">
+            <item android:title="Cloudmade" android:id="@+id/cloudmade"></item>
+            <item android:title="Mapnik" android:id="@+id/mapnik"></item>
+            <item android:title="Mapquest" android:id="@+id/mapquest"></item>
+            <item android:title="Open Cycle Map" android:id="@+id/cyclemap"></item>
+            <item android:title="Bing Aerial" android:id="@+id/bingaerial"></item>
+            <item android:title="Bing Aerial with Labels" android:id="@+id/bingaeriallabels"></item>
+            <item android:title="Bing Road" android:id="@+id/bingroad"></item>
+            <item android:title="Bing OSGB" android:id="@+id/bingosgb"></item>
+            </group>
+        </menu>
+    </item>
+    <item android:title="Icon Colouring" android:id="@+id/IconColouring" android:titleCondensed="Trig Colours" android:icon="@drawable/ic_menu_trigonmap">
+        <menu>
+            <group android:id="@+id/group2" android:checkableBehavior="single">
+            <item android:title="None" android:id="@+id/none"></item>
+            <item android:title="by condition" android:id="@+id/byCondition"></item>
+            <item android:id="@+id/byLogged" android:title="by my logs"></item>
+            </group>
+        </menu>
+    </item>
+    <item android:id="@+id/downloadmaps" android:title="@string/downMaps" android:icon="@drawable/ic_menu_more"></item>
+    <item android:checkable="true" android:title="Track My Location" android:titleCondensed="My Location" android:id="@+id/location" android:checked="false" android:icon="@drawable/ic_menu_mylocation"></item>
+    <item android:titleCondensed="Compass" android:id="@+id/compass" android:title="Show Compass" android:checkable="true" android:checked="true" android:icon="@drawable/ic_menu_compass"></item>
+    <item android:title="Filter" android:icon="@drawable/ic_menu_search" android:id="@+id/filter"></item>
+</menu>
