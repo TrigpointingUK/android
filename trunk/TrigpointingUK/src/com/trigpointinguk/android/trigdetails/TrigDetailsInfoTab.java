@@ -62,7 +62,11 @@ public class TrigDetailsInfoTab extends Activity {
 		mMark.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				mDb.setMarkedTrig(mTrigId, isChecked);
+				try {
+					mDb.setMarkedTrig(mTrigId, isChecked);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		});
 		

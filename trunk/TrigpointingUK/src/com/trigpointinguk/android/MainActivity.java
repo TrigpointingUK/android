@@ -8,6 +8,9 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
+import android.content.res.Resources.NotFoundException;
+import android.database.SQLException;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -48,7 +51,6 @@ public class MainActivity extends Activity implements SyncListener {
     private TextView			mPhotosCount;
     private Button				mSyncBtn;
     
-    
  	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,14 +86,18 @@ public class MainActivity extends Activity implements SyncListener {
         
         // Add user info to ACRA
         ErrorReporter.getInstance().putCustomData("username", mPrefs.getString("username", ""));
-        
+
         // check for empty trig database
-        DbHelper db = new DbHelper(this);
-        db.open();
-        if (! db.isTrigTablePopulated()) {
-        	showDialog(NOTRIGS);
+        try {
+	        DbHelper db = new DbHelper(this);
+	        db.open();
+	        if (! db.isTrigTablePopulated()) {
+	        	showDialog(NOTRIGS);
+	        }
+	        db.close();
+        } catch (Exception e) {
+        	Log.e(TAG, "Caught exception - " + e.getMessage());
         }
-        db.close();
         
         final Button btnNearest = (Button) findViewById(R.id.btnNearest);
         btnNearest.setOnClickListener(new OnClickListener() {
@@ -104,7 +110,7 @@ public class MainActivity extends Activity implements SyncListener {
         mSyncBtn.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				new SyncTask(MainActivity.this, MainActivity.this).execute();
+				doSync();
 			}
 		});
         final Button btnCrash = (Button) findViewById(R.id.btnCrash);
@@ -133,7 +139,7 @@ public class MainActivity extends Activity implements SyncListener {
         
         //autosync
         if (mPrefs.getBoolean("autosync", false) && !runbefore) {
-			new SyncTask(MainActivity.this, this).execute();        	
+			doSync();     	
         }   
         
         //Experimental
@@ -248,6 +254,12 @@ public class MainActivity extends Activity implements SyncListener {
 	}
 
 
+    private void doSync() {
+		Log.i(TAG, "doSync");
+		new SyncTask(MainActivity.this, MainActivity.this).execute();
+    }
+    
+
 	@Override
 	public void onSynced(int status) {
 		Log.i(TAG, "onSynced");
@@ -278,20 +290,26 @@ public class MainActivity extends Activity implements SyncListener {
 		}
 		@Override
 		protected void onPreExecute() {
-			mDb.open();
-	        mPillarIcon.setImageResource(R.drawable.t_pillar);
-	        mPillarCount.setText("");
-	        mFbmIcon.setImageResource(R.drawable.t_fbm);
-	        mFbmCount.setText("");
-	        mPassiveIcon.setImageResource(R.drawable.t_passive);
-	        mPassiveCount.setText("");
-	        mIntersectedIcon.setImageResource(R.drawable.t_intersected);
-	        mIntersectedCount.setText("");
-	        mUnsyncedIcon.setVisibility(View.INVISIBLE);
-	        mUnsyncedCount.setText("");
-	        mPhotosIcon.setVisibility(View.INVISIBLE);
-	        mPhotosCount.setText("");
-	        mSyncBtn.setTextColor(getResources().getColor(android.R.color.primary_text_light));
+			try {
+				mDb.open();
+				mPillarIcon.setImageResource(R.drawable.t_pillar);
+				mPillarCount.setText("");
+				mFbmIcon.setImageResource(R.drawable.t_fbm);
+				mFbmCount.setText("");
+				mPassiveIcon.setImageResource(R.drawable.t_passive);
+				mPassiveCount.setText("");
+				mIntersectedIcon.setImageResource(R.drawable.t_intersected);
+				mIntersectedCount.setText("");
+				mUnsyncedIcon.setVisibility(View.INVISIBLE);
+				mUnsyncedCount.setText("");
+				mPhotosIcon.setVisibility(View.INVISIBLE);
+				mPhotosCount.setText("");
+				mSyncBtn.setTextColor(getResources().getColor(android.R.color.primary_text_light));
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} catch (NotFoundException e) {
+				e.printStackTrace();
+			}
 		}
 		@Override
 		protected void onProgressUpdate(Void... progress) {
@@ -338,9 +356,6 @@ public class MainActivity extends Activity implements SyncListener {
 
 	}
 
-
-    
-    
 
 }
 

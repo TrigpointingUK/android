@@ -82,7 +82,7 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
     
 	public SyncTask(Context pCtx, SyncListener listener) {
 		this.mCtx = pCtx;
-		this.mSyncListener = listener;		
+		this.mSyncListener = listener;
 		try {
 			mAppVersion = mCtx.getPackageManager().getPackageInfo(mCtx.getPackageName(), 0).versionCode;
 		} catch (NameNotFoundException e) {
@@ -540,8 +540,7 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
 			Log.i(TAG, "onProgressUpdate - no attached activity");
 			return;
 		}
-
-    	
+  	
     	switch (progress[0]) {
     	case MAX:
         	//Log.d(TAG, "Max progress set to " + progress[1]);
@@ -582,7 +581,11 @@ public class SyncTask extends AsyncTask<Long, Integer, Integer> implements Progr
 			Log.d(TAG, "cancelled ");
 			Toast.makeText(mCtx, "Sync cancelled", Toast.LENGTH_SHORT).show();			
 		}
-		if (mProgressDialog != null) {mProgressDialog.dismiss();}
+		try {
+			if (mProgressDialog != null) {mProgressDialog.dismiss();}
+		} catch (Exception e) {
+			Log.e(TAG, "Exception dismissing dialog - " + e.getMessage());
+		}
 		if (mSyncListener != null) {
 			mSyncListener.onSynced(status);
 		}

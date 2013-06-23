@@ -135,15 +135,12 @@
     <string name="photoThumbnail">Thumbnail</string>
 	<string name="addLog">Log this trigpoint</string>
 	<string name="prefsExperimental">Developer mode</string>
-	<string name="prefsExperimentalDetails">Access code under development (unstable)</string>
+	<string name="prefsExperimentalDetails">Access code under development (unstable, requires restart)</string>
 	<string name="prefsBehaviour">Application preferences</string>
 	<string name="prefsDevelopment">Development options</string>
 	<string name="prefsAcra">Crash reports</string> 
-	<string name="prefsAcraEnabled">Send crash reports to T:UK (some privacy issues)</string> 
+	<string name="prefsAcraEnabled">Send crash reports to T:UK</string> 
 	<string name="prefsAcraDisabled">Do not send crash reports to T:UK</string> 
-	<string name="prefsAcraSyslog">Include syslog</string>
-	<string name="prefsAcraSyslogEnabled">Crash reports contain syslog information (more privacy issues)</string> 
-	<string name="prefsAcraSyslogDisabled">Crash reports do not contain syslog information</string> 
 	<string name="syncToTUK">Sending logs to T:UK</string> 
 	<string name="syncPhotosToTUK">Sending photos to T:UK</string> 
 	<string name="syncLogsFromTUK">Downloading logs from T:UK</string> 
@@ -194,4 +191,6 @@
         <string name="textIntersected">Intersected</string>
         <string name="textLogo">Logo</string>
         <string name="textUnsynced">Unsynced</string>
+        <color name="nearestMarkedColour">#ffff88</color>
+        <color name="nearestUnmarkedColour">#ffffff</color>
 </resources>

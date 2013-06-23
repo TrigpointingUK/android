@@ -26,6 +26,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -74,8 +75,14 @@ public class MapActivity extends Activity implements MapListener {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.mapview);
 		mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-		mDb = new DbHelper(this);
-		mDb.open();
+		try {
+			mDb = new DbHelper(this);
+			mDb.open();
+		} catch (SQLException e) {
+			e.printStackTrace();
+        	Toast.makeText(this, "Error opening database.  Please try again shortly.", Toast.LENGTH_SHORT).show();
+			finish();
+		}
 
 		// basic map setup
 		mResourceProxy = new ResourceProxyImpl(getApplicationContext());
@@ -156,13 +163,11 @@ public class MapActivity extends Activity implements MapListener {
 			mMapView.setTileSource(bingTileSource3);
 			break;
 		case BING_OSGB:
+		case NONE:
             BingMapTileSource.retrieveBingKey(getApplicationContext());
             BingMapTileSource bingTileSource4 = new BingMapTileSource(null);
             bingTileSource4.setStyle(BingMapTileSource.IMAGERYSET_OSGB);
 			mMapView.setTileSource(bingTileSource4);
-			break;
-		case NONE:
-			mMapView.setTileSource(TileSourceFactory.MAPNIK);
 			break;
 		}
 		// save choice to prefs
@@ -214,10 +219,8 @@ public class MapActivity extends Activity implements MapListener {
 			menu.findItem(R.id.bingroad).setChecked(true);
 			break;
 		case BING_OSGB:
-			menu.findItem(R.id.bingosgb).setChecked(true);
-			break;
 		case NONE:
-			menu.findItem(R.id.mapnik).setChecked(true);
+			menu.findItem(R.id.bingosgb).setChecked(true);
 			break;
 		}
 		return result;
@@ -341,12 +344,12 @@ public class MapActivity extends Activity implements MapListener {
 	private void loadViewFromPrefs() {
 		try {
 			// set tilesource from prefs
-			setTileProvider(TileSource.valueOf(mPrefs.getString("tileSource", TileSource.MAPNIK.toString())));
+			setTileProvider(TileSource.valueOf(mPrefs.getString("tileSource", TileSource.BING_OSGB.toString())));
 			// set colouring from prefs
-			mIconColouring = colourScheme.valueOf(mPrefs.getString("iconColouring", colourScheme.NONE.toString()));
+			mIconColouring = colourScheme.valueOf(mPrefs.getString("iconColouring", colourScheme.BYCONDITION.toString()));
 		} catch (IllegalArgumentException e) {
 			// invalid preference
-			setTileProvider(TileSource.MAPNIK);
+			setTileProvider(TileSource.BING_OSGB);
 			mIconColouring = colourScheme.NONE;
 		}
 		try {

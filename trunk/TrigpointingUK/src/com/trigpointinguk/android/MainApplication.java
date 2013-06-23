@@ -4,7 +4,9 @@ import org.acra.ACRA;
 import org.acra.annotation.ReportsCrashes;
 
 import android.app.Application;
-import android.content.pm.ApplicationInfo;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 
@@ -14,11 +16,17 @@ public class MainApplication extends Application {
 
 	@Override
     public void onCreate() {
-        // The following line triggers the initialisation of ACRA
-		if (0 == (getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE)) {
+        // This has been removed from the permissions and the preferences, so set to false for any legacy installations
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		Editor editor = prefs.edit();
+		editor.putBoolean("acra.syslog.enable", false);
+		editor.commit();  
+        
+        // The following line disables ACRA when coding
+		//if (0 == (getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE)) {
 			ACRA.init(this);
 			Log.i(TAG, "ACRA enabled");
-		}
+		//}
         super.onCreate();
     }
 }

@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -25,6 +26,7 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.trigpointinguk.android.DbHelper;
 import com.trigpointinguk.android.R;
@@ -83,8 +85,14 @@ public class NearestActivity extends ListActivity implements SensorEventListener
 		mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 		
 		// create various objects
-		mDb = new DbHelper(NearestActivity.this);
-		mDb.open();
+		try {
+			mDb = new DbHelper(NearestActivity.this);
+			mDb.open();
+		} catch (SQLException e) {
+			e.printStackTrace();
+        	Toast.makeText(this, "Error opening database.  Please try again shortly.", Toast.LENGTH_SHORT).show();
+			finish();
+		}
 	
 		// Start off with no location + no trigs
 		mListAdapter = new NearestCursorAdapter(this, R.layout.trigrow, null, new String[]{}, new int[]{}, null);
@@ -254,7 +262,11 @@ public class NearestActivity extends ListActivity implements SensorEventListener
         
 	@Override
 	protected void onDestroy() {
-		mDb.close();
+		try {
+			mDb.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		super.onDestroy();
 	}
 
@@ -405,7 +417,7 @@ public class NearestActivity extends ListActivity implements SensorEventListener
 	        	float orientation[] = new float[3];
 	        	SensorManager.getOrientation(R, orientation);
 	        	mHeading = orientation[0] * 180.0/Math.PI; // orientation contains: azimuth[0], pitch[1] and roll[2]
-	        	Log.d(TAG, "Heading = " + mHeading);
+	        	//Log.d(TAG, "Heading = " + mHeading);
 	        	mListAdapter.setHeading(mHeading);
 	        	mListAdapter.notifyDataSetChanged();
 			    mCompassArrow.setImageResource(mListAdapter.getArrow(-mHeading));

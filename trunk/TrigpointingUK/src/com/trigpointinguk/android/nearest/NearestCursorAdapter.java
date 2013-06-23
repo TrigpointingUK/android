@@ -36,11 +36,13 @@ public class NearestCursorAdapter extends SimpleCursorAdapter {
 	//private static final String TAG = "NearestCursorAdapter";
 	private double mHeading = 0;
 	private double mOrientationOffset = 0;
+	private Context mContext;
 	
 	
 	public NearestCursorAdapter(Context context, int layout, Cursor c,	String[] from, int[] to, Location currentLocation) {
 		this(context, layout, c, from, to);
 		this.mCurrentLocation = currentLocation;
+		this.mContext = context;
 	}
 
 	public NearestCursorAdapter(Context context, int layout, Cursor c,
@@ -82,7 +84,13 @@ public class NearestCursorAdapter extends SimpleCursorAdapter {
 		
 		// deal with marked trigpoints
 		Boolean marked = (cursor.getString(mMarkedIndex) != null);
-		if (marked) {tn.setTypeface(null, Typeface.BOLD);} else {tn.setTypeface(null, Typeface.NORMAL);}
+		if (marked) {
+			tn.setTypeface(null, Typeface.BOLD);
+			tn.setTextColor(mContext.getResources().getColor(R.color.nearestMarkedColour));
+		} else {
+			tn.setTypeface(null, Typeface.NORMAL);
+			tn.setTextColor(mContext.getResources().getColor(R.color.nearestUnmarkedColour));
+		}
 		tt.setImageResource(Trig.Physical.fromCode(cursor.getString(mTypeIndex)).icon(marked));
 		
 		// Use either synced condition from T:UK, or highlighted unsynced condition from logs

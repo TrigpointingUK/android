@@ -18,7 +18,7 @@ public class BitmapLoader {
 	FileCache   mFileCache;
 
 	public BitmapLoader(Context context) {
-		mFileCache=new FileCache(context, "bitmaps");
+		mFileCache=new FileCache(context, "images");
 	}
 
 	public Bitmap getBitmap(String url, boolean reload) {

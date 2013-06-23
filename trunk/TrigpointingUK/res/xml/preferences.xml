@@ -18,7 +18,6 @@
 	<PreferenceCategory android:key="development_category" android:title="@string/prefsDevelopment">
 	    <CheckBoxPreference android:title="@string/prefsExperimental" android:summary="@string/prefsExperimentalDetails" android:key="experimental"></CheckBoxPreference>
 		<CheckBoxPreference android:key="acra.enable" android:title="@string/prefsAcra" android:summaryOn="@string/prefsAcraEnabled" android:summaryOff="@string/prefsAcraDisabled" android:defaultValue="true"></CheckBoxPreference>
-	 	<CheckBoxPreference android:key="acra.syslog.enable" android:title="@string/prefsAcraSyslog" android:summaryOn="@string/prefsAcraSyslogEnabled" android:summaryOff="@string/prefsAcraSyslogDisabled" android:defaultValue="true"></CheckBoxPreference>
 	</PreferenceCategory>
     
 </PreferenceScreen>
