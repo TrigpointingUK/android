@@ -617,7 +617,9 @@ public class LeafletMapActivity extends BaseActivity {
                     
                     // Return results to JavaScript on UI thread
                     runOnUiThread(() -> {
-                        webView.evaluateJavascript("displayTrigpointMarkers('" + trigpointsJson.replace("'", "\\'") + "');", null);
+                        // Safely embed JSON as a JavaScript string literal to avoid breaking quotes/backslashes
+                        String safeJson = org.json.JSONObject.quote(trigpointsJson);
+                        webView.evaluateJavascript("displayTrigpointMarkers(" + safeJson + ");", null);
                     });
                 } catch (Exception e) {
                     Log.e(TAG, "Error querying trigpoints", e);
