@@ -210,8 +210,9 @@ public class LeafletMapActivity extends BaseActivity {
     private long[] getDirectoryStats(File directory) {
         long size = 0;
         long count = 0;
-        if (directory != null && directory.isDirectory() && directory.listFiles() != null) {
-            for (File file : Objects.requireNonNull(directory.listFiles())) {
+        File[] children = (directory != null && directory.isDirectory()) ? directory.listFiles() : null;
+        if (children != null) {
+            for (File file : children) {
                 if (file.isFile()) {
                     size += file.length();
                     count++;
@@ -230,6 +231,8 @@ public class LeafletMapActivity extends BaseActivity {
         try {
             URL url = new URL(urlString);
             connection = (HttpURLConnection) url.openConnection();
+            connection.setConnectTimeout(10000);
+            connection.setReadTimeout(15000);
 
             // Set a custom User-Agent to comply with tile server policies
             connection.setRequestProperty("User-Agent", "TrigpointingUK-Android-App/1.0");
@@ -526,7 +529,33 @@ public class LeafletMapActivity extends BaseActivity {
         if (dbHelper != null) {
             dbHelper.close();
         }
+        if (webView != null) {
+            try { webView.loadUrl("about:blank"); } catch (Exception ignored) {}
+            try { webView.stopLoading(); } catch (Exception ignored) {}
+            webView.setWebChromeClient(null);
+            webView.setWebViewClient(null);
+            try { webView.destroy(); } catch (Exception ignored) {}
+            webView = null;
+        }
         super.onDestroy();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (webView != null) {
+            webView.onResume();
+            webView.resumeTimers();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        if (webView != null) {
+            webView.onPause();
+            webView.pauseTimers();
+        }
+        super.onPause();
     }
 
     public class LeafletPreferencesInterface {

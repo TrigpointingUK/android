@@ -236,15 +236,15 @@
 
     function getParam(name) {
       // Backward compatible URL parameter parsing for older Android WebView versions
-      // This replaces new URL() constructor which wasn't available in older Chrome/WebView
       var search = window.location.search;
       if (search.length <= 1) return '';
       
       var urlParams = search.substring(1).split('&');
       for (var i = 0; i < urlParams.length; i++) {
-        var param = urlParams[i].split('=');
-        var key = param[0];
-        var value = param[1] || '';
+        var pair = urlParams[i];
+        var eq = pair.indexOf('=');
+        var key = eq >= 0 ? pair.substring(0, eq) : pair;
+        var value = eq >= 0 ? pair.substring(eq + 1) : '';
         if (key === name) {
           try {
             // Android encodes spaces as '+', so normalize before decoding
@@ -1460,16 +1460,24 @@
       
       console.log(`Querying trigpoints: S=${expandedBounds.getSouth()}, W=${expandedBounds.getWest()}, N=${expandedBounds.getNorth()}, E=${expandedBounds.getEast()}`);
       
-      // Call Android to get trigpoint data
-      AndroidPrefs.getTrigpointData(
-        expandedBounds.getSouth(),
-        expandedBounds.getWest(), 
-        expandedBounds.getNorth(),
-        expandedBounds.getEast(),
-        currentTrigpointType,
-        currentFilterFound,
-        currentMarkerColor
-      );
+      // Call Android to get trigpoint data (guarded)
+      try {
+        if (typeof AndroidPrefs !== 'undefined' && AndroidPrefs.getTrigpointData) {
+          AndroidPrefs.getTrigpointData(
+            expandedBounds.getSouth(),
+            expandedBounds.getWest(), 
+            expandedBounds.getNorth(),
+            expandedBounds.getEast(),
+            currentTrigpointType,
+            currentFilterFound,
+            currentMarkerColor
+          );
+        } else {
+          console.warn('AndroidPrefs.getTrigpointData not available');
+        }
+      } catch (e) {
+        console.warn('Error calling AndroidPrefs.getTrigpointData:', e);
+      }
     }
 
     function displayTrigpointMarkers(trigpointsJson) {
@@ -1513,12 +1521,12 @@
             <b>${safeName}</b><br>
             Type: ${safeType}<br>
             Condition: ${safeCondition}<br>
-            <a href="#" onclick="AndroidPrefs.openTrigDetails(${trigId}); return false;">View Details</a>
+            <a href="javascript:void(0)" onclick="openTrigDetailsSafe(${trigId})">View Details</a>
           `);
           
-          // Add click handler for details
+          // Add click handler for details (guarded)
           marker.on('click', () => {
-            AndroidPrefs.openTrigDetails(trig.id);
+            openTrigDetailsSafe(trig.id);
           });
           
           markersLayer.addLayer(marker);
@@ -1543,6 +1551,16 @@
       return sizeMap[iconStyle] || 50; // Default to medium size
     }
 
+    // Guarded access to Android icon style preference
+    function getIconStyleSafe() {
+      try {
+        if (typeof AndroidPrefs !== 'undefined' && AndroidPrefs.getIconStyle) {
+          return AndroidPrefs.getIconStyle();
+        }
+      } catch (e) {}
+      return 'medium';
+    }
+
     function createTrigIcon(trig) {
       // Determine icon based on type and coloring scheme
       let iconClass = 'trig-icon';
@@ -1556,7 +1574,7 @@
       }
       
       // Get icon style and size from Android preferences
-      const iconStyle = AndroidPrefs.getIconStyle();
+      const iconStyle = getIconStyleSafe();
       const iconSize = getIconSizeFromStyle(iconStyle);
       
       // Get type-specific icon
@@ -1673,6 +1691,19 @@
     }
 
     initialiseMap();
+
+    // Guarded details opener
+    function openTrigDetailsSafe(trigId) {
+      try {
+        if (typeof AndroidPrefs !== 'undefined' && AndroidPrefs.openTrigDetails) {
+          AndroidPrefs.openTrigDetails(Number(trigId) || 0);
+        } else {
+          console.warn('AndroidPrefs.openTrigDetails not available');
+        }
+      } catch (e) {
+        console.warn('Error opening trig details:', e);
+      }
+    }
 
     function autoLocateOnFirstVisit() {
       // Check if we should auto-centre on first visit
