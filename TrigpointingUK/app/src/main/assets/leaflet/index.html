@@ -259,10 +259,9 @@
     }
     const osKey = getParam('os_key');
     const rawInitialStyle = getParam('initial_style') || 'OpenStreetMap';
-    // URL decode the initial style parameter
-    const initialStyle = decodeURIComponent(rawInitialStyle.replace(/\+/g, ' '));
-    console.log('JavaScript received initial_style parameter (raw):', rawInitialStyle);
-    console.log('JavaScript using initialStyle (decoded):', initialStyle);
+    // getParam already decodes; avoid double-decoding which can corrupt values
+    const initialStyle = rawInitialStyle;
+    console.log('JavaScript using initialStyle:', initialStyle);
 
     // Define OSGB CRS for 27700
     const osgb = new L.Proj.CRS(
@@ -1476,6 +1475,17 @@
         // Clear existing markers
         markersLayer.clearLayers();
         
+        // Basic HTML escape to prevent injection/broken markup in popups
+        function escapeHtml(str) {
+          if (str === null || str === undefined) return '';
+          return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+        }
+
         trigpoints.forEach(trig => {
           // Use standard lat/lon - Leaflet CRS should handle transformation automatically
           const coords = [trig.lat, trig.lon];
@@ -1489,11 +1499,15 @@
           });
           
           // Add popup with basic info
+          const safeName = escapeHtml(trig.name);
+          const safeType = escapeHtml(trig.type);
+          const safeCondition = escapeHtml(trig.condition);
+          const trigId = Number(trig.id) || 0;
           marker.bindPopup(`
-            <b>${trig.name}</b><br>
-            Type: ${trig.type}<br>
-            Condition: ${trig.condition}<br>
-            <a href="#" onclick="AndroidPrefs.openTrigDetails(${trig.id})">View Details</a>
+            <b>${safeName}</b><br>
+            Type: ${safeType}<br>
+            Condition: ${safeCondition}<br>
+            <a href="#" onclick="AndroidPrefs.openTrigDetails(${trigId})">View Details</a>
           `);
           
           // Add click handler for details

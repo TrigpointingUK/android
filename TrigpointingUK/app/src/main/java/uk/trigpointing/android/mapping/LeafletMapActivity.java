@@ -114,7 +114,8 @@ public class LeafletMapActivity extends BaseActivity {
                             Log.d(TAG, "Serving tile from local cache: " + tileFile.getPath());
                             InputStream inputStream = new FileInputStream(tileFile);
                             String mimeType = getMimeType(url);
-                            return new WebResourceResponse(mimeType, "UTF-8", inputStream);
+                            // Use null encoding for binary content to avoid incorrect charset headers
+                            return new WebResourceResponse(mimeType, null, inputStream);
                         } else {
                              Log.d(TAG, "Tile not in cache, fetching from network: " + url);
                              return fetchAndCacheTile(url, tileFile);
@@ -223,9 +224,10 @@ public class LeafletMapActivity extends BaseActivity {
     }
 
     private WebResourceResponse fetchAndCacheTile(String urlString, File tileFile) {
+        HttpURLConnection connection = null;
         try {
             URL url = new URL(urlString);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection = (HttpURLConnection) url.openConnection();
 
             // Set a custom User-Agent to comply with tile server policies
             connection.setRequestProperty("User-Agent", "TrigpointingUK-Android-App/1.0");
@@ -233,30 +235,35 @@ public class LeafletMapActivity extends BaseActivity {
             connection.connect();
 
             if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                InputStream inputStream = connection.getInputStream();
-                
                 // Ensure parent directories exist
                 File parentDir = tileFile.getParentFile();
                 if (parentDir != null && !parentDir.exists()) {
                     parentDir.mkdirs();
                 }
 
-                // Write the tile to the cache file
-                FileOutputStream fileOutputStream = new FileOutputStream(tileFile);
-                byte[] buffer = new byte[1024];
-                int bufferLength;
-                while ((bufferLength = inputStream.read(buffer)) > 0) {
-                    fileOutputStream.write(buffer, 0, bufferLength);
+                // Stream network data to file with proper closure
+                try (InputStream inputStream = connection.getInputStream();
+                     FileOutputStream fileOutputStream = new FileOutputStream(tileFile)) {
+                    byte[] buffer = new byte[8 * 1024];
+                    int bufferLength;
+                    while ((bufferLength = inputStream.read(buffer)) != -1) {
+                        fileOutputStream.write(buffer, 0, bufferLength);
+                    }
+                    fileOutputStream.flush();
                 }
-                fileOutputStream.close();
-                
+
                 // Now that it's cached, serve it from the file
                 InputStream cachedInputStream = new FileInputStream(tileFile);
                 String mimeType = getMimeType(urlString);
-                return new WebResourceResponse(mimeType, connection.getContentEncoding(), cachedInputStream);
+                // Use null encoding for binary content
+                return new WebResourceResponse(mimeType, null, cachedInputStream);
             }
         } catch (IOException e) {
             Log.e(TAG, "Error fetching and caching tile", e);
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
         }
         return null; // Let WebView handle the failed request
     }
@@ -408,19 +415,29 @@ public class LeafletMapActivity extends BaseActivity {
 
             JSONArray trigpoints = new JSONArray();
             
+            // Cache column indices and use OrThrow for required columns
+            int idIdx = cursor.getColumnIndexOrThrow(DbHelper.TRIG_ID);
+            int nameIdx = cursor.getColumnIndexOrThrow(DbHelper.TRIG_NAME);
+            int latIdx = cursor.getColumnIndexOrThrow(DbHelper.TRIG_LAT);
+            int lonIdx = cursor.getColumnIndexOrThrow(DbHelper.TRIG_LON);
+            int typeIdx = cursor.getColumnIndexOrThrow(DbHelper.TRIG_TYPE);
+            int condIdx = cursor.getColumnIndexOrThrow(DbHelper.TRIG_CONDITION);
+            int loggedIdx = cursor.getColumnIndexOrThrow(DbHelper.TRIG_LOGGED);
+            int markedIdx = cursor.getColumnIndex(DbHelper.JOIN_MARKED);
+
             while (cursor.moveToNext()) {
                 JSONObject trig = new JSONObject();
                 
-                trig.put("id", cursor.getLong(cursor.getColumnIndex(DbHelper.TRIG_ID)));
-                trig.put("name", cursor.getString(cursor.getColumnIndex(DbHelper.TRIG_NAME)));
-                trig.put("lat", cursor.getDouble(cursor.getColumnIndex(DbHelper.TRIG_LAT)));
-                trig.put("lon", cursor.getDouble(cursor.getColumnIndex(DbHelper.TRIG_LON)));
-                trig.put("type", cursor.getString(cursor.getColumnIndex(DbHelper.TRIG_TYPE)));
-                trig.put("condition", cursor.getString(cursor.getColumnIndex(DbHelper.TRIG_CONDITION)));
-                trig.put("logged", cursor.getString(cursor.getColumnIndex(DbHelper.TRIG_LOGGED)));
+                trig.put("id", cursor.getLong(idIdx));
+                trig.put("name", cursor.getString(nameIdx));
+                trig.put("lat", cursor.getDouble(latIdx));
+                trig.put("lon", cursor.getDouble(lonIdx));
+                trig.put("type", cursor.getString(typeIdx));
+                trig.put("condition", cursor.getString(condIdx));
+                trig.put("logged", cursor.getString(loggedIdx));
                 
                 // Check if flagged/marked
-                String marked = cursor.getString(cursor.getColumnIndex(DbHelper.JOIN_MARKED));
+                String marked = (markedIdx != -1) ? cursor.getString(markedIdx) : null;
                 trig.put("flagged", marked != null);
                 
                 trigpoints.put(trig);
