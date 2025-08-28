@@ -1416,16 +1416,22 @@
       markersLayer = L.layerGroup().addTo(map);
       console.log('MARKER DEBUG: Created markersLayer and added to map');
       
+      // Debounced marker loading
+      let loadTimer = null;
+      const debouncedLoad = () => {
+        if (loadTimer) clearTimeout(loadTimer);
+        loadTimer = setTimeout(() => {
+          loadTrigpointMarkers();
+        }, 150);
+      };
+
       // Load initial markers
       loadTrigpointMarkers();
       
-      // Update markers when map moves
-      map.on('moveend', () => {
-        loadTrigpointMarkers();
-      });
-      
+      // Update markers when map moves/zooms with debounce
+      map.on('moveend', debouncedLoad);
       map.on('zoomend', () => {
-        loadTrigpointMarkers();
+        debouncedLoad();
         updateZoomLevelDisplay();
       });
     }
@@ -1507,7 +1513,7 @@
             <b>${safeName}</b><br>
             Type: ${safeType}<br>
             Condition: ${safeCondition}<br>
-            <a href="#" onclick="AndroidPrefs.openTrigDetails(${trigId})">View Details</a>
+            <a href="#" onclick="AndroidPrefs.openTrigDetails(${trigId}); return false;">View Details</a>
           `);
           
           // Add click handler for details

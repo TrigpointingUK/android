@@ -103,11 +103,13 @@ public class LeafletMapActivity extends BaseActivity {
             @Override
             public WebResourceResponse shouldInterceptRequest(@NonNull WebView view, @NonNull WebResourceRequest request) {
                 String url = request.getUrl().toString();
+                if (url == null) return super.shouldInterceptRequest(view, request);
 
                 if (url.contains("tile.openstreetmap.org") || url.contains("api.os.uk") || url.contains("server.arcgisonline.com")) {
                     try {
                         String domain = request.getUrl().getHost();
                         String path = request.getUrl().getPath();
+                        if (domain == null || path == null) return super.shouldInterceptRequest(view, request);
                         File tileFile = new File(mTileCacheDir, domain + path);
 
                         if (tileFile.exists()) {
@@ -339,8 +341,12 @@ public class LeafletMapActivity extends BaseActivity {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         boolean devMode = prefs.getBoolean("dev_mode", false);
 
-        menu.findItem(R.id.menu_clear_cache).setVisible(devMode);
-        menu.findItem(R.id.menu_cache_status).setVisible(devMode);
+        if (menu.findItem(R.id.menu_clear_cache) != null) {
+            menu.findItem(R.id.menu_clear_cache).setVisible(devMode);
+        }
+        if (menu.findItem(R.id.menu_cache_status) != null) {
+            menu.findItem(R.id.menu_cache_status).setVisible(devMode);
+        }
 
         return true;
     }
@@ -369,27 +375,32 @@ public class LeafletMapActivity extends BaseActivity {
 
     // Callback methods for tab fragments
     public void updateMapStyle(String style) {
-        webView.evaluateJavascript("if (typeof switchToLayer === 'function') switchToLayer('" + style + "');", null);
+        String safe = org.json.JSONObject.quote(style);
+        webView.evaluateJavascript("if (typeof switchToLayer === 'function') switchToLayer(" + safe + ");", null);
         Log.d(TAG, "Updated map style to: " + style);
     }
 
     public void updateMarkerColor(String color) {
-        webView.evaluateJavascript("if (typeof updateMarkerColors === 'function') updateMarkerColors('" + color + "');", null);
+        String safe = org.json.JSONObject.quote(color);
+        webView.evaluateJavascript("if (typeof updateMarkerColors === 'function') updateMarkerColors(" + safe + ");", null);
         Log.d(TAG, "Updated marker colour to: " + color);
     }
 
     public void updateTrigpointType(String type) {
-        webView.evaluateJavascript("if (typeof updateTrigpointType === 'function') updateTrigpointType('" + type + "');", null);
+        String safe = org.json.JSONObject.quote(type);
+        webView.evaluateJavascript("if (typeof updateTrigpointType === 'function') updateTrigpointType(" + safe + ");", null);
         Log.d(TAG, "Updated trigpoint type to: " + type);
     }
     
     public void updateFilterFound(String found) {
-        webView.evaluateJavascript("if (typeof updateFilterFound === 'function') updateFilterFound('" + found + "');", null);
+        String safe = org.json.JSONObject.quote(found);
+        webView.evaluateJavascript("if (typeof updateFilterFound === 'function') updateFilterFound(" + safe + ");", null);
         Log.d(TAG, "Updated filter found to: " + found);
     }
     
     public void updateSessionMapStyle(String style) {
-        webView.evaluateJavascript("sessionStorage.setItem('leaflet_session_map_style', '" + style + "');", null);
+        String safe = org.json.JSONObject.quote(style);
+        webView.evaluateJavascript("sessionStorage.setItem('leaflet_session_map_style', " + safe + ");", null);
         Log.d(TAG, "Updated session map style to: " + style);
     }
 
@@ -711,8 +722,11 @@ public class LeafletMapActivity extends BaseActivity {
     private int deleteRecursive(File fileOrDirectory) {
         int count = 0;
         if (fileOrDirectory.isDirectory()) {
-            for (File child : Objects.requireNonNull(fileOrDirectory.listFiles())) {
-                count += deleteRecursive(child);
+            File[] children = fileOrDirectory.listFiles();
+            if (children != null) {
+                for (File child : children) {
+                    count += deleteRecursive(child);
+                }
             }
         }
         if (fileOrDirectory.delete()) {
