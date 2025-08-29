@@ -1672,7 +1672,61 @@
     let watchId = null;
     let isTrackingLocation = false;
 
-    function locate(){
+    // NOTE: Requires browser support for Web Crypto API (AES-GCM)
+    // Demo passphrase for key derivation; in production, use a per-user secret or auth.
+    const LEAFLET_LOCATION_KEY_PASSPHRASE = "demo-user-passphrase";
+
+    async function getKeyFromPassphrase(passphrase) {
+      const enc = new TextEncoder();
+      const keyMaterial = await window.crypto.subtle.importKey(
+        "raw",
+        enc.encode(passphrase),
+        {"name": "PBKDF2"},
+        false,
+        ["deriveKey"]);
+      return window.crypto.subtle.deriveKey(
+        {
+          name: "PBKDF2",
+          salt: enc.encode("leaflet_location_salt"),
+          iterations: 100000,
+          hash: "SHA-256"
+        },
+        keyMaterial,
+        { name: "AES-GCM", length: 256 },
+        true,
+        [ "encrypt", "decrypt" ]
+      );
+    }
+
+    async function encryptData(data, key) {
+      const enc = new TextEncoder();
+      const iv = window.crypto.getRandomValues(new Uint8Array(12));
+      const encoded = enc.encode(JSON.stringify(data));
+      const ciphertext = await window.crypto.subtle.encrypt(
+        { name: "AES-GCM", iv: iv },
+        key,
+        encoded
+      );
+      // Store iv+ciphertext as base64 for easy storage
+      const ivStr = btoa(String.fromCharCode(...iv));
+      const ctStr = btoa(String.fromCharCode(...new Uint8Array(ciphertext)));
+      return ivStr + ":" + ctStr;
+    }
+
+    async function decryptData(encrypted, key) {
+      const [ivStr, ctStr] = encrypted.split(":");
+      const iv = new Uint8Array(atob(ivStr).split('').map(c => c.charCodeAt(0)));
+      const ciphertext = new Uint8Array(atob(ctStr).split('').map(c => c.charCodeAt(0)));
+      const decrypted = await window.crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: iv },
+        key,
+        ciphertext
+      );
+      const dec = new TextDecoder();
+      return JSON.parse(dec.decode(decrypted));
+    }
+
+    async function locate(){
       if (!navigator.geolocation) { 
         console.log('Geolocation not supported'); 
         return; 
@@ -1694,7 +1748,7 @@
       locBtn.title = 'Stop tracking location';
       
       // Start watching position
-      watchId = navigator.geolocation.watchPosition(function(pos){
+      watchId = navigator.geolocation.watchPosition(async function(pos){
         const lat = pos.coords.latitude;
         const lon = pos.coords.longitude;
         const accuracy = pos.coords.accuracy;
@@ -1708,7 +1762,14 @@
           lon: lon,
           timestamp: Date.now()
         };
-        localStorage.setItem('leaflet_last_location', JSON.stringify(locationData));
+        // Encrypt locationData before storing
+        try {
+          const key = await getKeyFromPassphrase(LEAFLET_LOCATION_KEY_PASSPHRASE);
+          const encrypted = await encryptData(locationData, key);
+          localStorage.setItem('leaflet_last_location', encrypted);
+        } catch(e) {
+          console.error('Encryption error:', e);
+        }
         
         // Update or create location marker
         const isFirstLocationFix = !locationMarker;
