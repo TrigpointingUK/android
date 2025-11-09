@@ -23,19 +23,5 @@
     <item
         android:id="@+id/action_exit"
         android:title="@string/action_exit"/>
-    
-    <!-- Auth0 Developer Menu Items -->
-    <item
-        android:id="@+id/action_auth0_login"
-        android:title="@string/action_auth0_login"/>
-    <item
-        android:id="@+id/action_auth0_user"
-        android:title="@string/action_auth0_user"/>
-    <item
-        android:id="@+id/action_auth0_api"
-        android:title="@string/action_auth0_api"/>
-    <item
-        android:id="@+id/action_auth0_logout"
-        android:title="@string/action_auth0_logout"/>
 
 </menu> 
