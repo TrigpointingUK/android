@@ -55,6 +55,9 @@ import coil.target.Target;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import android.graphics.drawable.Drawable;
+import coil.memory.MemoryCache;
+import coil.disk.DiskCache;
+import java.util.Collections;
 
 public class MainActivity extends BaseActivity implements SyncListener {
     public static final String     TAG ="MainActivity";
@@ -481,7 +484,11 @@ public class MainActivity extends BaseActivity implements SyncListener {
     @Override
     public void onSynced(int status) {
         Log.i(TAG, "onSynced");
-        populateCounts();
+        runOnUiThread(() -> {
+            clearUserMapCache();
+            populateCounts();
+            updateUserDisplay();
+        });
     }
     
     /**
@@ -850,13 +857,15 @@ public class MainActivity extends BaseActivity implements SyncListener {
             // Load map if we have a persisted API user id, even if token has expired
             Integer userId = authPreferences.getApiUserId();
             if (userId != null && userId > 0) {
-                String baseUrl = BuildConfig.TRIG_API_BASE + "/v1/users/" + userId + "/map";
-                String mapUrl = baseUrl + "?t=" + System.currentTimeMillis();
+                String mapUrl = BuildConfig.TRIG_API_BASE + "/v1/users/" + userId + "/map?height=400";
+                String cacheKey = getUserMapCacheKey(userId);
                 Log.i(TAG, "updateUserMap: Loading map for user ID " + userId + " from URL: " + mapUrl);
                 
                 // Load the image using Coil - simplest approach
                 ImageRequest request = new ImageRequest.Builder(this)
                         .data(mapUrl)
+                        .memoryCacheKey(cacheKey)
+                        .diskCacheKey(cacheKey)
                         .target(mUserMapImage) // Use ImageView directly as target - Coil will handle setting the drawable
                         .placeholder(android.R.drawable.ic_menu_mapmode) // Show placeholder while loading
                         .error(android.R.drawable.ic_dialog_alert) // Show error icon if loading fails
@@ -874,7 +883,7 @@ public class MainActivity extends BaseActivity implements SyncListener {
                 
                 // Add click listener to open full map view
                 mUserMapImage.setOnClickListener(v -> {
-                    String fullMapUrl = baseUrl + "?height=1500&t=" + System.currentTimeMillis();
+                    String fullMapUrl = BuildConfig.TRIG_API_BASE + "/v1/users/" + userId + "/map?height=1500&t=" + System.currentTimeMillis();
                     android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(fullMapUrl));
                     startActivity(intent);
                 });
@@ -890,6 +899,28 @@ public class MainActivity extends BaseActivity implements SyncListener {
         }
     }
     
+    private String getUserMapCacheKey(int userId) {
+        return "user_map_" + userId;
+    }
+    
+    private void clearUserMapCache() {
+        Integer userId = authPreferences.getApiUserId();
+        if (userId == null || userId <= 0) {
+            return;
+        }
+        String cacheKey = getUserMapCacheKey(userId);
+        ImageLoader loader = Coil.imageLoader(this);
+        MemoryCache memoryCache = loader.getMemoryCache();
+        if (memoryCache != null) {
+            memoryCache.remove(new MemoryCache.Key(cacheKey, java.util.Collections.emptyMap()));
+        }
+        DiskCache diskCache = loader.getDiskCache();
+        if (diskCache != null) {
+            diskCache.remove(cacheKey);
+        }
+        mUserMapImage.setImageDrawable(null);
+    }
+
     private void populateCounts() {
         Log.i(TAG, "populateCounts: Starting count population");
         // Show loading state
