@@ -63,7 +63,7 @@
     <string name="noLogs">No logs available</string>
 
 
-    <string name="downloadMapsExplanation">The app automatically caches any map tiles that you view whilst online, providing basic offline coverage for areas you've explored.\n\nFor better offline availability, you can bulk download UK-wide maps at various scale ranges below. This ensures comprehensive coverage even when you're completely offline.\n\n⚠️ Warning: Some of these files are very large (several hundred MB), so avoid downloading on a metered connection unless necessary.</string>
+    <string name="downloadMapsExplanation">Download maps for offline use.</string>
     <string name="cacheUsageFormat">Cache usage: %1$s</string>
     <string name="clearCache">Clear cache (via Settings)</string>
     <string name="cacheCalculating">Calculating cache size…</string>
