@@ -27,15 +27,15 @@ android {
         applicationId "uk.trigpointing.android"
         minSdk = 27
         targetSdk = 36
-        versionCode 42
-        versionName "2.0.42"
+        versionCode 43
+        versionName "2.1.43"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         def buildTime = new Date().format("yyyy-MM-dd HH:mm:ss")
         buildConfigField "String", "BUILD_TIME", "\"${buildTime}\""
         
         // Auth0 manifest placeholders
         manifestPlaceholders = [
-            auth0Domain: "trigpointing.eu.auth0.com",
+            auth0Domain: "auth.trigpointing.uk",
             auth0Scheme: "uk.trigpointing.android"
         ]
     }
@@ -48,15 +48,22 @@ android {
             versionNameSuffix "-debug"
             enableUnitTestCoverage true
             enableAndroidTestCoverage true
+            
+            // Debug build uses trigpointing.me domain
+            buildConfigField "String", "API_BASE_URL", "\"https://api.trigpointing.me/v1\""
+            
             // Override Auth0 manifest placeholders for debug build
             manifestPlaceholders = [
-                auth0Domain: "trigpointing.eu.auth0.com",
+                auth0Domain: "auth.trigpointing.me",
                 auth0Scheme: "uk.trigpointing.android.debug"
             ]
         }
         release {
             minifyEnabled true
             shrinkResources true
+            
+            // Production build uses trigpointing.uk domain
+            buildConfigField "String", "API_BASE_URL", "\"https://api.trigpointing.uk/v1\""
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             ndk {
                 debugSymbolLevel 'SYMBOL_TABLE'

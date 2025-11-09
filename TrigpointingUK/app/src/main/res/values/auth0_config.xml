@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="auth0_domain">trigpointing.eu.auth0.com</string>
+    <string name="auth0_domain">auth.trigpointing.uk</string>
     <string name="auth0_client_id">IEBodjQvHMuDTS5vNVeve5j8YKQcYBN3</string>
-    <string name="auth0_redirect_uri">uk.trigpointing.android://trigpointing.eu.auth0.com/android/uk.trigpointing.android/callback</string>
+    <string name="auth0_redirect_uri">uk.trigpointing.android://auth.trigpointing.uk/android/uk.trigpointing.android/callback</string>
     <string name="auth0_audience">https://api.trigpointing.uk/</string>
+    <string name="auth0_connection">tuk-users</string>
 </resources>

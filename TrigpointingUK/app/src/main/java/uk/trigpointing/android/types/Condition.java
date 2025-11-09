@@ -4,7 +4,7 @@ import uk.trigpointing.android.R;
 
 
 public enum Condition {
-    CONDITIONNOTLOGGED    ("Z", R.drawable.c_unknown                    , R.drawable.cs_unknown                    , "Not Logged"),
+    CONDITIONNOTLOGGED    ("Z", R.drawable.c_nolog                     , R.drawable.cs_unknown                    , "Not Logged"),
     COULDNTFIND            ("N", R.drawable.c_possiblymissing            , R.drawable.cs_possiblymissing            , "Couldn't Find"),
     GOOD                ("G", R.drawable.c_good                        , R.drawable.cs_good                    , "Good"),
     SLIGHTLYDAMAGED        ("S", R.drawable.c_slightlydamaged            , R.drawable.cs_slightlydamaged            , "Slightly Damaged"),
@@ -16,8 +16,8 @@ public enum Condition {
     POSSIBLYMISSING        ("Q", R.drawable.c_possiblymissing            , R.drawable.cs_possiblymissing            , "Possibly Missing"),
     MISSING                ("X", R.drawable.c_definitelymissing        , R.drawable.cs_definitelymissing        , "Destroyed"),
     VISIBLE                ("V", R.drawable.c_unreachablebutvisible    , R.drawable.cs_unreachablebutvisible    , "Unreachable but Visible"),
-    INACCESSIBLE        ("P", R.drawable.c_unknown                    , R.drawable.cs_unknown                    , "Inaccessible"),
-    UNKNOWN             ("U", R.drawable.c_unknown                    , R.drawable.cs_unknown                    , "Unknown"),
+    INACCESSIBLE        ("P", R.drawable.c_nolog                     , R.drawable.cs_unknown                    , "Inaccessible"),
+    UNKNOWN             ("U", R.drawable.c_nolog                     , R.drawable.cs_unknown                    , "Unknown"),
     TRIGNOTLOGGED        ("-", R.drawable.c_nolog                    , R.drawable.cs_nolog                    , "Not Visited"),
     ;
 

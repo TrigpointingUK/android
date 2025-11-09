@@ -1104,11 +1104,11 @@ public class LogTrigActivity extends BaseTabActivity implements OnDateChangedLis
         Log.i(TAG, "uploadLog");
         
         // check for login credentials in prefs
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        String username = prefs.getString("username", "");
-        String password = prefs.getString("plaintextpassword", "");
         
-        if (username.trim().isEmpty() || password.trim().isEmpty()) {
+        // Check if user is logged in with Auth0 before syncing
+        uk.trigpointing.android.api.AuthPreferences authPreferences = new uk.trigpointing.android.api.AuthPreferences(this);
+        
+        if (!authPreferences.isLoggedIn()) {
             Toast.makeText(this, R.string.toastPleaseLogin, Toast.LENGTH_LONG).show();
             return;
         }

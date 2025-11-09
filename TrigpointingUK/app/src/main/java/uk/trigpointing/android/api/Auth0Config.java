@@ -25,6 +25,7 @@ public class Auth0Config {
     private final String auth0ClientId;
     private final String auth0RedirectUri; // legacy; prefer buildRedirectUri()
     private final String auth0Audience;
+    private final String auth0Connection;
     
     private final Auth0 auth0;
     private final Context context;
@@ -37,10 +38,11 @@ public class Auth0Config {
         this.auth0ClientId = context.getString(R.string.auth0_client_id);
         this.auth0RedirectUri = context.getString(R.string.auth0_redirect_uri);
         this.auth0Audience = context.getString(R.string.auth0_audience);
+        this.auth0Connection = context.getString(R.string.auth0_connection);
         
         this.auth0 = new Auth0(auth0ClientId, auth0Domain);
         
-        Log.i(TAG, "Auth0Config initialized with domain: " + auth0Domain + ", clientId: " + auth0ClientId);
+        Log.i(TAG, "Auth0Config initialized with domain: " + auth0Domain + ", clientId: " + auth0ClientId + ", connection: " + auth0Connection);
     }
     
     /**
@@ -68,16 +70,28 @@ public class Auth0Config {
     }
     
     /**
+     * Interface for Auth0 token refresh callbacks
+     */
+    public interface RefreshCallback {
+        void onSuccess(Credentials credentials);
+        void onError(AuthenticationException error);
+    }
+    
+    /**
      * Start Auth0 universal login flow
      */
     public void login(Auth0Callback callback) {
         Log.i(TAG, "Starting Auth0 universal login");
         
+        // Use package name as scheme (handles both release and debug builds automatically)
+        String scheme = context.getPackageName();
+        Log.i(TAG, "Using scheme: " + scheme);
+        
         WebAuthProvider.login(auth0)
-                .withScheme("uk.trigpointing.android")
+                .withScheme(scheme)
                 .withScope("openid profile email offline_access")
                 .withAudience(auth0Audience)
-                .withConnection("tuk-users")  // Specify the connection explicitly
+                .withConnection(auth0Connection)  // Use connection from resources
                 .withRedirectUri(auth0RedirectUri)  // Use resource-defined redirect URI
                 .start(context, new Callback<Credentials, AuthenticationException>() {
                     @Override
@@ -148,8 +162,13 @@ public class Auth0Config {
     public void logout(LogoutCallback callback) {
         Log.i(TAG, "Starting Auth0 logout");
         
+        // Use package name as scheme (handles both release and debug builds automatically)
+        String scheme = context.getPackageName();
+        Log.i(TAG, "Using scheme for logout: " + scheme);
+        
         WebAuthProvider.logout(auth0)
-                .withScheme("uk.trigpointing.android")
+                .withScheme(scheme)
+                .withReturnToUrl(auth0RedirectUri)  // Add explicit return URL
                 .start(context, new Callback<Void, AuthenticationException>() {
                     @Override
                     public void onSuccess(Void payload) {
@@ -201,6 +220,37 @@ public class Auth0Config {
         return auth0Audience;
     }
 
+    /**
+     * Refresh Auth0 access token using refresh token
+     */
+    public void refreshToken(String refreshToken, RefreshCallback callback) {
+        Log.i(TAG, "Refreshing Auth0 access token");
+        
+        try {
+            AuthenticationAPIClient client = new AuthenticationAPIClient(auth0);
+            client.renewAuth(refreshToken)
+                    .addParameter("audience", auth0Audience)
+                    .start(new Callback<Credentials, AuthenticationException>() {
+                        @Override
+                        public void onSuccess(Credentials credentials) {
+                            Log.i(TAG, "Token refresh successful");
+                            callback.onSuccess(credentials);
+                        }
+                        
+                        @Override
+                        public void onFailure(AuthenticationException error) {
+                            Log.e(TAG, "Token refresh failed", error);
+                            FirebaseCrashlytics.getInstance().recordException(error);
+                            callback.onError(error);
+                        }
+                    });
+        } catch (Exception e) {
+            Log.e(TAG, "Error refreshing token", e);
+            FirebaseCrashlytics.getInstance().recordException(e);
+            callback.onError(new AuthenticationException(e.getMessage(), e));
+        }
+    }
+    
     /**
      * Build redirect URI matching the manifest intent-filter and current applicationId.
      * Format: uk.trigpointing.android://{domain}/android/{applicationId}/callback

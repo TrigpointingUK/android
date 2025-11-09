@@ -46,16 +46,6 @@ public class SettingsActivity extends BaseActivity {
     protected void onPause() {
         Log.i(TAG, "onPause");
         super.onPause();
-
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        
-        String plaintext = prefs.getString("password", "");
-        if (!plaintext.isEmpty()) {
-            Editor editor = prefs.edit();
-            editor.putString("plaintextpassword", plaintext);
-            editor.remove("password");
-            editor.apply();
-        }
     }
     
     @Override

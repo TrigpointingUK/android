@@ -9,26 +9,22 @@ import com.auth0.android.result.UserProfile;
 import com.google.gson.Gson;
 
 /**
- * Helper class to manage storage of authentication data from the new API
+ * Helper class to manage storage of Auth0 authentication data.
+ * This class exclusively handles Auth0 authentication - no legacy passwords or tokens.
  */
 public class AuthPreferences {
     private static final String TAG = "AuthPreferences";
-    private static final String PREF_ACCESS_TOKEN = "api_access_token";
-    private static final String PREF_TOKEN_TYPE = "api_token_type";
-    private static final String PREF_USER_DATA = "api_user_data";
-    private static final String PREF_USER_ID = "api_user_id";
-    private static final String PREF_EXPIRES_IN = "api_expires_in";
-    private static final String PREF_LOGIN_TIMESTAMP = "api_login_timestamp";
     
-    // Auth0 specific preferences
+    // Auth0 authentication preferences
     private static final String PREF_AUTH0_ACCESS_TOKEN = "auth0_access_token";
     private static final String PREF_AUTH0_ID_TOKEN = "auth0_id_token";
     private static final String PREF_AUTH0_REFRESH_TOKEN = "auth0_refresh_token";
     private static final String PREF_AUTH0_TOKEN_TYPE = "auth0_token_type";
-    private static final String PREF_AUTH0_EXPIRES_IN = "auth0_expires_in";
+    private static final String PREF_AUTH0_EXPIRES_AT = "auth0_expires_at";
     private static final String PREF_AUTH0_LOGIN_TIMESTAMP = "auth0_login_timestamp";
     private static final String PREF_AUTH0_USER_DATA = "auth0_user_data";
     private static final String PREF_AUTH0_USER_ID = "auth0_user_id";
+    private static final String PREF_AUTH0_USER_NAME = "auth0_user_name";
 
     private final SharedPreferences preferences;
     private final Gson gson;
@@ -36,28 +32,6 @@ public class AuthPreferences {
     public AuthPreferences(Context context) {
         this.preferences = PreferenceManager.getDefaultSharedPreferences(context);
         this.gson = new Gson();
-    }
-
-    /**
-     * Store authentication data from successful login
-     */
-    public void storeAuthData(AuthResponse authResponse) {
-        SharedPreferences.Editor editor = preferences.edit();
-        
-        editor.putString(PREF_ACCESS_TOKEN, authResponse.getAccessToken());
-        editor.putString(PREF_TOKEN_TYPE, authResponse.getTokenType());
-        editor.putInt(PREF_EXPIRES_IN, authResponse.getExpiresIn());
-        editor.putLong(PREF_LOGIN_TIMESTAMP, System.currentTimeMillis());
-        
-        // Store user data as JSON
-        String userJson = gson.toJson(authResponse.getUser());
-        editor.putString(PREF_USER_DATA, userJson);
-        // Store user id explicitly for durability and easy access
-        if (authResponse.getUser() != null) {
-            editor.putInt(PREF_USER_ID, authResponse.getUser().getId());
-        }
-        
-        editor.apply();
     }
 
     /**
@@ -69,25 +43,31 @@ public class AuthPreferences {
         
         SharedPreferences.Editor editor = preferences.edit();
         
+        // Store token data
         editor.putString(PREF_AUTH0_ACCESS_TOKEN, credentials.getAccessToken());
         editor.putString(PREF_AUTH0_ID_TOKEN, credentials.getIdToken());
-        editor.putString(PREF_AUTH0_REFRESH_TOKEN, credentials.getRefreshToken());
+        if (credentials.getRefreshToken() != null) {
+            editor.putString(PREF_AUTH0_REFRESH_TOKEN, credentials.getRefreshToken());
+        }
         editor.putString(PREF_AUTH0_TOKEN_TYPE, credentials.getType());
-        editor.putLong(PREF_AUTH0_EXPIRES_IN, credentials.getExpiresAt() != null ? 
-            (credentials.getExpiresAt().getTime() - System.currentTimeMillis()) / 1000 : 3600);
-        editor.putLong(PREF_AUTH0_LOGIN_TIMESTAMP, System.currentTimeMillis());
-        if (userProfile != null) {
-            editor.putString(PREF_AUTH0_USER_ID, userProfile.getId());
-        } else {
-            editor.remove(PREF_AUTH0_USER_ID);
+        
+        // Store expiration time (absolute timestamp)
+        if (credentials.getExpiresAt() != null) {
+            editor.putLong(PREF_AUTH0_EXPIRES_AT, credentials.getExpiresAt().getTime());
         }
         
-        // Store user profile data as JSON
+        editor.putLong(PREF_AUTH0_LOGIN_TIMESTAMP, System.currentTimeMillis());
+        
+        // Store user profile data
         if (userProfile != null) {
+            editor.putString(PREF_AUTH0_USER_ID, userProfile.getId());
+            if (userProfile.getName() != null) {
+                editor.putString(PREF_AUTH0_USER_NAME, userProfile.getName());
+            }
+            
+            // Store full user profile as JSON
             String userJson = gson.toJson(userProfile);
             editor.putString(PREF_AUTH0_USER_DATA, userJson);
-        } else {
-            editor.remove(PREF_AUTH0_USER_DATA);
         }
         
         editor.apply();
@@ -95,164 +75,28 @@ public class AuthPreferences {
     }
     
     /**
-     * Clear all stored authentication data (both legacy API and Auth0)
+     * Clear all stored authentication data
      */
     public void clearAuthData() {
         Log.i(TAG, "Clearing all authentication data");
         
         SharedPreferences.Editor editor = preferences.edit();
         
-        // Clear legacy API data
-        editor.remove(PREF_ACCESS_TOKEN);
-        editor.remove(PREF_TOKEN_TYPE);
-        editor.remove(PREF_USER_DATA);
-        editor.remove(PREF_USER_ID);
-        editor.remove(PREF_EXPIRES_IN);
-        editor.remove(PREF_LOGIN_TIMESTAMP);
-        
         // Clear Auth0 data
         editor.remove(PREF_AUTH0_ACCESS_TOKEN);
         editor.remove(PREF_AUTH0_ID_TOKEN);
         editor.remove(PREF_AUTH0_REFRESH_TOKEN);
         editor.remove(PREF_AUTH0_TOKEN_TYPE);
-        editor.remove(PREF_AUTH0_EXPIRES_IN);
+        editor.remove(PREF_AUTH0_EXPIRES_AT);
         editor.remove(PREF_AUTH0_LOGIN_TIMESTAMP);
         editor.remove(PREF_AUTH0_USER_DATA);
         editor.remove(PREF_AUTH0_USER_ID);
+        editor.remove(PREF_AUTH0_USER_NAME);
         
-        editor.apply();
-        Log.i(TAG, "All authentication data cleared");
+        // Use commit() instead of apply() to ensure synchronous clearing before UI updates
+        editor.commit();
+        Log.i(TAG, "All authentication data cleared (synchronous)");
     }
-    
-    /**
-     * Clear only Auth0 authentication data
-     */
-    public void clearAuth0Data() {
-        Log.i(TAG, "Clearing Auth0 authentication data");
-        
-        SharedPreferences.Editor editor = preferences.edit();
-        
-        editor.remove(PREF_AUTH0_ACCESS_TOKEN);
-        editor.remove(PREF_AUTH0_ID_TOKEN);
-        editor.remove(PREF_AUTH0_REFRESH_TOKEN);
-        editor.remove(PREF_AUTH0_TOKEN_TYPE);
-        editor.remove(PREF_AUTH0_EXPIRES_IN);
-        editor.remove(PREF_AUTH0_LOGIN_TIMESTAMP);
-        editor.remove(PREF_AUTH0_USER_DATA);
-        editor.remove(PREF_AUTH0_USER_ID);
-        
-        editor.apply();
-        Log.i(TAG, "Auth0 authentication data cleared");
-    }
-
-    /**
-     * Get stored access token
-     */
-    public String getAccessToken() {
-        return preferences.getString(PREF_ACCESS_TOKEN, null);
-    }
-
-    /**
-     * Get stored token type
-     */
-    public String getTokenType() {
-        return preferences.getString(PREF_TOKEN_TYPE, null);
-    }
-
-    /**
-     * Get stored user data
-     */
-    public User getUser() {
-        String userJson = preferences.getString(PREF_USER_DATA, null);
-        if (userJson != null) {
-            try {
-                return gson.fromJson(userJson, User.class);
-            } catch (Exception e) {
-                // If parsing fails, return null
-                return null;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Get stored user id, even if token has expired.
-     */
-    public int getUserId() {
-        // Prefer id from parsed user JSON
-        User user = getUser();
-        if (user != null && user.getId() > 0) {
-            return user.getId();
-        }
-        // Fallback to explicitly stored id
-        return preferences.getInt(PREF_USER_ID, 0);
-    }
-
-    /**
-     * Get expires in value (seconds)
-     */
-    public int getExpiresIn() {
-        return preferences.getInt(PREF_EXPIRES_IN, 0);
-    }
-
-    /**
-     * Get the timestamp when the user logged in
-     */
-    public long getLoginTimestamp() {
-        return preferences.getLong(PREF_LOGIN_TIMESTAMP, 0);
-    }
-
-    /**
-     * Check if user is currently logged in with valid token
-     */
-    public boolean isLoggedIn() {
-        String token = getAccessToken();
-        if (token == null || token.isEmpty()) {
-            return false;
-        }
-
-        // Check if token has expired
-        long loginTime = getLoginTimestamp();
-        int expiresIn = getExpiresIn();
-        
-        if (loginTime > 0 && expiresIn > 0) {
-            long currentTime = System.currentTimeMillis();
-            long expirationTime = loginTime + (expiresIn * 1000L); // Convert seconds to milliseconds
-            
-            return currentTime < expirationTime;
-        }
-
-        // If we don't have expiration info, assume logged in if we have a token
-        return true;
-    }
-
-    /**
-     * Get display name for the user (user.name from API, or username if not available)
-     */
-    public String getDisplayName() {
-        User user = getUser();
-        if (user != null && user.getName() != null && !user.getName().isEmpty()) {
-            return user.getName();
-        }
-
-        // Fallback to legacy username if API user data is not available
-        return preferences.getString("username", "");
-    }
-
-    /**
-     * Get display name with user ID for developer mode
-     */
-    public String getDisplayNameWithId() {
-        User user = getUser();
-        if (user != null && user.getName() != null && !user.getName().isEmpty()) {
-            return user.getName() + " (" + user.getId() + ")";
-        }
-
-        // Fallback to legacy username if API user data is not available
-        return preferences.getString("username", "");
-    }
-
-    // Auth0 specific getters
     
     /**
      * Get stored Auth0 access token
@@ -283,10 +127,10 @@ public class AuthPreferences {
     }
     
     /**
-     * Get stored Auth0 expires in value (seconds)
+     * Get the absolute expiration timestamp (milliseconds since epoch)
      */
-    public long getAuth0ExpiresIn() {
-        return preferences.getLong(PREF_AUTH0_EXPIRES_IN, 0);
+    public long getAuth0ExpiresAt() {
+        return preferences.getLong(PREF_AUTH0_EXPIRES_AT, 0);
     }
     
     /**
@@ -301,6 +145,13 @@ public class AuthPreferences {
      */
     public String getAuth0UserId() {
         return preferences.getString(PREF_AUTH0_USER_ID, null);
+    }
+    
+    /**
+     * Get stored Auth0 user name
+     */
+    public String getAuth0UserName() {
+        return preferences.getString(PREF_AUTH0_USER_NAME, null);
     }
     
     /**
@@ -329,14 +180,10 @@ public class AuthPreferences {
         }
 
         // Check if token has expired
-        long loginTime = getAuth0LoginTimestamp();
-        long expiresIn = getAuth0ExpiresIn();
-        
-        if (loginTime > 0 && expiresIn > 0) {
+        long expiresAt = getAuth0ExpiresAt();
+        if (expiresAt > 0) {
             long currentTime = System.currentTimeMillis();
-            long expirationTime = loginTime + (expiresIn * 1000L); // Convert seconds to milliseconds
-            
-            return currentTime < expirationTime;
+            return currentTime < expiresAt;
         }
 
         // If we don't have expiration info, assume logged in if we have a token
@@ -345,7 +192,6 @@ public class AuthPreferences {
     
     /**
      * Check if the Auth0 token should be refreshed (expires within 5 minutes)
-     * In developer mode, always returns true to allow testing of token refresh
      */
     public boolean shouldRefreshAuth0Token() {
         String token = getAuth0AccessToken();
@@ -353,57 +199,59 @@ public class AuthPreferences {
             return false;
         }
 
-        // Check if developer mode is enabled
-        boolean devMode = preferences.getBoolean("dev_mode", false);
-        if (devMode) {
-            return true; // Always refresh in developer mode for testing
-        }
-
-        long loginTime = getAuth0LoginTimestamp();
-        long expiresIn = getAuth0ExpiresIn();
-        
-        if (loginTime > 0 && expiresIn > 0) {
+        long expiresAt = getAuth0ExpiresAt();
+        if (expiresAt > 0) {
             long currentTime = System.currentTimeMillis();
-            long expirationTime = loginTime + (expiresIn * 1000L); // Convert seconds to milliseconds
             long fiveMinutesFromNow = currentTime + (5 * 60 * 1000L); // 5 minutes in milliseconds
             
             // Refresh if token expires within 5 minutes
-            return fiveMinutesFromNow >= expirationTime;
+            return fiveMinutesFromNow >= expiresAt;
         }
 
         // If we don't have expiration info, don't refresh
         return false;
     }
-
+    
     /**
-     * Check if the token should be refreshed (expires within 5 minutes)
-     * In developer mode, always returns true to allow testing of token refresh
+     * Get display name for the user
      */
-    public boolean shouldRefreshToken() {
-        String token = getAccessToken();
-        if (token == null || token.isEmpty()) {
-            return false;
+    public String getDisplayName() {
+        String name = getAuth0UserName();
+        if (name != null && !name.isEmpty()) {
+            return name;
         }
-
-        // Check if developer mode is enabled
-        boolean devMode = preferences.getBoolean("dev_mode", false);
-        if (devMode) {
-            return true; // Always refresh in developer mode for testing
-        }
-
-        long loginTime = getLoginTimestamp();
-        int expiresIn = getExpiresIn();
         
-        if (loginTime > 0 && expiresIn > 0) {
-            long currentTime = System.currentTimeMillis();
-            long expirationTime = loginTime + (expiresIn * 1000L); // Convert seconds to milliseconds
-            long fiveMinutesFromNow = currentTime + (5 * 60 * 1000L); // 5 minutes in milliseconds
-            
-            // Refresh if token expires within 5 minutes
-            return fiveMinutesFromNow >= expirationTime;
+        UserProfile profile = getAuth0UserProfile();
+        if (profile != null && profile.getName() != null) {
+            return profile.getName();
         }
-
-        // If we don't have expiration info, don't refresh
-        return false;
+        
+        return "User";
+    }
+    
+    /**
+     * Get display name with user ID for developer mode
+     */
+    public String getDisplayNameWithId() {
+        String name = getDisplayName();
+        String userId = getAuth0UserId();
+        if (userId != null && !userId.isEmpty()) {
+            return name + " (" + userId + ")";
+        }
+        return name;
+    }
+    
+    /**
+     * Check if user is logged in (primary method for app-wide use)
+     */
+    public boolean isLoggedIn() {
+        return isAuth0LoggedIn();
+    }
+    
+    /**
+     * Get user ID (for compatibility with existing code)
+     */
+    public String getUserId() {
+        return getAuth0UserId();
     }
 }

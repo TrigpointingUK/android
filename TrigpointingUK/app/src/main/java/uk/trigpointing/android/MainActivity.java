@@ -43,10 +43,8 @@ import uk.trigpointing.android.nearest.NearestActivity;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import uk.trigpointing.android.api.AuthApiClient;
 import uk.trigpointing.android.api.AuthPreferences;
 import uk.trigpointing.android.api.Auth0Config;
-import uk.trigpointing.android.api.User;
 import uk.trigpointing.android.filter.Filter;
 import coil.Coil;
 import coil.ImageLoader;
@@ -74,8 +72,7 @@ public class MainActivity extends BaseActivity implements SyncListener {
     private TextView            mUserName;
     private ImageView            mUserMapImage;
     
-    // API authentication components
-    private AuthApiClient authApiClient;
+    // Auth0 authentication components
     private AuthPreferences authPreferences;
     private Auth0Config auth0Config;
     
@@ -109,8 +106,7 @@ public class MainActivity extends BaseActivity implements SyncListener {
         // Check if this is a fresh app start and reset logging status filter if needed
         resetLoggingStatusFilterOnAppStart();
         
-        // Initialize API authentication components
-        authApiClient = new AuthApiClient();
+        // Initialize Auth0 authentication components
         authPreferences = new AuthPreferences(this);
         auth0Config = new Auth0Config(this);
         
@@ -201,11 +197,8 @@ public class MainActivity extends BaseActivity implements SyncListener {
             result -> {
                 // Handle result from PreferencesActivity
                 if (result.getResultCode() == RESULT_OK) {
-                    TextView user = findViewById(R.id.txtUserName);
-                    user.setText(mPrefs.getString("username", ""));
-                    
-                    // Add user details to ACRA (disabled)
-
+                    // Refresh UI after preferences change
+                    updateUserDisplay();
                     populateCounts();
                 }
             }
@@ -288,8 +281,8 @@ public class MainActivity extends BaseActivity implements SyncListener {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         boolean devMode = prefs.getBoolean("dev_mode", false);
         
-        // Check both API authentication and legacy authentication
-        boolean loggedIn = authPreferences.isLoggedIn() || !prefs.getString("username", "").isEmpty();
+        // Check Auth0 authentication only
+        boolean loggedIn = authPreferences.isLoggedIn();
 
         // These items are always visible, so no changes needed for them.
         // menu.findItem(R.id.action_settings).setVisible(true);
@@ -299,12 +292,6 @@ public class MainActivity extends BaseActivity implements SyncListener {
         menu.findItem(R.id.action_refresh).setVisible(devMode);
         menu.findItem(R.id.action_clearcache).setVisible(devMode);
         menu.findItem(R.id.action_exit).setVisible(devMode);
-        
-        // Auth0 items are only visible in developer mode
-        menu.findItem(R.id.action_auth0_login).setVisible(devMode);
-        menu.findItem(R.id.action_auth0_user).setVisible(devMode);
-        menu.findItem(R.id.action_auth0_api).setVisible(devMode);
-        menu.findItem(R.id.action_auth0_logout).setVisible(devMode);
 
         menu.findItem(R.id.action_login).setVisible(!loggedIn);
         menu.findItem(R.id.action_logout).setVisible(loggedIn);
@@ -337,175 +324,111 @@ public class MainActivity extends BaseActivity implements SyncListener {
         } else if (itemId == R.id.action_exit) {
             finish();
             return true;
-        } else if (itemId == R.id.action_auth0_login) {
-            startAuth0Login();
-            return true;
-        } else if (itemId == R.id.action_auth0_user) {
-            showAuth0UserDebug();
-            return true;
-        } else if (itemId == R.id.action_auth0_api) {
-            callAuth0Api();
-            return true;
-        } else if (itemId == R.id.action_auth0_logout) {
-            performAuth0Logout();
-            return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Show Auth0 login - launches browser-based authentication
+     */
     private void showLoginDialog() {
-        showLoginDialog(null);
-    }
-
-    private void showLoginDialog(String errorMessage) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Login");
-
-        View view = getLayoutInflater().inflate(R.layout.dialog_login, null);
-        builder.setView(view);
-
-        final EditText username = view.findViewById(R.id.username);
-        final EditText password = view.findViewById(R.id.password);
-
-        // If there's an error message, add it to the dialog
-        if (errorMessage != null && !errorMessage.isEmpty()) {
-            TextView errorText = new TextView(this);
-            errorText.setText(errorMessage);
-            errorText.setTextColor(ContextCompat.getColor(this, android.R.color.holo_red_dark));
-            errorText.setPadding(24, 8, 24, 16);
-            
-            // Create a new container to include the error message
-            LinearLayout container = new LinearLayout(this);
-            container.setOrientation(LinearLayout.VERTICAL);
-            container.addView(errorText);
-            container.addView(view);
-            builder.setView(container);
-        }
-
-        builder.setPositiveButton("Login", null); // Set to null initially
-        builder.setNegativeButton("Cancel", (dialog, which) -> {
-            // Clear any stored authentication data on cancel
-            authPreferences.clearAuthData();
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.remove("username");
-            editor.remove("plaintextpassword");
-            editor.apply();
-            
-            updateUserDisplay();
-            invalidateOptionsMenu();
-            dialog.cancel();
-        });
-
-        AlertDialog dialog = builder.create();
+        Log.i(TAG, "showLoginDialog: Starting Auth0 universal login");
         
-        // Override the positive button to handle authentication
-        dialog.setOnShowListener(dialogInterface -> {
-            Button loginButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-            loginButton.setOnClickListener(v -> {
-                String user = username.getText().toString().trim();
-                String pass = password.getText().toString().trim();
-
-                if (user.isEmpty() || pass.isEmpty()) {
-                    Toast.makeText(this, "Please enter both username and password", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                // Disable the login button and show progress
-                loginButton.setEnabled(false);
-                loginButton.setText(getString(R.string.logging_in_status));
-
-                // Store legacy credentials first (always store regardless of API success)
-                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-                SharedPreferences.Editor editor = prefs.edit();
-                editor.putString("username", user);
-                editor.putString("plaintextpassword", pass);
-                editor.apply();
-                
-                Log.i(TAG, "Stored legacy credentials for user: " + user);
-
-                // Authenticate with the new API (non-blocking)
-                authApiClient.authenticate(user, pass, new AuthApiClient.AuthCallback() {
-                    @Override
-                    public void onSuccess(uk.trigpointing.android.api.AuthResponse authResponse) {
-                        runOnUiThread(() -> {
-                            Log.i(TAG, "API authentication successful for user: " + authResponse.getUser().getName());
-                            
-                            // Store the API authentication data
-                            authPreferences.storeAuthData(authResponse);
-                            
-                            // Update UI and close dialog
-                            updateUserDisplay();
-                            invalidateOptionsMenu();
-                            dialog.dismiss();
-                            
-                            // Start sync
-                            doSync();
-                            
-                            Toast.makeText(MainActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
-                        });
-                    }
-
-                    @Override
-                    public void onError(String errorMessage) {
-                        runOnUiThread(() -> {
-                            Log.w(TAG, "API authentication failed: " + errorMessage);
-                            
-                            // Check if developer mode is enabled to show error messages
-                            boolean devMode = prefs.getBoolean("dev_mode", false);
-                            if (devMode) {
-                                // Show error only in developer mode
-                                Toast.makeText(MainActivity.this, "API authentication failed: " + errorMessage, Toast.LENGTH_LONG).show();
-                                Log.w(TAG, "Developer mode: API authentication error shown to user: " + errorMessage);
-                            } else {
-                                Log.i(TAG, "Normal mode: API authentication error logged but not shown to user");
-                            }
-                            
-                            // Re-enable the login button
-                            loginButton.setEnabled(true);
-                            loginButton.setText(getString(R.string.login_button_text));
-                            
-                            // Update UI and close dialog (allow user to proceed with legacy functionality)
-                            updateUserDisplay();
-                            invalidateOptionsMenu();
-                            dialog.dismiss();
-                            
-                            // Start sync with legacy credentials
-                            doSync();
-                            
-                            // Show success message (user can still use the app)
-                            Toast.makeText(MainActivity.this, "Login successful! (Legacy mode)", Toast.LENGTH_SHORT).show();
-                        });
+        auth0Config.login(new Auth0Config.Auth0Callback() {
+            @Override
+            public void onSuccess(com.auth0.android.result.Credentials credentials, com.auth0.android.result.UserProfile userProfile) {
+                runOnUiThread(() -> {
+                    try {
+                        String userName = "Unknown";
+                        if (userProfile != null && userProfile.getName() != null) {
+                            userName = userProfile.getName();
+                        }
+                        Log.i(TAG, "Auth0 login successful for user: " + userName);
+                        
+                        // Store the Auth0 authentication data
+                        authPreferences.storeAuth0Data(credentials, userProfile);
+                        
+                        // Update UI
+                        updateUserDisplay();
+                        invalidateOptionsMenu();
+                        
+                        Toast.makeText(MainActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
+                        
+                        // Start sync after successful login
+                        doSync();
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error in Auth0 login success callback", e);
+                        Toast.makeText(MainActivity.this, "Login error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
-            });
+            }
+            
+            @Override
+            public void onError(com.auth0.android.authentication.AuthenticationException error) {
+                runOnUiThread(() -> {
+                    Log.e(TAG, "Auth0 login failed", error);
+                    Toast.makeText(MainActivity.this, "Login failed: " + error.getMessage(), Toast.LENGTH_LONG).show();
+                });
+            }
         });
-
-        dialog.show();
     }
 
+    /**
+     * Logout from Auth0 and clear local data
+     */
     private void doLogout() {
-        // Clear new API authentication data
+        Log.i(TAG, "doLogout: Starting logout process");
+        
+        // Clear auth data immediately (synchronous)
         authPreferences.clearAuthData();
         
-        // Clear legacy authentication data
+        // Also clear legacy username/password from default SharedPreferences
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         SharedPreferences.Editor editor = prefs.edit();
         editor.remove("username");
         editor.remove("plaintextpassword");
-        editor.apply();
-
+        editor.commit();  // Synchronous to ensure immediate clearing
+        Log.i(TAG, "doLogout: Cleared legacy username/password");
+        
         // Clear user logs from database
         DbHelper dbHelper = new DbHelper(this);
         dbHelper.open();
         dbHelper.clearUserLogs();
         dbHelper.close();
-
+        
+        // Update UI immediately
         updateUserDisplay();
         invalidateOptionsMenu();
         
-        Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
+        // Perform Auth0 logout (browser session cleanup)
+        auth0Config.logout(new Auth0Config.LogoutCallback() {
+            @Override
+            public void onSuccess() {
+                runOnUiThread(() -> {
+                    Log.i(TAG, "Auth0 logout successful");
+                    
+                    // Update UI again to ensure it's refreshed after browser returns
+                    updateUserDisplay();
+                    invalidateOptionsMenu();
+                    
+                    Toast.makeText(MainActivity.this, "Logged out successfully", Toast.LENGTH_SHORT).show();
+                });
+            }
+            
+            @Override
+            public void onError(com.auth0.android.authentication.AuthenticationException error) {
+                runOnUiThread(() -> {
+                    Log.w(TAG, "Auth0 logout failed (but local data cleared)", error);
+                    
+                    // Update UI even if Auth0 logout failed (local data is still cleared)
+                    updateUserDisplay();
+                    invalidateOptionsMenu();
+                    
+                    Toast.makeText(MainActivity.this, "Logged out (local session cleared)", Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
     }
  
     
@@ -595,25 +518,45 @@ public class MainActivity extends BaseActivity implements SyncListener {
         Log.i(TAG, "handleAuth0Callback: Processing Auth0 callback with data: " + data);
         
         try {
+            // Get the expected Auth0 domain from resources
+            String expectedAuth0Domain = getString(R.string.auth0_domain);
+            
             // Check if this is an Auth0 callback
-            if (data.getScheme() != null && data.getScheme().equals("uk.trigpointing.android") &&
-                data.getHost() != null && data.getHost().equals("trigpointing.eu.auth0.com")) {
+            // The scheme will be "uk.trigpointing.android" for release or "uk.trigpointing.android.debug" for debug
+            if (data.getScheme() != null && data.getScheme().startsWith("uk.trigpointing.android") &&
+                data.getHost() != null && data.getHost().equals(expectedAuth0Domain)) {
                 
-                Log.i(TAG, "handleAuth0Callback: Valid Auth0 callback detected");
+                // Check if this is a logout callback (no code parameter) or login callback (has code parameter)
+                String code = data.getQueryParameter("code");
+                String error = data.getQueryParameter("error");
                 
-                // Create an Intent with the data and use WebAuthProvider.resume() to handle the callback
-                Intent intent = new Intent();
-                intent.setData(data);
-                com.auth0.android.provider.WebAuthProvider.resume(intent);
+                if (code != null || error != null) {
+                    // This is a login callback (has code or error)
+                    Log.i(TAG, "handleAuth0Callback: Valid Auth0 login callback detected for domain: " + expectedAuth0Domain);
+                    
+                    // Create an Intent with the data and use WebAuthProvider.resume() to handle the callback
+                    Intent intent = new Intent();
+                    intent.setData(data);
+                    com.auth0.android.provider.WebAuthProvider.resume(intent);
+                    
+                    Log.i(TAG, "handleAuth0Callback: Auth0 callback processed successfully");
+                } else {
+                    // This is a logout callback (no code parameter)
+                    Log.i(TAG, "handleAuth0Callback: Logout callback detected, no action needed");
+                    
+                    // Still call resume in case Auth0 SDK needs to handle it
+                    Intent intent = new Intent();
+                    intent.setData(data);
+                    com.auth0.android.provider.WebAuthProvider.resume(intent);
+                }
                 
-                Log.i(TAG, "handleAuth0Callback: Auth0 callback processed successfully");
                 // Prevent re-processing the same callback on future resumes
                 try {
                     getIntent().setData(null);
                 } catch (Exception ignore) {
                 }
             } else {
-                Log.w(TAG, "handleAuth0Callback: Not an Auth0 callback, ignoring");
+                Log.w(TAG, "handleAuth0Callback: Not an Auth0 callback, ignoring. Expected domain: " + expectedAuth0Domain + ", got: " + data.getHost());
             }
         } catch (Exception e) {
             Log.e(TAG, "handleAuth0Callback: Error processing Auth0 callback", e);
@@ -690,7 +633,7 @@ public class MainActivity extends BaseActivity implements SyncListener {
         String idToken = authPreferences.getAuth0IdToken();
         String refreshToken = authPreferences.getAuth0RefreshToken();
         String tokenType = authPreferences.getAuth0TokenType();
-        long expiresIn = authPreferences.getAuth0ExpiresIn();
+        long expiresAt = authPreferences.getAuth0ExpiresAt();
         long loginTimestamp = authPreferences.getAuth0LoginTimestamp();
         
         StringBuilder debugInfo = new StringBuilder();
@@ -716,7 +659,7 @@ public class MainActivity extends BaseActivity implements SyncListener {
         debugInfo.append("  ID Token: ").append(idToken != null ? idToken.substring(0, Math.min(50, idToken.length())) + "..." : "null").append("\n");
         debugInfo.append("  Refresh Token: ").append(refreshToken != null ? refreshToken.substring(0, Math.min(50, refreshToken.length())) + "..." : "null").append("\n");
         debugInfo.append("  Token Type: ").append(tokenType).append("\n");
-        debugInfo.append("  Expires In: ").append(expiresIn).append(" seconds\n");
+        debugInfo.append("  Expires At: ").append(new java.util.Date(expiresAt)).append("\n");
         debugInfo.append("  Login Timestamp: ").append(new java.util.Date(loginTimestamp)).append("\n");
 
         // Decode JWT access token (header/payload) for debugging audience/issuer
@@ -823,7 +766,7 @@ public class MainActivity extends BaseActivity implements SyncListener {
                     Log.i(TAG, "Auth0 logout successful");
                     
                     // Clear Auth0 data
-                    authPreferences.clearAuth0Data();
+                    authPreferences.clearAuthData();
                     
                     // Update UI
                     updateUserDisplay();
@@ -853,9 +796,9 @@ public class MainActivity extends BaseActivity implements SyncListener {
             String displayName;
             boolean isLoggedIn = false;
             
-            // Check if we have API authentication data first
+            // Check Auth0 authentication only (no legacy fallback)
             if (authPreferences.isLoggedIn()) {
-                Log.i(TAG, "updateUserDisplay: User is logged in via API");
+                Log.i(TAG, "updateUserDisplay: User is logged in via Auth0");
                 
                 if (devMode) {
                     displayName = authPreferences.getDisplayNameWithId();
@@ -866,20 +809,9 @@ public class MainActivity extends BaseActivity implements SyncListener {
                 }
                 isLoggedIn = true;
             } else {
-                // Fallback to legacy username for backward compatibility
-                String legacyUsername = prefs.getString("username", "");
-                if (!legacyUsername.trim().isEmpty()) {
-                    Log.i(TAG, "updateUserDisplay: Using legacy username: " + legacyUsername);
-                    displayName = legacyUsername;
-                    if (devMode) {
-                        displayName += " (legacy)";
-                    }
-                    isLoggedIn = true;
-                } else {
-                    Log.i(TAG, "updateUserDisplay: No authentication found");
-                    displayName = getString(R.string.not_logged_in_status);
-                    isLoggedIn = false;
-                }
+                Log.i(TAG, "updateUserDisplay: No authentication found");
+                displayName = getString(R.string.not_logged_in_status);
+                isLoggedIn = false;
             }
             
             mUserName.setText(displayName);
@@ -908,35 +840,41 @@ public class MainActivity extends BaseActivity implements SyncListener {
         Log.i(TAG, "updateUserMap: Updating user map image");
         try {
             // Load map if we have a persisted user id, even if token has expired
-            int userId = authPreferences.getUserId();
-            if (userId > 0) {
-                String mapUrl = "https://trigpointing.uk/pics/make_map.php?u=" + userId + "&v=y&t=" + System.currentTimeMillis();
-                Log.i(TAG, "updateUserMap: Loading map for user ID " + userId + " from URL: " + mapUrl);
-                
-                // Load the image using Coil - simplest approach
-                ImageRequest request = new ImageRequest.Builder(this)
-                        .data(mapUrl)
-                        .target(mUserMapImage) // Use ImageView directly as target - Coil will handle setting the drawable
-                        .placeholder(android.R.drawable.ic_menu_mapmode) // Show placeholder while loading
-                        .error(android.R.drawable.ic_dialog_alert) // Show error icon if loading fails
-                        .build();
-                
-                // Make ImageView visible and load the image
-                mUserMapImage.setVisibility(View.VISIBLE);
-                mUserMapImage.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-                
-                // Load the image
-                ImageLoader imageLoader = Coil.imageLoader(this);
-                imageLoader.enqueue(request);
-                
-                Log.d(TAG, "updateUserMap: Image loading initiated for URL: " + mapUrl);
-                
-                // Add click listener to open full map view
-                mUserMapImage.setOnClickListener(v -> {
-                    String fullMapUrl = "https://trigpointing.uk/pics/make_map.php?u=" + userId + "&v=y";
-                    android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(fullMapUrl));
-                    startActivity(intent);
-                });
+            String userIdStr = authPreferences.getUserId();
+            if (userIdStr != null && !userIdStr.isEmpty()) {
+                int userId = Integer.parseInt(userIdStr);
+                if (userId > 0) {
+                    String mapUrl = "https://trigpointing.uk/pics/make_map.php?u=" + userId + "&v=y&t=" + System.currentTimeMillis();
+                    Log.i(TAG, "updateUserMap: Loading map for user ID " + userId + " from URL: " + mapUrl);
+                    
+                    // Load the image using Coil - simplest approach
+                    ImageRequest request = new ImageRequest.Builder(this)
+                            .data(mapUrl)
+                            .target(mUserMapImage) // Use ImageView directly as target - Coil will handle setting the drawable
+                            .placeholder(android.R.drawable.ic_menu_mapmode) // Show placeholder while loading
+                            .error(android.R.drawable.ic_dialog_alert) // Show error icon if loading fails
+                            .build();
+                    
+                    // Make ImageView visible and load the image
+                    mUserMapImage.setVisibility(View.VISIBLE);
+                    mUserMapImage.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                    
+                    // Load the image
+                    ImageLoader imageLoader = Coil.imageLoader(this);
+                    imageLoader.enqueue(request);
+                    
+                    Log.d(TAG, "updateUserMap: Image loading initiated for URL: " + mapUrl);
+                    
+                    // Add click listener to open full map view
+                    mUserMapImage.setOnClickListener(v -> {
+                        String fullMapUrl = "https://trigpointing.uk/pics/make_map.php?u=" + userId + "&v=y";
+                        android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(fullMapUrl));
+                        startActivity(intent);
+                    });
+                } else {
+                    Log.i(TAG, "updateUserMap: No persisted user ID, hiding map");
+                    mUserMapImage.setVisibility(View.GONE);
+                }
             } else {
                 Log.i(TAG, "updateUserMap: No persisted user ID, hiding map");
                 mUserMapImage.setVisibility(View.GONE);
@@ -1083,12 +1021,9 @@ public class MainActivity extends BaseActivity implements SyncListener {
         
         if (autoSyncEnabled && !autoSyncAlreadyRun) {
             Log.i(TAG, "checkAndPerformAutoSync: Auto sync is enabled and not yet run, starting sync");
-            // Check if user has credentials
-            String username = prefs.getString("username", "");
-            String password = prefs.getString("plaintextpassword", "");
-            
-            if (!username.trim().isEmpty() && !password.trim().isEmpty()) {
-                Log.i(TAG, "checkAndPerformAutoSync: Credentials found, performing auto sync");
+            // Check if user is logged in with Auth0
+            if (authPreferences.isLoggedIn()) {
+                Log.i(TAG, "checkAndPerformAutoSync: User logged in, performing auto sync");
                 // Mark that auto sync has been run
                 prefs.edit().putBoolean(AUTO_SYNC_RUN, true).apply();
                 new SyncTask(MainActivity.this, MainActivity.this).execute(false);

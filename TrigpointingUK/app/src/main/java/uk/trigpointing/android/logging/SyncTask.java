@@ -37,7 +37,7 @@ import uk.trigpointing.android.DbHelper;
 import uk.trigpointing.android.R;
 import uk.trigpointing.android.common.CountingMultipartEntity.ProgressListener;
 import uk.trigpointing.android.common.ProgressRequestBody;
-import uk.trigpointing.android.api.AuthApiClient;
+import uk.trigpointing.android.api.TrigApiClient;
 import uk.trigpointing.android.api.AuthPreferences;
 import okhttp3.FormBody;
 import okhttp3.MediaType;
@@ -103,12 +103,12 @@ public class SyncTask implements ProgressListener {
 
     private    DbHelper             mDb = null;
     private SyncListener        mSyncListener;
+    private TrigApiClient       mApiClient;
+    private AuthPreferences     mAuthPreferences;
     
     private static boolean         mLock = false;
     private int                 mAppVersion;
     private int                 mMax;        // Maximum count of things being synced, for progress bar
-    private String                mUsername;
-    private String                mPassword;
     private String                mErrorMessage;
     
     private int                    mActiveByteCount; // byte count from currently transferring photo
@@ -132,6 +132,8 @@ public class SyncTask implements ProgressListener {
     public SyncTask(Context pCtx, SyncListener listener) {
         this.mCtx = pCtx;
         this.mSyncListener = listener;
+        this.mApiClient = new TrigApiClient(pCtx);
+        this.mAuthPreferences = new AuthPreferences(pCtx);
         try {
             mAppVersion = mCtx.getPackageManager().getPackageInfo(mCtx.getPackageName(), 0).versionCode;
         } catch (NameNotFoundException e) {
@@ -168,18 +170,16 @@ public class SyncTask implements ProgressListener {
             return;
         }
         
-        // Check that we have a username and password, so that we can sync existing logs
+        // Check that we have Auth0 authentication
         mPrefs = PreferenceManager.getDefaultSharedPreferences(mCtx);
-        String username = mPrefs.getString("username", "");
-        String password = mPrefs.getString("plaintextpassword", "");
         
-        if (username.trim().isEmpty() || password.trim().isEmpty()) {
-            Log.i(TAG, "execute: Missing credentials, calling onSynced with ERROR status");
+        if (!mAuthPreferences.isLoggedIn()) {
+            Log.i(TAG, "execute: Not logged in with Auth0, calling onSynced with ERROR status");
             // Only show toast if this isn't an automatic sync after download
             if (!mIsAutoSyncAfterDownload) {
                 Toast.makeText(mCtx, R.string.toastPleaseLogin, Toast.LENGTH_LONG).show();
             }
-            // Always call onSynced callback, even when credentials are missing
+            // Always call onSynced callback, even when not logged in
             if (mSyncListener != null) {
                 mSyncListener.onSynced(ERROR);
             }
@@ -198,19 +198,11 @@ public class SyncTask implements ProgressListener {
             }
             mLock = true;
 
-            // Refresh bearer token if needed before sync
-            refreshBearerTokenIfNeeded();
-
             // Open database connection
             mDb = new DbHelper(mCtx);
             mDb.open();
             
             try {
-                // Get details from Prefs
-                mUsername = mPrefs.getString("username", "");
-                mPassword = mPrefs.getString("plaintextpassword", "");
-                // Credentials already validated at the beginning of execute()
-
                 if (ERROR == sendLogsToTUK(trigId)) {
                     return ERROR;
                 }
@@ -338,100 +330,94 @@ public class SyncTask implements ProgressListener {
         if (logIdIndex < 0) return ERROR;
         long trigId = c.getInt(logIdIndex);
         
-        // Build form body - get all column indices first
+        // Get all column indices
         int yearIndex = c.getColumnIndex(DbHelper.LOG_YEAR);
         int monthIndex = c.getColumnIndex(DbHelper.LOG_MONTH);
         int dayIndex = c.getColumnIndex(DbHelper.LOG_DAY);
-        int sendtimeIndex = c.getColumnIndex(DbHelper.LOG_SENDTIME);
         int hourIndex = c.getColumnIndex(DbHelper.LOG_HOUR);
         int minutesIndex = c.getColumnIndex(DbHelper.LOG_MINUTES);
         int commentIndex = c.getColumnIndex(DbHelper.LOG_COMMENT);
         int gridrefIndex = c.getColumnIndex(DbHelper.LOG_GRIDREF);
         int fbIndex = c.getColumnIndex(DbHelper.LOG_FB);
-        int adminflagIndex = c.getColumnIndex(DbHelper.LOG_FLAGADMINS);
-        int userflagIndex = c.getColumnIndex(DbHelper.LOG_FLAGUSERS);
         int scoreIndex = c.getColumnIndex(DbHelper.LOG_SCORE);
         int conditionIndex = c.getColumnIndex(DbHelper.LOG_CONDITION);
         
         // Check if any required columns are missing
-        if (yearIndex < 0 || monthIndex < 0 || dayIndex < 0 || sendtimeIndex < 0 || 
+        if (yearIndex < 0 || monthIndex < 0 || dayIndex < 0 || 
             hourIndex < 0 || minutesIndex < 0 || commentIndex < 0 || gridrefIndex < 0 || 
-            fbIndex < 0 || adminflagIndex < 0 || userflagIndex < 0 || scoreIndex < 0 || 
-            conditionIndex < 0) {
+            fbIndex < 0 || scoreIndex < 0 || conditionIndex < 0) {
             return ERROR;
         }
         
-        FormBody formBody = new FormBody.Builder(StandardCharsets.UTF_8)
-                .add("username", mUsername)
-                .add("password", mPassword)
-                .add("id", c.getString(logIdIndex))
-                .add("year", c.getString(yearIndex))
-                .add("month", c.getString(monthIndex))
-                .add("day", c.getString(dayIndex))
-                .add("sendtime", c.getString(sendtimeIndex))
-                .add("hour", c.getString(hourIndex))
-                .add("minutes", c.getString(minutesIndex))
-                .add("comment", c.getString(commentIndex))
-                .add("gridref", c.getString(gridrefIndex))
-                .add("fb", c.getString(fbIndex))
-                .add("adminflag", c.getString(adminflagIndex))
-                .add("userflag", c.getString(userflagIndex))
-                .add("score", c.getString(scoreIndex))
-                .add("condition", c.getString(conditionIndex))
-                .add("sendemail", String.valueOf(mPrefs.getBoolean("sendLogEmails", false)))
-                .add("appversion", String.valueOf(mAppVersion))
-                .build();
+        // Build API request using TrigApiClient
+        TrigApiClient.LogCreateRequest request = new TrigApiClient.LogCreateRequest();
+        request.trigId = trigId;
+        request.date = String.format("%04d-%02d-%02d", 
+            c.getInt(yearIndex), c.getInt(monthIndex), c.getInt(dayIndex));
+        request.time = String.format("%02d:%02d:00", 
+            c.getInt(hourIndex), c.getInt(minutesIndex));
+        request.osgbGridref = c.getString(gridrefIndex);
+        request.fbNumber = c.getString(fbIndex);
+        request.condition = c.getString(conditionIndex);
+        request.comment = c.getString(commentIndex);
+        request.score = c.getInt(scoreIndex);
+        request.source = "W"; // Web/Android source
+        
+        // Use CountDownLatch for synchronous behavior within async task
+        final java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
+        final int[] result = {ERROR};
+        final int[] serverLogId = {-1};
+        
+        mApiClient.createLog(request, new TrigApiClient.ApiCallback<TrigApiClient.LogResponse>() {
+            @Override
+            public void onSuccess(TrigApiClient.LogResponse response) {
+                try {
+                    Log.i(TAG, "Successfully created log on server - ID: " + response.id);
+                    serverLogId[0] = response.id;
+                    result[0] = SUCCESS;
+                } catch (Exception e) {
+                    Log.e(TAG, "Error processing log response", e);
+                    mErrorMessage = "Error processing response: " + e.getMessage();
+                    result[0] = ERROR;
+                } finally {
+                    latch.countDown();
+                }
+            }
+            
+            @Override
+            public void onError(String errorMessage) {
+                Log.e(TAG, "Failed to create log: " + errorMessage);
+                mErrorMessage = errorMessage;
+                result[0] = ERROR;
+                latch.countDown();
+            }
+        });
+        
+        // Wait for API call to complete (with timeout)
         try {
-            OkHttpClient client = new OkHttpClient();
-            Request request = new Request.Builder()
-                    .url("https://trigpointing.uk/trigs/android-sync-log.php")
-                    .post(formBody)
-                    .build();
-            try (Response response = client.newCall(request).execute()) {
-                if (!response.isSuccessful()) {
-                    Log.e(TAG, "RC error - " + response.code());
-                    return ERROR;
-                }
-                String reply = response.body() != null ? response.body().string() : null;
-            Log.d(TAG, "Reply from T:UK - " + reply);
-            if (reply == null || reply == "") {
-                Log.e(TAG, "No response received from T:UK");
+            if (!latch.await(30, java.util.concurrent.TimeUnit.SECONDS)) {
+                Log.e(TAG, "Log creation timed out");
+                mErrorMessage = "Request timed out";
                 return ERROR;
             }
-
-            // Parse the JSON response
-            try {
-                JSONObject jo = new JSONObject(reply);
-                int status = jo.getInt("status");
-                mErrorMessage = jo.getString("msg");
-                Log.i(TAG, "Status=" + status + ", msg=" + mErrorMessage);
-                
-                if (status != 0) {
-                    return ERROR;
-                }
-                int logId = jo.getInt("log_id");
-                Log.i(TAG, "Successfully inserted log into T:UK - " + logId);
-                // remove log from database
-                mDb.deleteLog(trigId);
-                // update photos for this trig with log id from T:UK
-                mDb.updatePhotos(trigId, logId);
-                // update local logged condition
-                if (conditionIndex >= 0) {
-                    mDb.updateTrigLog(trigId, Condition.fromCode(c.getString(conditionIndex)));
-                }
-            } catch (JSONException e1) {
-                e1.printStackTrace();
-                return ERROR;
+        } catch (InterruptedException e) {
+            Log.e(TAG, "Log creation interrupted", e);
+            mErrorMessage = "Request interrupted";
+            return ERROR;
+        }
+        
+        if (result[0] == SUCCESS && serverLogId[0] > 0) {
+            // Remove log from local database
+            mDb.deleteLog(trigId);
+            // Update photos for this trig with log id from server
+            mDb.updatePhotos(trigId, serverLogId[0]);
+            // Update local logged condition
+            if (conditionIndex >= 0) {
+                mDb.updateTrigLog(trigId, Condition.fromCode(c.getString(conditionIndex)));
             }
         }
-
-        } catch (IOException e) {
-            return ERROR;
-        } catch (NumberFormatException e) {
-            Log.e(TAG, "Unable to convert log_id received from T:UK into integer");
-            return ERROR;
-        }
-        return SUCCESS;
+        
+        return result[0];
     }
     
     
@@ -447,90 +433,103 @@ public class SyncTask implements ProgressListener {
             return ERROR;
         }
         
-        Long    photoId     = c.getLong  (photoIdIndex);
-        String     photoPath     = c.getString(photoPathIndex);
-        String     thumbPath     = c.getString(thumbPathIndex);
+        Long photoId = c.getLong(photoIdIndex);
+        String photoPath = c.getString(photoPathIndex);
+        String thumbPath = c.getString(thumbPathIndex);
 
+        // Get all photo column indices
+        int tuklogIdIndex = c.getColumnIndex(DbHelper.PHOTO_TUKLOGID);
+        int nameIndex = c.getColumnIndex(DbHelper.PHOTO_NAME);
+        int descrIndex = c.getColumnIndex(DbHelper.PHOTO_DESCR);
+        int subjectIndex = c.getColumnIndex(DbHelper.PHOTO_SUBJECT);
+        int ispublicIndex = c.getColumnIndex(DbHelper.PHOTO_ISPUBLIC);
+        
+        if (tuklogIdIndex < 0 || nameIndex < 0 || descrIndex < 0 || 
+            subjectIndex < 0 || ispublicIndex < 0) {
+            return ERROR;
+        }
+        
+        // Build API request using TrigApiClient
+        TrigApiClient.PhotoUploadRequest request = new TrigApiClient.PhotoUploadRequest();
+        request.logId = c.getLong(tuklogIdIndex);
+        request.photoPath = photoPath;
+        request.caption = c.getString(nameIndex);
+        request.description = c.getString(descrIndex);
+        
+        // Map subject to type (single character)
+        String subject = c.getString(subjectIndex);
+        request.type = mapSubjectToType(subject);
+        
+        // Map ispublic to license
+        int isPublic = c.getInt(ispublicIndex);
+        request.license = isPublic == 1 ? "Y" : "N";
+        
+        // Use CountDownLatch for synchronous behavior within async task
+        final java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
+        final int[] result = {ERROR};
+        
+        mApiClient.uploadPhoto(request, new TrigApiClient.ApiCallback<TrigApiClient.PhotoResponse>() {
+            @Override
+            public void onSuccess(TrigApiClient.PhotoResponse response) {
+                try {
+                    Log.i(TAG, "Successfully uploaded photo to server - ID: " + response.id);
+                    result[0] = SUCCESS;
+                } catch (Exception e) {
+                    Log.e(TAG, "Error processing photo response", e);
+                    mErrorMessage = "Error processing response: " + e.getMessage();
+                    result[0] = ERROR;
+                } finally {
+                    latch.countDown();
+                }
+            }
+            
+            @Override
+            public void onError(String errorMessage) {
+                Log.e(TAG, "Failed to upload photo: " + errorMessage);
+                mErrorMessage = errorMessage;
+                result[0] = ERROR;
+                latch.countDown();
+            }
+        });
+        
+        // Wait for API call to complete (with timeout)
         try {
-            OkHttpClient client = new OkHttpClient();
-
-            MediaType JPEG = MediaType.parse("image/jpeg");
-            File photoFile = new File(photoPath);
-            RequestBody photoBody = new ProgressRequestBody(photoFile, JPEG, this);
-
-            // Get all photo column indices
-            int tuklogIdIndex = c.getColumnIndex(DbHelper.PHOTO_TUKLOGID);
-            int trigIndex = c.getColumnIndex(DbHelper.PHOTO_TRIG);
-            int nameIndex = c.getColumnIndex(DbHelper.PHOTO_NAME);
-            int descrIndex = c.getColumnIndex(DbHelper.PHOTO_DESCR);
-            int subjectIndex = c.getColumnIndex(DbHelper.PHOTO_SUBJECT);
-            int ispublicIndex = c.getColumnIndex(DbHelper.PHOTO_ISPUBLIC);
-            
-            if (tuklogIdIndex < 0 || trigIndex < 0 || nameIndex < 0 || descrIndex < 0 || 
-                subjectIndex < 0 || ispublicIndex < 0) {
+            if (!latch.await(60, java.util.concurrent.TimeUnit.SECONDS)) {
+                Log.e(TAG, "Photo upload timed out");
+                mErrorMessage = "Request timed out";
                 return ERROR;
             }
-            
-            MultipartBody.Builder mb = new MultipartBody.Builder()
-                    .setType(MultipartBody.FORM)
-                    .addFormDataPart("username", mUsername)
-                    .addFormDataPart("password", mPassword)
-                    .addFormDataPart("photoid", photoId.toString())
-                    .addFormDataPart("tlog_id", c.getString(tuklogIdIndex))
-                    .addFormDataPart("trig", c.getString(trigIndex))
-                    .addFormDataPart("name", c.getString(nameIndex))
-                    .addFormDataPart("descr", c.getString(descrIndex))
-                    .addFormDataPart("subject", c.getString(subjectIndex))
-                    .addFormDataPart("ispublic", c.getString(ispublicIndex))
-                    .addFormDataPart("appversion", String.valueOf(mAppVersion))
-                    .addFormDataPart("photo", photoFile.getName(), photoBody);
-
-            Request request = new Request.Builder()
-                    .url("https://trigpointing.uk/trigs/android-sync-photo.php")
-                    .post(mb.build())
-                    .build();
-
-            try (Response response = client.newCall(request).execute()) {
-                if (!response.isSuccessful()) {
-                    Log.e(TAG, "RC error - " + response.code());
-                    return ERROR;
-                }
-                String reply = response.body() != null ? response.body().string() : null;
-            Log.i(TAG, "Reply from T:UK - " + reply);
-            if (reply == null || reply == "") {
-                Log.e(TAG, "No response received from T:UK");
-                return ERROR;
-            }
-
-            // Parse the JSON response
-            try {
-                JSONObject jo = new JSONObject(reply);
-                int status = jo.getInt("status");
-                mErrorMessage = jo.getString("msg");
-                Log.i(TAG, "Status=" + status + ", msg=" + mErrorMessage);
-                if (status != 0) {
-                    return ERROR;
-                }
-                int tukPhotoId = jo.getInt("photo_id");
-                Log.i(TAG, "Successfully uploaded photo to T:UK - " + tukPhotoId);
-                // remove log from database
-                mDb.deletePhoto(photoId);
-                // remove files from cachedir
-                new File (photoPath).delete();
-                new File (thumbPath).delete();
-            } catch (JSONException e1) {
-                e1.printStackTrace();
-                return ERROR;
-            }
-        }
-
-        } catch (IOException e) {
-            return ERROR;
-        } catch (NumberFormatException e) {
-            Log.e(TAG, "Unable to convert tukPhotoId received from T:UK into integer");
+        } catch (InterruptedException e) {
+            Log.e(TAG, "Photo upload interrupted", e);
+            mErrorMessage = "Request interrupted";
             return ERROR;
         }
-        return SUCCESS;
+        
+        if (result[0] == SUCCESS) {
+            // Remove photo from local database
+            mDb.deletePhoto(photoId);
+            // Remove files from cache directory
+            new File(photoPath).delete();
+            new File(thumbPath).delete();
+        }
+        
+        return result[0];
+    }
+    
+    /**
+     * Map legacy photo subject codes to new API type codes
+     */
+    private String mapSubjectToType(String subject) {
+        if (subject == null || subject.isEmpty()) {
+            return "O"; // Other
+        }
+        switch (subject.charAt(0)) {
+            case 'T': return "T"; // Trigpoint
+            case 'F': return "F"; // Flush bracket
+            case 'L': return "L"; // Landscape
+            case 'P': return "P"; // People
+            default: return "O";  // Other
+        }
     }
     
     @Override
@@ -574,7 +573,14 @@ public class SyncTask implements ProgressListener {
             updateProgress(BLANKPROGRESS);
             updateProgress(MESSAGE, R.string.syncLogsFromTUK);
             updateProgress(MAX, mPrefs.getInt(PREFS_LOGCOUNT, 1));
-            URL url = new URL("https://trigpointing.uk/trigs/down-android-mylogs.php?username="+URLEncoder.encode(mUsername)+"&appversion="+mAppVersion);
+            
+            // Get username from Auth0 profile for legacy endpoint
+            String username = mAuthPreferences.getAuth0UserName();
+            if (username == null || username.isEmpty()) {
+                username = "unknown";
+            }
+            
+            URL url = new URL("https://trigpointing.uk/trigs/down-android-mylogs.php?username="+URLEncoder.encode(username)+"&appversion="+mAppVersion);
             Log.d(TAG, "Getting " + url);
             URLConnection ucon = url.openConnection();
             InputStream is = ucon.getInputStream();
@@ -672,83 +678,4 @@ public class SyncTask implements ProgressListener {
 
 
 
-    /**
-     * Refresh bearer token if needed before sync operations
-     */
-    private void refreshBearerTokenIfNeeded() {
-        try {
-            AuthPreferences authPreferences = new AuthPreferences(mCtx);
-            
-            if (!authPreferences.isLoggedIn() || !authPreferences.shouldRefreshToken()) {
-                Log.d(TAG, "refreshBearerTokenIfNeeded: No refresh needed");
-                return;
-            }
-
-            Log.i(TAG, "refreshBearerTokenIfNeeded: Token needs refresh");
-            
-            String username = mPrefs.getString("username", "");
-            String password = mPrefs.getString("plaintextpassword", "");
-            
-            if (username.trim().isEmpty() || password.trim().isEmpty()) {
-                Log.w(TAG, "refreshBearerTokenIfNeeded: No credentials available");
-                return;
-            }
-
-            AuthApiClient authApiClient = new AuthApiClient();
-            java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
-            final boolean[] refreshSuccess = {false};
-            final String[] errorMessage = {null};
-            
-            authApiClient.refreshToken(username, password, new AuthApiClient.AuthCallback() {
-                @Override
-                public void onSuccess(uk.trigpointing.android.api.AuthResponse authResponse) {
-                    Log.i(TAG, "refreshBearerTokenIfNeeded: Token refresh successful");
-                    authPreferences.storeAuthData(authResponse);
-                    refreshSuccess[0] = true;
-                    latch.countDown();
-                }
-
-                @Override
-                public void onError(String error) {
-                    Log.w(TAG, "refreshBearerTokenIfNeeded: Token refresh failed: " + error);
-                    errorMessage[0] = error;
-                    refreshSuccess[0] = false;
-                    latch.countDown();
-                }
-            });
-
-            try {
-                boolean completed = latch.await(10, java.util.concurrent.TimeUnit.SECONDS);
-                if (!completed) {
-                    Log.w(TAG, "refreshBearerTokenIfNeeded: Token refresh timed out");
-                }
-            } catch (InterruptedException e) {
-                Log.w(TAG, "refreshBearerTokenIfNeeded: Token refresh interrupted", e);
-            }
-
-            if (!refreshSuccess[0]) {
-                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mCtx);
-                boolean devMode = prefs.getBoolean("dev_mode", false);
-                
-                if (devMode) {
-                    String error = errorMessage[0] != null ? errorMessage[0] : "Token refresh failed";
-                    mainHandler.post(() -> {
-                        Toast.makeText(mCtx, "Token refresh failed: " + error, Toast.LENGTH_LONG).show();
-                    });
-                }
-            }
-            
-        } catch (Exception e) {
-            Log.e(TAG, "refreshBearerTokenIfNeeded: Unexpected error", e);
-            
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mCtx);
-            boolean devMode = prefs.getBoolean("dev_mode", false);
-            
-            if (devMode) {
-                mainHandler.post(() -> {
-                    Toast.makeText(mCtx, "Token refresh error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                });
-            }
-        }
-    }
 }

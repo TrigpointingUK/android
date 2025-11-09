@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="auth0_domain">trigpointing.eu.auth0.com</string>
-    <string name="auth0_client_id">IEBodjQvHMuDTS5vNVeve5j8YKQcYBN3</string>
-    <string name="auth0_redirect_uri">uk.trigpointing.android.debug://trigpointing.eu.auth0.com/android/uk.trigpointing.android.debug/callback</string>
-    <string name="auth0_audience">https://api.trigpointing.uk/</string>
+    <!-- Debug build uses trigpointing.me domain -->
+    <string name="auth0_domain">auth.trigpointing.me</string>
+    <string name="auth0_client_id">5ioMqw42iotFnKs5jgDQ8a1WZ2LnqpTr</string>
+    <string name="auth0_redirect_uri">uk.trigpointing.android.debug://auth.trigpointing.me/android/uk.trigpointing.android.debug/callback</string>
+    <string name="auth0_audience">https://api.trigpointing.me/</string>
+    <string name="auth0_connection">tme-users</string>
 </resources>
