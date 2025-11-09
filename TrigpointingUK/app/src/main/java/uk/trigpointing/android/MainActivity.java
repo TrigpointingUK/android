@@ -874,7 +874,8 @@ public class MainActivity extends BaseActivity implements SyncListener {
                 
                 // Add click listener to open full map view
                 mUserMapImage.setOnClickListener(v -> {
-                    android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(baseUrl));
+                    String fullMapUrl = baseUrl + "?height=1500&t=" + System.currentTimeMillis();
+                    android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(fullMapUrl));
                     startActivity(intent);
                 });
             } else {
