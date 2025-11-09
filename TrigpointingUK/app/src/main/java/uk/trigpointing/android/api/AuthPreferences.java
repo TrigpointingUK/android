@@ -25,6 +25,8 @@ public class AuthPreferences {
     private static final String PREF_AUTH0_USER_DATA = "auth0_user_data";
     private static final String PREF_AUTH0_USER_ID = "auth0_user_id";
     private static final String PREF_AUTH0_USER_NAME = "auth0_user_name";
+    private static final String PREF_API_USER_DATA = "tuk_api_user_data";
+    private static final String PREF_API_USER_ID = "tuk_api_user_id";
 
     private final SharedPreferences preferences;
     private final Gson gson;
@@ -75,6 +77,48 @@ public class AuthPreferences {
     }
     
     /**
+     * Store the Trigpointing API user profile returned by /v1/users/me
+     */
+    public void storeApiUser(TrigApiClient.UserProfile apiUser) {
+        SharedPreferences.Editor editor = preferences.edit();
+        if (apiUser == null) {
+            editor.remove(PREF_API_USER_DATA);
+            editor.remove(PREF_API_USER_ID);
+        } else {
+            editor.putString(PREF_API_USER_DATA, gson.toJson(apiUser));
+            editor.putInt(PREF_API_USER_ID, apiUser.id);
+            Log.i(TAG, "Stored API user profile for user id " + apiUser.id);
+        }
+        editor.apply();
+    }
+    
+    /**
+     * Retrieve the stored Trigpointing API user profile, if available
+     */
+    public TrigApiClient.UserProfile getApiUser() {
+        String userJson = preferences.getString(PREF_API_USER_DATA, null);
+        if (userJson != null) {
+            try {
+                return gson.fromJson(userJson, TrigApiClient.UserProfile.class);
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to parse API user profile JSON", e);
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Retrieve the stored Trigpointing API user id, if available
+     */
+    public Integer getApiUserId() {
+        if (preferences.contains(PREF_API_USER_ID)) {
+            int id = preferences.getInt(PREF_API_USER_ID, 0);
+            return id > 0 ? id : null;
+        }
+        return null;
+    }
+    
+    /**
      * Clear all stored authentication data
      */
     public void clearAuthData() {
@@ -92,6 +136,8 @@ public class AuthPreferences {
         editor.remove(PREF_AUTH0_USER_DATA);
         editor.remove(PREF_AUTH0_USER_ID);
         editor.remove(PREF_AUTH0_USER_NAME);
+        editor.remove(PREF_API_USER_DATA);
+        editor.remove(PREF_API_USER_ID);
         
         // Use commit() instead of apply() to ensure synchronous clearing before UI updates
         editor.commit();
@@ -216,6 +262,10 @@ public class AuthPreferences {
      * Get display name for the user
      */
     public String getDisplayName() {
+        TrigApiClient.UserProfile apiUser = getApiUser();
+        if (apiUser != null && apiUser.name != null && !apiUser.name.isEmpty()) {
+            return apiUser.name;
+        }
         String name = getAuth0UserName();
         if (name != null && !name.isEmpty()) {
             return name;
@@ -234,6 +284,10 @@ public class AuthPreferences {
      */
     public String getDisplayNameWithId() {
         String name = getDisplayName();
+        Integer apiUserId = getApiUserId();
+        if (apiUserId != null) {
+            return name + " (#" + apiUserId + ")";
+        }
         String userId = getAuth0UserId();
         if (userId != null && !userId.isEmpty()) {
             return name + " (" + userId + ")";
@@ -252,6 +306,10 @@ public class AuthPreferences {
      * Get user ID (for compatibility with existing code)
      */
     public String getUserId() {
+        Integer apiUserId = getApiUserId();
+        if (apiUserId != null) {
+            return String.valueOf(apiUserId);
+        }
         return getAuth0UserId();
     }
 }

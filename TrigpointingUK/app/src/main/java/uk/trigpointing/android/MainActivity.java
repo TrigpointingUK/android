@@ -45,6 +45,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import uk.trigpointing.android.api.AuthPreferences;
 import uk.trigpointing.android.api.Auth0Config;
+import uk.trigpointing.android.api.TrigApiClient;
 import uk.trigpointing.android.filter.Filter;
 import coil.Coil;
 import coil.ImageLoader;
@@ -75,6 +76,7 @@ public class MainActivity extends BaseActivity implements SyncListener {
     // Auth0 authentication components
     private AuthPreferences authPreferences;
     private Auth0Config auth0Config;
+    private TrigApiClient trigApiClient;
     
     // Modern activity result launchers
     private ActivityResultLauncher<Intent> nearestLauncher;
@@ -109,6 +111,7 @@ public class MainActivity extends BaseActivity implements SyncListener {
         // Initialize Auth0 authentication components
         authPreferences = new AuthPreferences(this);
         auth0Config = new Auth0Config(this);
+        trigApiClient = new TrigApiClient(this);
         
         // Reset auto sync flag on app startup
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -126,6 +129,10 @@ public class MainActivity extends BaseActivity implements SyncListener {
         
         Log.i(TAG, "onCreate: Updating user display");
         updateUserDisplay();
+        if (authPreferences.isLoggedIn() && authPreferences.getApiUserId() == null) {
+            Log.i(TAG, "onCreate: API user profile missing, fetching from server");
+            fetchAndStoreApiUser();
+        }
         
         Log.i(TAG, "onCreate: Populating counts");
         populateCounts();
@@ -348,6 +355,7 @@ public class MainActivity extends BaseActivity implements SyncListener {
                         
                         // Store the Auth0 authentication data
                         authPreferences.storeAuth0Data(credentials, userProfile);
+                        fetchAndStoreApiUser();
                         
                         // Update UI
                         updateUserDisplay();
@@ -839,42 +847,36 @@ public class MainActivity extends BaseActivity implements SyncListener {
     private void updateUserMap() {
         Log.i(TAG, "updateUserMap: Updating user map image");
         try {
-            // Load map if we have a persisted user id, even if token has expired
-            String userIdStr = authPreferences.getUserId();
-            if (userIdStr != null && !userIdStr.isEmpty()) {
-                int userId = Integer.parseInt(userIdStr);
-                if (userId > 0) {
-                    String mapUrl = "https://trigpointing.uk/pics/make_map.php?u=" + userId + "&v=y&t=" + System.currentTimeMillis();
-                    Log.i(TAG, "updateUserMap: Loading map for user ID " + userId + " from URL: " + mapUrl);
-                    
-                    // Load the image using Coil - simplest approach
-                    ImageRequest request = new ImageRequest.Builder(this)
-                            .data(mapUrl)
-                            .target(mUserMapImage) // Use ImageView directly as target - Coil will handle setting the drawable
-                            .placeholder(android.R.drawable.ic_menu_mapmode) // Show placeholder while loading
-                            .error(android.R.drawable.ic_dialog_alert) // Show error icon if loading fails
-                            .build();
-                    
-                    // Make ImageView visible and load the image
-                    mUserMapImage.setVisibility(View.VISIBLE);
-                    mUserMapImage.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-                    
-                    // Load the image
-                    ImageLoader imageLoader = Coil.imageLoader(this);
-                    imageLoader.enqueue(request);
-                    
-                    Log.d(TAG, "updateUserMap: Image loading initiated for URL: " + mapUrl);
-                    
-                    // Add click listener to open full map view
-                    mUserMapImage.setOnClickListener(v -> {
-                        String fullMapUrl = "https://trigpointing.uk/pics/make_map.php?u=" + userId + "&v=y";
-                        android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(fullMapUrl));
-                        startActivity(intent);
-                    });
-                } else {
-                    Log.i(TAG, "updateUserMap: No persisted user ID, hiding map");
-                    mUserMapImage.setVisibility(View.GONE);
-                }
+            // Load map if we have a persisted API user id, even if token has expired
+            Integer userId = authPreferences.getApiUserId();
+            if (userId != null && userId > 0) {
+                String baseUrl = BuildConfig.TRIG_API_BASE + "/v1/users/" + userId + "/map";
+                String mapUrl = baseUrl + "?t=" + System.currentTimeMillis();
+                Log.i(TAG, "updateUserMap: Loading map for user ID " + userId + " from URL: " + mapUrl);
+                
+                // Load the image using Coil - simplest approach
+                ImageRequest request = new ImageRequest.Builder(this)
+                        .data(mapUrl)
+                        .target(mUserMapImage) // Use ImageView directly as target - Coil will handle setting the drawable
+                        .placeholder(android.R.drawable.ic_menu_mapmode) // Show placeholder while loading
+                        .error(android.R.drawable.ic_dialog_alert) // Show error icon if loading fails
+                        .build();
+                
+                // Make ImageView visible and load the image
+                mUserMapImage.setVisibility(View.VISIBLE);
+                mUserMapImage.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                
+                // Load the image
+                ImageLoader imageLoader = Coil.imageLoader(this);
+                imageLoader.enqueue(request);
+                
+                Log.d(TAG, "updateUserMap: Image loading initiated for URL: " + mapUrl);
+                
+                // Add click listener to open full map view
+                mUserMapImage.setOnClickListener(v -> {
+                    android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(baseUrl));
+                    startActivity(intent);
+                });
             } else {
                 Log.i(TAG, "updateUserMap: No persisted user ID, hiding map");
                 mUserMapImage.setVisibility(View.GONE);
@@ -1035,6 +1037,30 @@ public class MainActivity extends BaseActivity implements SyncListener {
         } else {
             Log.i(TAG, "checkAndPerformAutoSync: Auto sync is disabled");
         }
+    }
+
+    private void fetchAndStoreApiUser() {
+        if (trigApiClient == null || !authPreferences.isLoggedIn()) {
+            return;
+        }
+        Log.i(TAG, "fetchAndStoreApiUser: Fetching user profile from API");
+        trigApiClient.getCurrentUser(new TrigApiClient.ApiCallback<TrigApiClient.UserProfile>() {
+            @Override
+            public void onSuccess(TrigApiClient.UserProfile result) {
+                if (result != null) {
+                    authPreferences.storeApiUser(result);
+                    runOnUiThread(() -> {
+                        updateUserDisplay();
+                        invalidateOptionsMenu();
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Log.w(TAG, "fetchAndStoreApiUser: Failed to fetch API user profile: " + errorMessage);
+            }
+        });
     }
 
 

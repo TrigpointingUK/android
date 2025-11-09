@@ -50,6 +50,7 @@ android {
             enableAndroidTestCoverage true
             
             // Debug build uses trigpointing.me domain
+            buildConfigField "String", "TRIG_API_BASE", "\"https://api.trigpointing.me\""
             buildConfigField "String", "API_BASE_URL", "\"https://api.trigpointing.me/v1\""
             
             // Override Auth0 manifest placeholders for debug build
@@ -63,6 +64,7 @@ android {
             shrinkResources true
             
             // Production build uses trigpointing.uk domain
+            buildConfigField "String", "TRIG_API_BASE", "\"https://api.trigpointing.uk\""
             buildConfigField "String", "API_BASE_URL", "\"https://api.trigpointing.uk/v1\""
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             ndk {

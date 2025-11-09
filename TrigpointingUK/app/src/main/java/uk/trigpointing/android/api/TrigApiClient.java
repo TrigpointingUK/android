@@ -26,13 +26,22 @@ import uk.trigpointing.android.BuildConfig;
 public class TrigApiClient {
     private static final String TAG = "TrigApiClient";
     // Use BuildConfig to allow different API URLs for debug/release builds
-    private static final String API_BASE_URL = BuildConfig.API_BASE_URL;
+    private static final String API_BASE_HOST = BuildConfig.TRIG_API_BASE;
+    private static final String API_BASE_URL = API_BASE_HOST + "/v1";
     
     private final OkHttpClient httpClient;
     private final Gson gson;
     private final AuthPreferences authPreferences;
     private final Auth0Config auth0Config;
 
+    public static String getApiBaseHost() {
+        return API_BASE_HOST;
+    }
+    
+    public static String getApiBaseUrl() {
+        return API_BASE_URL;
+    }
+    
     public TrigApiClient(Context context) {
         this.httpClient = new OkHttpClient.Builder()
                 .connectTimeout(30, TimeUnit.SECONDS)
