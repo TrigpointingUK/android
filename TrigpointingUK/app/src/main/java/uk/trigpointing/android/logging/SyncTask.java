@@ -353,7 +353,7 @@ public class SyncTask implements ProgressListener {
         TrigApiClient.LogCreateRequest request = new TrigApiClient.LogCreateRequest();
         request.trigId = trigId;
         request.date = String.format("%04d-%02d-%02d", 
-            c.getInt(yearIndex), c.getInt(monthIndex), c.getInt(dayIndex));
+            c.getInt(yearIndex), c.getInt(monthIndex) + 1, c.getInt(dayIndex));
         request.time = String.format("%02d:%02d:00", 
             c.getInt(hourIndex), c.getInt(minutesIndex));
         request.osgbGridref = c.getString(gridrefIndex);

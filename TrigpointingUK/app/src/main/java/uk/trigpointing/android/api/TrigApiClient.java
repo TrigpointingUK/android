@@ -4,6 +4,8 @@ import android.content.Context;
 import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
@@ -483,12 +485,29 @@ public class TrigApiClient {
      */
     private String parseErrorMessage(String responseBody, int statusCode) {
         try {
+            Log.w(TAG, "API error " + statusCode + " body: " + responseBody);
             ErrorResponse errorResponse = gson.fromJson(responseBody, ErrorResponse.class);
             if (errorResponse != null && errorResponse.getDetail() != null) {
                 return errorResponse.getDetail();
             }
+            // Attempt to parse FastAPI-style error list
+            JsonElement element = gson.fromJson(responseBody, JsonElement.class);
+            if (element != null && element.isJsonObject()) {
+                JsonObject obj = element.getAsJsonObject();
+                if (obj.has("detail")) {
+                    JsonElement detail = obj.get("detail");
+                    if (detail.isJsonArray() && detail.getAsJsonArray().size() > 0) {
+                        JsonObject first = detail.getAsJsonArray().get(0).getAsJsonObject();
+                        if (first.has("msg")) {
+                            return first.get("msg").getAsString();
+                        }
+                    } else if (detail.isJsonPrimitive()) {
+                        return detail.getAsString();
+                    }
+                }
+            }
         } catch (Exception e) {
-            // Parsing failed, use default message
+            Log.w(TAG, "Failed to parse API error body", e);
         }
         return "API error: HTTP " + statusCode;
     }
