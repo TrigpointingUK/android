@@ -11,8 +11,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <!-- Camera preview as background -->
-        <uk.trigpointing.android.ar.CameraPreview
+        <!-- Camera2 preview as background -->
+        <uk.trigpointing.android.ar.Camera2Preview
             android:id="@+id/camera_preview"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />

@@ -9,8 +9,17 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.SurfaceTexture;
 import android.graphics.drawable.Drawable;
-import android.hardware.Camera;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraCaptureSession;
+import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.CameraDevice;
+import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.CaptureResult;
+import android.hardware.camera2.CameraMetadata;
+import android.hardware.camera2.params.StreamConfigurationMap;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -18,15 +27,21 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.AttributeSet;
+import android.util.Size;
+import android.util.SizeF;
+import android.util.Range;
+import android.graphics.Rect;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.MotionEvent;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
+import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -65,9 +80,22 @@ public class SensorARActivity extends BaseActivity implements SensorEventListene
     private static final int COMBINED_PERMISSION_REQUEST = 1003;
     private static final double MAX_DISTANCE_METERS = 5000; // 5km max distance
     
-    // Camera components
-    private CameraPreview cameraPreview;
-    private Camera camera;
+    // Camera2 components
+    private Camera2Preview cameraPreview;
+    private String selectedCameraId;
+    private boolean selectedIsLogical;
+    private CameraDevice cameraDevice;
+    private CameraCaptureSession captureSession;
+    private CaptureRequest.Builder previewRequestBuilder;
+    private Size previewSize;
+    private HandlerThread cameraThread;
+    private Handler cameraHandler;
+    private float cameraHfovDeg = 60f; // raw camera horizontal FOV
+    private float cameraVfovDeg = 45f; // raw camera vertical FOV
+    private float baseFovXDeg = 60f; // mapped to on-screen X
+    private float baseFovYDeg = 45f; // mapped to on-screen Y
+    private int lastPreviewRotationDeg = 0;
+    private CameraCharacteristics activeCharacteristics;
     
     // Sensor components
     private SensorManager sensorManager;
@@ -158,7 +186,7 @@ public class SensorARActivity extends BaseActivity implements SensorEventListene
         if (hasPermissions()) {
             boolean hasCamera = getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY);
             if (hasCamera) {
-                initializeCamera();
+                setupCameraPreviewCallbacks();
             } else {
                 // Device has no camera - show message and continue with location-only AR
                 Toast.makeText(this, "Device has no camera - AR will work with location and compass only", Toast.LENGTH_LONG).show();
@@ -188,8 +216,14 @@ public class SensorARActivity extends BaseActivity implements SensorEventListene
         
         // Resume camera (only if device has camera)
         boolean hasCamera = getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY);
-        if (camera == null && hasPermissions() && hasCamera) {
-            initializeCamera();
+        if (hasPermissions() && hasCamera) {
+            startBackgroundThread();
+            if (cameraPreview != null) {
+                setupCameraPreviewCallbacks();
+                if (cameraPreview.isAvailable()) {
+                    onPreviewSurfaceAvailable(cameraPreview.getSurfaceTexture(), cameraPreview.getWidth(), cameraPreview.getHeight());
+                }
+            }
         }
     }
     
@@ -205,11 +239,9 @@ public class SensorARActivity extends BaseActivity implements SensorEventListene
             sensorManager.unregisterListener(this);
         }
         
-        // Release camera
-        if (camera != null) {
-            camera.release();
-            camera = null;
-        }
+        // Close Camera2
+        closeCamera();
+        stopBackgroundThread();
     }
     
     @Override
@@ -291,7 +323,7 @@ public class SensorARActivity extends BaseActivity implements SensorEventListene
             
             if (locationGranted && cameraGranted) {
                 if (hasCamera) {
-                    initializeCamera();
+                    setupCameraPreviewCallbacks();
                 } else {
                     // Device has no camera - show message and continue with location-only AR
                     Toast.makeText(this, "Device has no camera - AR will work with location and compass only", Toast.LENGTH_LONG).show();
@@ -307,22 +339,346 @@ public class SensorARActivity extends BaseActivity implements SensorEventListene
         }
     }
     
-    private void initializeCamera() {
+    private void setupCameraPreviewCallbacks() {
+        if (cameraPreview == null) return;
+        cameraPreview.setSurfaceEventsListener(new Camera2Preview.SurfaceEventsListener() {
+            @Override
+            public void onSurfaceAvailable(SurfaceTexture surface, int width, int height) {
+                onPreviewSurfaceAvailable(surface, width, height);
+            }
+            @Override
+            public void onSurfaceSizeChanged(SurfaceTexture surface, int width, int height) {
+                applyPreviewTransform();
+            }
+            @Override
+            public void onSurfaceDestroyed() {
+                closeCamera();
+            }
+        });
+    }
+
+    private void onPreviewSurfaceAvailable(SurfaceTexture surface, int width, int height) {
         try {
-            camera = Camera.open();
-            cameraPreview.setCamera(camera);
-            Log.i(TAG, "Camera initialized successfully");
-            // Set overlay FOVs based on camera parameters and user calibration
-            if (overlayView != null) {
-                float fovX = getEffectiveFovForScreenWidth();
-                float fovY = getEffectiveFovForScreenHeight();
-                overlayView.setFieldOfViewDegrees(fovX, fovY);
-                Log.i(TAG, "AR overlay FOV set to X=" + fovX + "°, Y=" + fovY + "°");
+            if (selectedCameraId == null) {
+                selectWidestBackCamera();
+            }
+            openCamera(surface, width, height);
+        } catch (Exception e) {
+            Log.e(TAG, "Error starting camera preview", e);
+            Toast.makeText(this, "Failed to start camera", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void startBackgroundThread() {
+        if (cameraThread != null) return;
+        cameraThread = new HandlerThread("CameraBackground");
+        cameraThread.start();
+        cameraHandler = new Handler(cameraThread.getLooper());
+    }
+
+    private void stopBackgroundThread() {
+        if (cameraThread != null) {
+            cameraThread.quitSafely();
+            try {
+                cameraThread.join();
+            } catch (InterruptedException ignored) {}
+            cameraThread = null;
+            cameraHandler = null;
+        }
+    }
+
+    private void selectWidestBackCamera() throws CameraAccessException {
+        CameraManager cm = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        if (cm == null) return;
+        // First preference: pick the widest NON-LOGICAL physical back camera id if available
+        String bestPhysicalId = null;
+        float bestPhysicalHFov = 0f, bestPhysicalVFov = 0f;
+        for (String id : cm.getCameraIdList()) {
+            CameraCharacteristics cc = cm.getCameraCharacteristics(id);
+            Integer facing = cc.get(CameraCharacteristics.LENS_FACING);
+            if (facing == null || facing != CameraCharacteristics.LENS_FACING_BACK) continue;
+            int[] caps = cc.get(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES);
+            boolean isLogical = false;
+            if (caps != null) {
+                for (int c : caps) if (c == CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_LOGICAL_MULTI_CAMERA) { isLogical = true; break; }
+            }
+            if (isLogical) continue; // skip logical for first pass
+            SizeF sensorSize = cc.get(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE);
+            float[] focalLengths = cc.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS);
+            if (sensorSize == null || focalLengths == null || focalLengths.length == 0) continue;
+            float minFocal = focalLengths[0];
+            for (float f : focalLengths) if (f < minFocal) minFocal = f;
+            float hFov = (float) Math.toDegrees(2.0 * Math.atan((sensorSize.getWidth() / 2.0) / minFocal));
+            float vFov = (float) Math.toDegrees(2.0 * Math.atan((sensorSize.getHeight() / 2.0) / minFocal));
+            if (hFov > bestPhysicalHFov) { bestPhysicalHFov = hFov; bestPhysicalVFov = vFov; bestPhysicalId = id; }
+        }
+        if (bestPhysicalId != null) {
+            selectedCameraId = bestPhysicalId;
+            selectedIsLogical = false;
+            cameraHfovDeg = bestPhysicalHFov;
+            cameraVfovDeg = bestPhysicalVFov;
+            return;
+        }
+
+        // Fallback: choose logical with widest computed FOV
+        String bestId = null;
+        float bestHFov = 0f, bestVFov = 0f;
+        for (String id : cm.getCameraIdList()) {
+            CameraCharacteristics cc = cm.getCameraCharacteristics(id);
+            Integer facing = cc.get(CameraCharacteristics.LENS_FACING);
+            if (facing == null || facing != CameraCharacteristics.LENS_FACING_BACK) continue;
+            SizeF sensorSize = cc.get(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE);
+            float[] focalLengths = cc.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS);
+            if (sensorSize == null || focalLengths == null || focalLengths.length == 0) continue;
+            float minFocal = focalLengths[0];
+            for (float f : focalLengths) if (f < minFocal) minFocal = f;
+            float hFov = (float) Math.toDegrees(2.0 * Math.atan((sensorSize.getWidth() / 2.0) / minFocal));
+            float vFov = (float) Math.toDegrees(2.0 * Math.atan((sensorSize.getHeight() / 2.0) / minFocal));
+            if (hFov > bestHFov) { bestHFov = hFov; bestVFov = vFov; bestId = id; }
+        }
+        selectedCameraId = bestId;
+        selectedIsLogical = true;
+        if (bestId != null) { cameraHfovDeg = bestHFov; cameraVfovDeg = bestVFov; }
+    }
+
+    private void openCamera(SurfaceTexture surfaceTexture, int viewWidth, int viewHeight) throws CameraAccessException {
+        CameraManager cm = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        if (cm == null || selectedCameraId == null) return;
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) return;
+
+        CameraCharacteristics cc = cm.getCameraCharacteristics(selectedCameraId);
+        StreamConfigurationMap map = cc.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+        if (map != null) {
+            Size[] choices = map.getOutputSizes(SurfaceTexture.class);
+            previewSize = chooseOptimalSize(choices, viewWidth, viewHeight);
+        }
+        if (previewSize == null && map != null) {
+            Size[] any = map.getOutputSizes(SurfaceTexture.class);
+            if (any != null && any.length > 0) previewSize = any[0];
+        }
+        if (previewSize == null) previewSize = new Size(viewWidth, viewHeight);
+
+        surfaceTexture.setDefaultBufferSize(previewSize.getWidth(), previewSize.getHeight());
+        cm.openCamera(selectedCameraId, new CameraDevice.StateCallback() {
+            @Override
+            public void onOpened(@NonNull CameraDevice camera) {
+                cameraDevice = camera;
+                try {
+                    activeCharacteristics = cc;
+                    createCameraPreviewSession(new Surface(surfaceTexture), cc);
+                } catch (Exception e) {
+                    Log.e(TAG, "Failed to create preview session", e);
+                }
+            }
+            @Override
+            public void onDisconnected(@NonNull CameraDevice camera) {
+                camera.close();
+                cameraDevice = null;
+            }
+            @Override
+            public void onError(@NonNull CameraDevice camera, int error) {
+                camera.close();
+                cameraDevice = null;
+                Toast.makeText(SensorARActivity.this, "Camera error", Toast.LENGTH_SHORT).show();
+            }
+        }, cameraHandler);
+    }
+
+    private void createCameraPreviewSession(Surface surface, CameraCharacteristics cc) throws CameraAccessException {
+        if (cameraDevice == null) return;
+        previewRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+        previewRequestBuilder.addTarget(surface);
+
+        // Base auto controls
+        previewRequestBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
+        previewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON);
+
+        // Infinity focus preference
+        setInfinityFocus(previewRequestBuilder, cc);
+
+        // Prefer the widest native FoV on logical multi-camera devices
+        applyWidestZoomIfAvailable(previewRequestBuilder, cc);
+
+        // Enable lens distortion correction if supported to avoid fisheye warping on ultra-wide
+        enableDistortionCorrection(previewRequestBuilder, cc);
+
+        cameraDevice.createCaptureSession(java.util.Arrays.asList(surface), new CameraCaptureSession.StateCallback() {
+            @Override
+            public void onConfigured(@NonNull CameraCaptureSession session) {
+                captureSession = session;
+                try {
+                    CaptureRequest previewRequest = previewRequestBuilder.build();
+                    captureSession.setRepeatingRequest(previewRequest, new CameraCaptureSession.CaptureCallback() {
+                        @Override
+                        public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull android.hardware.camera2.TotalCaptureResult result) {
+                            updateEffectiveFovFromResult(result);
+                        }
+                    }, cameraHandler);
+                } catch (CameraAccessException e) {
+                    Log.e(TAG, "Failed to start repeating request", e);
+                }
+                runOnUiThread(() -> {
+                    // Map camera FOV to on-screen axes depending on display orientation and preview buffer orientation
+                computeBaseFovsForCurrentOrientation();
+                applyPreviewTransform();
+                    updateOverlayFovFromBase();
+                });
+            }
+            @Override
+            public void onConfigureFailed(@NonNull CameraCaptureSession session) {
+                Toast.makeText(SensorARActivity.this, "Preview config failed", Toast.LENGTH_SHORT).show();
+            }
+        }, cameraHandler);
+    }
+
+    private void applyWidestZoomIfAvailable(CaptureRequest.Builder builder, CameraCharacteristics cc) {
+        try {
+            if (Build.VERSION.SDK_INT >= 30) {
+                Range<Float> zoomRange = cc.get(CameraCharacteristics.CONTROL_ZOOM_RATIO_RANGE);
+                if (zoomRange != null) {
+                    Float lower = zoomRange.getLower();
+                    if (lower != null && lower < 1.0f) {
+                        builder.set(CaptureRequest.CONTROL_ZOOM_RATIO, lower);
+                        // With logical multi-camera, this should select the ultra-wide module
+                    }
+                }
             }
         } catch (Exception e) {
-            Log.e(TAG, "Failed to initialize camera", e);
-            Toast.makeText(this, "Failed to access camera", Toast.LENGTH_SHORT).show();
+            Log.w(TAG, "Unable to apply widest zoom ratio", e);
         }
+    }
+
+    private void enableDistortionCorrection(CaptureRequest.Builder builder, CameraCharacteristics cc) {
+        try {
+            int[] modes = cc.get(CameraCharacteristics.DISTORTION_CORRECTION_AVAILABLE_MODES);
+            if (modes != null) {
+                boolean hasOn = false;
+                for (int m : modes) if (m == CameraMetadata.DISTORTION_CORRECTION_MODE_HIGH_QUALITY || m == CameraMetadata.DISTORTION_CORRECTION_MODE_FAST) hasOn = true;
+                if (hasOn) {
+                    builder.set(CaptureRequest.DISTORTION_CORRECTION_MODE, CameraMetadata.DISTORTION_CORRECTION_MODE_HIGH_QUALITY);
+                }
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Unable to enable distortion correction", e);
+        }
+    }
+
+    private void updateEffectiveFovFromResult(android.hardware.camera2.TotalCaptureResult result) {
+        try {
+            // Use active crop region and zoom ratio to refine our effective FOV, ensuring the overlay centers correctly
+            Rect activeArray = activeCharacteristics != null ? activeCharacteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE) : null;
+            Float zoomRatio = null;
+            if (Build.VERSION.SDK_INT >= 30) {
+                zoomRatio = result.get(CaptureResult.CONTROL_ZOOM_RATIO);
+            }
+            Rect crop = result.get(CaptureResult.SCALER_CROP_REGION);
+            if (activeArray == null) return;
+
+            int cropW, cropH;
+            if (crop != null) {
+                cropW = Math.max(1, crop.width());
+                cropH = Math.max(1, crop.height());
+            } else {
+                cropW = activeArray.width();
+                cropH = activeArray.height();
+            }
+
+            // If zoom ratio is < 1, it indicates wider than 1x on logical multi-camera
+            // Effective FOV scales inversely with zoom ratio and proportionally with crop to sensor size
+            float wScale = (float) activeArray.width() / (float) cropW;
+            float hScale = (float) activeArray.height() / (float) cropH;
+            float ratio = (zoomRatio != null && zoomRatio > 0f) ? (1f / zoomRatio) : 1f;
+
+            float effectiveH = cameraHfovDeg * wScale * ratio;
+            float effectiveV = cameraVfovDeg * hScale * ratio;
+
+            cameraHfovDeg = effectiveH;
+            cameraVfovDeg = effectiveV;
+
+            runOnUiThread(() -> {
+                computeBaseFovsForCurrentOrientation();
+                updateOverlayFovFromBase();
+            });
+        } catch (Exception e) {
+            // Be tolerant; overlay still uses base mapping
+        }
+    }
+
+    private void setInfinityFocus(CaptureRequest.Builder builder, CameraCharacteristics cc) {
+        try {
+            int[] afModes = cc.get(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES);
+            Float minFocus = cc.get(CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE);
+            boolean supportsManual = false;
+            if (afModes != null) {
+                for (int m : afModes) if (m == CaptureRequest.CONTROL_AF_MODE_OFF) supportsManual = true;
+            }
+            if (supportsManual && minFocus != null) {
+                builder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_OFF);
+                builder.set(CaptureRequest.LENS_FOCUS_DISTANCE, 0.0f); // infinity in diopters
+            } else {
+                // Fallback to continuous picture or EDOF
+                if (afModes != null) {
+                    boolean hasContinuous = false, hasEdof = false;
+                    for (int m : afModes) {
+                        if (m == CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE) hasContinuous = true;
+                        if (m == CaptureRequest.CONTROL_AF_MODE_EDOF) hasEdof = true;
+                    }
+                    if (hasContinuous) builder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+                    else if (hasEdof) builder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_EDOF);
+                }
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Unable to set infinity focus", e);
+        }
+    }
+
+    private void closeCamera() {
+        try {
+            if (captureSession != null) {
+                captureSession.close();
+                captureSession = null;
+            }
+            if (cameraDevice != null) {
+                cameraDevice.close();
+                cameraDevice = null;
+            }
+        } catch (Exception ignored) {}
+    }
+
+    private Size chooseOptimalSize(Size[] choices, int viewWidth, int viewHeight) {
+        if (choices == null || choices.length == 0) return null;
+        double targetRatio = (double) Math.max(viewWidth, viewHeight) / (double) Math.min(viewWidth, viewHeight);
+        Size best = choices[0];
+        double bestScore = Double.MAX_VALUE;
+        for (Size s : choices) {
+            int w = s.getWidth();
+            int h = s.getHeight();
+            double ratio = (double) Math.max(w, h) / (double) Math.min(w, h);
+            double ratioScore = Math.abs(ratio - targetRatio);
+            // Prefer sizes not exceeding 1920x1080 to reduce load, but accept larger if closer ratio
+            double sizePenalty = (w > 1920 || h > 1080) ? 0.2 : 0.0;
+            double score = ratioScore + sizePenalty;
+            if (score < bestScore) { bestScore = score; best = s; }
+        }
+        return best;
+    }
+
+    private void applyPreviewTransform() {
+        if (cameraPreview == null || previewSize == null) return;
+        int vw = cameraPreview.getWidth();
+        int vh = cameraPreview.getHeight();
+        int bw = previewSize.getWidth();
+        int bh = previewSize.getHeight();
+        // We render sensor-aligned overlay independently; center-crop the preview buffer
+        int rotationDegrees = lastPreviewRotationDeg;
+        cameraPreview.applyTransform(vw, vh, bw, bh, rotationDegrees);
+    }
+
+    private void updateOverlayFovFromBase() {
+        if (overlayView == null) return;
+        overlayView.setFieldOfViewDegrees(getEffectiveFovForScreenWidth(), getEffectiveFovForScreenHeight());
+        // Ensure compass snapping scale matches trig overlay after FOV update
+        loadNearbyTrigpoints();
     }
     
     private void startLocationServices() {
@@ -618,50 +974,62 @@ public class SensorARActivity extends BaseActivity implements SensorEventListene
     // Compute FOV to use for the horizontal spread of the overlay in current orientation.
     // In portrait we rotate preview by 90°, so the camera's vertical FOV maps to screen width.
     private float getEffectiveFovForScreenWidth() {
-        float fallback = 60f;
-        try {
-            float base;
-            if (camera != null) {
-                Camera.Parameters p = camera.getParameters();
-                float h = p != null ? p.getHorizontalViewAngle() : 0f;
-                float v = p != null ? p.getVerticalViewAngle() : 0f;
-                base = (v > 0f ? v : (h > 0f ? h : fallback));
-            } else {
-                base = fallback;
-            }
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-            float scale = prefs.getFloat("ar_fov_scale", 1.0f);
-            if (scale < 0.5f) scale = 0.5f;
-            if (scale > 1.5f) scale = 1.5f;
-            return base * scale;
-        } catch (Exception e) {
-            Log.w(TAG, "Unable to read camera FOV; using fallback", e);
-            return fallback;
-        }
+        float base = baseFovXDeg; // horizontal FOV across screen width
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        float scale = prefs.getFloat("ar_fov_scale", 1.0f);
+        if (scale < 0.5f) scale = 0.5f;
+        if (scale > 1.5f) scale = 1.5f;
+        return base * scale;
     }
 
     // Compute FOV to use for the vertical spread across screen height in current orientation.
     // In portrait we rotate preview by 90°, so the camera's horizontal FOV maps to screen height.
     private float getEffectiveFovForScreenHeight() {
-        float fallback = 45f;
+        float base = baseFovYDeg; // vertical FOV across screen height
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        float scale = prefs.getFloat("ar_fov_scale", 1.0f);
+        if (scale < 0.5f) scale = 0.5f;
+        if (scale > 1.5f) scale = 1.5f;
+        return base * scale;
+    }
+
+    private void computeBaseFovsForCurrentOrientation() {
         try {
-            float base;
-            if (camera != null) {
-                Camera.Parameters p = camera.getParameters();
-                float h = p != null ? p.getHorizontalViewAngle() : 0f;
-                float v = p != null ? p.getVerticalViewAngle() : 0f;
-                base = (h > 0f ? h : (v > 0f ? v : fallback));
-            } else {
-                base = fallback;
+            if (activeCharacteristics == null) {
+                baseFovXDeg = cameraHfovDeg;
+                baseFovYDeg = cameraVfovDeg;
+                lastPreviewRotationDeg = 0;
+                return;
             }
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-            float scale = prefs.getFloat("ar_fov_scale", 1.0f);
-            if (scale < 0.5f) scale = 0.5f;
-            if (scale > 1.5f) scale = 1.5f;
-            return base * scale;
+            // Determine the sensor orientation and current display rotation to map FOV to screen axes
+            Integer sensorOrientation = activeCharacteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
+            int displayRotation = getWindowManager().getDefaultDisplay().getRotation();
+            int rotationDeg;
+            switch (displayRotation) {
+                case android.view.Surface.ROTATION_90: rotationDeg = 90; break;
+                case android.view.Surface.ROTATION_180: rotationDeg = 180; break;
+                case android.view.Surface.ROTATION_270: rotationDeg = 270; break;
+                case android.view.Surface.ROTATION_0:
+                default: rotationDeg = 0; break;
+            }
+            int sensorDeg = (sensorOrientation != null) ? sensorOrientation : 90;
+            // Effective buffer rotation relative to display
+            int total = (sensorDeg - rotationDeg + 360) % 360;
+            // Rotate the preview by the inverse plus 90° to align typical back-camera sensors in portrait
+            lastPreviewRotationDeg = (360 - total + 90) % 360;
+            boolean swapped = (total == 90 || total == 270);
+            if (swapped) {
+                // In portrait with 90° sensor, camera vertical FOV maps to screen width
+                baseFovXDeg = cameraVfovDeg;
+                baseFovYDeg = cameraHfovDeg;
+            } else {
+                baseFovXDeg = cameraHfovDeg;
+                baseFovYDeg = cameraVfovDeg;
+            }
         } catch (Exception e) {
-            Log.w(TAG, "Unable to read camera FOV (height); using fallback", e);
-            return fallback;
+            baseFovXDeg = cameraHfovDeg;
+            baseFovYDeg = cameraVfovDeg;
+            lastPreviewRotationDeg = 0;
         }
     }
     
