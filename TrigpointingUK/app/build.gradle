@@ -98,10 +98,13 @@ android {
             buildConfigField "String", "TRIG_API_BASE", "\"https://api.trigpointing.uk\""
             buildConfigField "String", "API_BASE_URL", "\"https://api.trigpointing.uk/v1\""
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            
+            // Generate native debug symbols for Play Console
             ndk {
-                debugSymbolLevel 'SYMBOL_TABLE'
+                debugSymbolLevel 'FULL'  // Changed from SYMBOL_TABLE for better crash reports
             }
-            // Crashlytics config; harmless if not obfuscating
+            
+            // Crashlytics config
             firebaseCrashlytics {
                 mappingFileUploadEnabled true
                 nativeSymbolUploadEnabled true
