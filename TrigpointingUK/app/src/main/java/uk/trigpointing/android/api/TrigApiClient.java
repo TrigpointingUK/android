@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import okhttp3.MediaType;
@@ -480,6 +481,70 @@ public class TrigApiClient {
         });
     }
 
+    public void listTrigLogs(long trigId, int limit, String pageUrl, ApiCallback<TrigLogPage> callback) {
+        ensureValidToken().thenCompose(token -> CompletableFuture.supplyAsync(() -> {
+            try {
+                String url;
+                if (pageUrl != null && !pageUrl.isEmpty()) {
+                    url = BuildConfig.TRIG_API_BASE + pageUrl;
+                } else {
+                    url = API_BASE_URL + "/trigs/" + trigId + "/logs?limit=" + limit + "&skip=0";
+                }
+                Request httpRequest = new Request.Builder()
+                        .url(url)
+                        .get()
+                        .addHeader("Authorization", "Bearer " + token)
+                        .build();
+
+                try (Response response = httpClient.newCall(httpRequest).execute()) {
+                    String responseBody = response.body() != null ? response.body().string() : "";
+                    if (response.isSuccessful()) {
+                        TrigLogPage trigLogPage = parseTrigLogPage(responseBody);
+                        return new ApiResult<>(true, trigLogPage, null);
+                    } else {
+                        String errorMsg = parseErrorMessage(responseBody, response.code());
+                        return new ApiResult<TrigLogPage>(false, null, errorMsg);
+                    }
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "listTrigLogs: Unexpected error", e);
+                return new ApiResult<TrigLogPage>(false, null, "Error: " + e.getMessage());
+            }
+        })).thenAccept(result -> {
+            if (result.isSuccess()) {
+                callback.onSuccess(result.getData());
+            } else {
+                callback.onError(result.getErrorMessage());
+            }
+        }).exceptionally(throwable -> {
+            callback.onError("Authentication error: " + throwable.getMessage());
+            return null;
+        });
+    }
+
+    private TrigLogPage parseTrigLogPage(String json) {
+        JsonElement element = gson.fromJson(json, JsonElement.class);
+        TrigLogPage page = new TrigLogPage();
+        page.data = new java.util.ArrayList<>();
+        if (element != null && element.isJsonObject()) {
+            JsonObject obj = element.getAsJsonObject();
+            if (obj.has("items") && obj.get("items").isJsonArray()) {
+                JsonArray items = obj.getAsJsonArray("items");
+                for (JsonElement item : items) {
+                    TrigLog log = gson.fromJson(item, TrigLog.class);
+                    page.data.add(log);
+                }
+            }
+            if (obj.has("pagination") && obj.get("pagination").isJsonObject()) {
+                page.pagination = gson.fromJson(obj.get("pagination"), Pagination.class);
+            }
+            if (obj.has("links") && obj.get("links").isJsonObject()) {
+                page.links = gson.fromJson(obj.get("links"), Links.class);
+            }
+        }
+        return page;
+    }
+
     /**
      * Parse error message from API response
      */
@@ -720,6 +785,34 @@ public class TrigApiClient {
             if (online_map_type2 != null) payload.put("online_map_type2", online_map_type2);
             return payload;
         }
+    }
+
+    public static class TrigLogPage {
+        public java.util.List<TrigLog> data;
+        public Pagination pagination;
+        public Links links;
+    }
+
+    public static class TrigLog {
+        public int id;
+        public int trig_id;
+        public String date;
+        public String condition;
+        public String comment;
+        public String user_name;
+    }
+
+    public static class Pagination {
+        public int total;
+        public int limit;
+        public int offset;
+        public boolean has_more;
+    }
+
+    public static class Links {
+        public String self;
+        public String next;
+        public String prev;
     }
 }
 

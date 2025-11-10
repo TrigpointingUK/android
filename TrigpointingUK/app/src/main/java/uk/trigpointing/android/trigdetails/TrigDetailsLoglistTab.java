@@ -22,6 +22,9 @@ import uk.trigpointing.android.common.BaseTabActivity;
 import uk.trigpointing.android.common.StringLoader;
 import uk.trigpointing.android.types.Condition;
 import uk.trigpointing.android.types.TrigLog;
+import uk.trigpointing.android.api.AuthPreferences;
+import uk.trigpointing.android.api.TrigApiClient;
+import android.widget.Toast;
 
 public class TrigDetailsLoglistTab extends BaseTabActivity {
     private static final String TAG="TrigDetailsLoglistTab";
@@ -32,6 +35,8 @@ public class TrigDetailsLoglistTab extends BaseTabActivity {
     private TrigDetailsLoglistAdapter     mTrigLogsAdapter;
     private TextView                     mEmptyView;
     private ListView                     mListView;
+    private AuthPreferences authPreferences;
+    private TrigApiClient trigApiClient;
 
 
     
@@ -84,56 +89,55 @@ public class TrigDetailsLoglistTab extends BaseTabActivity {
 
 
     private void populateLogs(boolean refresh) {
-        // Show loading message on main thread
         mEmptyView.setText(R.string.downloadingLogs);
-        // create string loader class
-        mStrLoader = new StringLoader(TrigDetailsLoglistTab.this);
-        
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        Handler mainHandler = new Handler(Looper.getMainLooper());
-        
-        CompletableFuture.supplyAsync(() -> {
-            int count=0;
-            mTrigLogs.clear();
-            
-            // get triglogs from T:UK, refresh if requested
-            String url = String.format(Locale.getDefault(), "https://trigpointing.uk/trigs/down-android-triglogs.php?t=%d", mTrigId);
-            String list = mStrLoader.getString(url, refresh);
-            if (list == null || list.trim().length()==0) {
-                Log.i(TAG, "No logs for "+mTrigId);            
-                return count;
-            }
-            //Log.d(TAG,list);            
+        if (authPreferences == null) {
+            authPreferences = new AuthPreferences(this);
+        }
+        if (!authPreferences.isLoggedIn()) {
+            Toast.makeText(this, R.string.toastPleaseLogin, Toast.LENGTH_LONG).show();
+            return;
+        }
+        if (trigApiClient == null) {
+            trigApiClient = new TrigApiClient(this);
+        }
 
-            TrigLog tl;
+        mTrigLogs.clear();
+        mTrigLogsAdapter.notifyDataSetChanged();
 
-            String[] lines = list.split("\n");
-            //System.out.println(java.util.Arrays.toString(lines));
-            Log.i(TAG, "Logs found : "+lines.length);
-            
-            for (String line : lines) {
-                if (!(line.trim().equals(""))) { 
-                    String[] csv = line.split("\t");
-                    //System.out.println(java.util.Arrays.toString(csv));
-                    try {
-                        tl= new TrigLog(
-                                csv[3],                            //username 
-                                csv[0],                         //date
-                                Condition.fromCode(csv[2]),     //condition
-                                csv[1]);                        //text
-                        mTrigLogs.add(tl);
-                        count++;
-                    } catch (Exception e) {
-                        System.out.println(e);
+        fetchTrigLogsPage(null, refresh);
+    }
+
+    private void fetchTrigLogsPage(String nextLink, boolean refresh) {
+        trigApiClient.listTrigLogs(mTrigId, 100, nextLink, new TrigApiClient.ApiCallback<TrigApiClient.TrigLogPage>() {
+            @Override
+            public void onSuccess(TrigApiClient.TrigLogPage result) {
+                runOnUiThread(() -> {
+                    if (result != null && result.data != null) {
+                        for (TrigApiClient.TrigLog log : result.data) {
+                            Condition condition = Condition.fromCode(log.condition);
+                            TrigLog tl = new TrigLog(log.user_name, log.date, condition, log.comment);
+                            mTrigLogs.add(tl);
+                        }
+                        mTrigLogsAdapter.notifyDataSetChanged();
+                        mEmptyView.setText(R.string.noLogs);
+                        if (result.links != null && result.links.next != null && !result.links.next.isEmpty()) {
+                            fetchTrigLogsPage(result.links.next, refresh);
+                        }
+                    } else {
+                        mEmptyView.setText(R.string.noLogs);
                     }
-                }
+                });
             }
-            return count;
-        }, executor)
-        .thenAcceptAsync(count -> {
-            mEmptyView.setText(R.string.noLogs);
-            mTrigLogsAdapter.notifyDataSetChanged();
-        }, mainHandler::post);
+
+            @Override
+            public void onError(String errorMessage) {
+                runOnUiThread(() -> {
+                    Log.e(TAG, "Failed to load trig logs: " + errorMessage);
+                    Toast.makeText(TrigDetailsLoglistTab.this, getString(R.string.error_loading_logs, errorMessage), Toast.LENGTH_LONG).show();
+                    mEmptyView.setText(R.string.noLogs);
+                });
+            }
+        });
     }
 
     // Allow parent activity to trigger a refresh for the current trigpoint
