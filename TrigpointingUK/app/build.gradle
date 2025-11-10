@@ -27,8 +27,8 @@ android {
         applicationId "uk.trigpointing.android"
         minSdk = 27
         targetSdk = 36
-        versionCode 43
-        versionName "2.1.43"
+        versionCode 44
+        versionName "2.1.44"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         def buildTime = new Date().format("yyyy-MM-dd HH:mm:ss")
         buildConfigField "String", "BUILD_TIME", "\"${buildTime}\""
@@ -59,6 +59,37 @@ android {
                 auth0Scheme: "uk.trigpointing.android.debug"
             ]
         }
+
+        // New staging variant - release optimizations with debug signing
+        staging {
+            initWith debug  // Start with debug config
+            
+            // CRITICAL: Make it non-debuggable so R8 actually runs
+            debuggable false
+            
+            // Use release optimizations
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            
+            // But keep debug signing (automatic)
+            matchingFallbacks = ['debug', 'release']
+            
+            // Disable Crashlytics uploads for staging (local testing only)
+            firebaseCrashlytics {
+                mappingFileUploadEnabled false
+                nativeSymbolUploadEnabled false
+            }
+            
+            // You can choose which API to use
+            buildConfigField "String", "TRIG_API_BASE", "\"https://api.trigpointing.me\""
+            buildConfigField "String", "API_BASE_URL", "\"https://api.trigpointing.me/v1\""
+            
+            // Use same package as debug (so Firebase config works)
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-staging"
+        }
+
         release {
             minifyEnabled true
             shrinkResources true

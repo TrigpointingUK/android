@@ -70,6 +70,13 @@
 -keep class uk.trigpointing.android.api.User { *; }
 -keep class uk.trigpointing.android.api.ErrorResponse { *; }
 
+# Keep all inner classes in TrigApiClient that are used as data models
+-keep class uk.trigpointing.android.api.TrigApiClient$** { *; }
+
+# Keep Coil classes that might be referenced indirectly by GSON
+-keep class coil.size.** { *; }
+-dontwarn coil.size.**
+
 # Defensive: ensure AndroidX BundleCompat is not altered in a way that breaks reflection
 -keep class androidx.core.os.BundleCompat { *; }
 
