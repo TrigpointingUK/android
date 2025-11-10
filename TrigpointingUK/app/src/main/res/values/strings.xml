@@ -267,5 +267,6 @@
     <string name="ar_arrow_right">\&gt;\&lt;</string>
 
     <string name="error_loading_logs">Error loading logs: %1$s</string>
+    <string name="error_loading_photos">Error loading photos: %1$s</string>
 
 </resources>

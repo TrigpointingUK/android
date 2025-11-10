@@ -545,6 +545,70 @@ public class TrigApiClient {
         return page;
     }
 
+    public void listTrigPhotos(long trigId, int limit, String pageUrl, ApiCallback<TrigPhotoPage> callback) {
+        ensureValidToken().thenCompose(token -> CompletableFuture.supplyAsync(() -> {
+            try {
+                String url;
+                if (pageUrl != null && !pageUrl.isEmpty()) {
+                    url = BuildConfig.TRIG_API_BASE + pageUrl;
+                } else {
+                    url = API_BASE_URL + "/trigs/" + trigId + "/photos?limit=" + limit + "&skip=0";
+                }
+                Request httpRequest = new Request.Builder()
+                        .url(url)
+                        .get()
+                        .addHeader("Authorization", "Bearer " + token)
+                        .build();
+
+                try (Response response = httpClient.newCall(httpRequest).execute()) {
+                    String responseBody = response.body() != null ? response.body().string() : "";
+                    if (response.isSuccessful()) {
+                        TrigPhotoPage photoPage = parseTrigPhotoPage(responseBody);
+                        return new ApiResult<>(true, photoPage, null);
+                    } else {
+                        String errorMsg = parseErrorMessage(responseBody, response.code());
+                        return new ApiResult<TrigPhotoPage>(false, null, errorMsg);
+                    }
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "listTrigPhotos: Unexpected error", e);
+                return new ApiResult<TrigPhotoPage>(false, null, "Error: " + e.getMessage());
+            }
+        })).thenAccept(result -> {
+            if (result.isSuccess()) {
+                callback.onSuccess(result.getData());
+            } else {
+                callback.onError(result.getErrorMessage());
+            }
+        }).exceptionally(throwable -> {
+            callback.onError("Authentication error: " + throwable.getMessage());
+            return null;
+        });
+    }
+
+    private TrigPhotoPage parseTrigPhotoPage(String json) {
+        JsonElement element = gson.fromJson(json, JsonElement.class);
+        TrigPhotoPage page = new TrigPhotoPage();
+        page.items = new java.util.ArrayList<>();
+        if (element != null && element.isJsonObject()) {
+            JsonObject obj = element.getAsJsonObject();
+            if (obj.has("items") && obj.get("items").isJsonArray()) {
+                JsonArray items = obj.getAsJsonArray("items");
+                for (JsonElement item : items) {
+                    TrigPhotoItem photo = gson.fromJson(item, TrigPhotoItem.class);
+                    page.items.add(photo);
+                }
+            }
+            if (obj.has("pagination") && obj.get("pagination").isJsonObject()) {
+                page.pagination = gson.fromJson(obj.get("pagination"), Pagination.class);
+            }
+            if (obj.has("links") && obj.get("links").isJsonObject()) {
+                page.links = gson.fromJson(obj.get("links"), Links.class);
+            }
+        }
+        return page;
+    }
+
     /**
      * Parse error message from API response
      */
@@ -813,6 +877,34 @@ public class TrigApiClient {
         public String self;
         public String next;
         public String prev;
+    }
+
+    public static class TrigPhotoPage {
+        public java.util.List<TrigPhotoItem> items;
+        public Pagination pagination;
+        public Links links;
+    }
+
+    public static class TrigPhotoItem {
+        public int id;
+        public long log_id;
+        public long user_id;
+        public String type;
+        public long filesize;
+        public int height;
+        public int width;
+        public long icon_filesize;
+        public int icon_height;
+        public int icon_width;
+        public String name;
+        public String text_desc;
+        public String public_ind;
+        public String photo_url;
+        public String icon_url;
+        public String user_name;
+        public long trig_id;
+        public String trig_name;
+        public String log_date;
     }
 }
 

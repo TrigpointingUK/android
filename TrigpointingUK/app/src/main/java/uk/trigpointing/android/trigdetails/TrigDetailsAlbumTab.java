@@ -1,12 +1,9 @@
 package uk.trigpointing.android.trigdetails;
 
 import java.util.ArrayList;
-import java.util.Locale;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -14,25 +11,24 @@ import android.view.View;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.GridLayoutManager;
 import android.widget.TextView;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import android.widget.Toast;
+import uk.trigpointing.android.api.AuthPreferences;
+import uk.trigpointing.android.api.TrigApiClient;
 
 import uk.trigpointing.android.DbHelper;
 import uk.trigpointing.android.R;
 import uk.trigpointing.android.common.BaseTabActivity;
 import uk.trigpointing.android.common.DisplayBitmapActivity;
-import uk.trigpointing.android.common.StringLoader;
 import uk.trigpointing.android.types.TrigPhoto;
 
 public class TrigDetailsAlbumTab extends BaseTabActivity {
     private long mTrigId;
     private static final String TAG="TrigDetailsAlbumTab";
-    private StringLoader             mStrLoader;
     private ArrayList<TrigPhoto>     mTrigPhotos;
     private TrigDetailsAlbumGridAdapter mGridAdapter;
     private TextView                 mEmptyView;
+    private AuthPreferences authPreferences;
+    private TrigApiClient trigApiClient;
 
     
     public void onCreate(Bundle savedInstanceState) {
@@ -44,6 +40,9 @@ public class TrigDetailsAlbumTab extends BaseTabActivity {
         if (extras == null) {return;}
         mTrigId = extras.getLong(DbHelper.TRIG_ID);
         Log.i(TAG, "Trig_id = "+mTrigId);
+
+        authPreferences = new AuthPreferences(this);
+        trigApiClient = new TrigApiClient(this);
 
         // Set up grid RecyclerView similar to OS Map tab
         RecyclerView recycler = findViewById(R.id.trigalbum_recycler);
@@ -97,65 +96,69 @@ public class TrigDetailsAlbumTab extends BaseTabActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    
-    
-    
     private void populatePhotos(boolean refresh) {
-        // Show loading message on main thread
         mEmptyView.setText(R.string.downloadingPhotos);
-        // create string loader class
-        mStrLoader = new StringLoader(TrigDetailsAlbumTab.this);
-        
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        Handler mainHandler = new Handler(Looper.getMainLooper());
-        
-        CompletableFuture.<ArrayList<TrigPhoto>>supplyAsync(() -> {
-            ArrayList<TrigPhoto> results = new ArrayList<TrigPhoto>();
-            String url = String.format(Locale.getDefault(), "https://trigpointing.uk/trigs/down-android-trigphotos.php?t=%d", mTrigId);
-            String list = mStrLoader.getString(url, refresh);
-            if (list == null || list.trim().length()==0) {
-                Log.i(TAG, "No photos for "+mTrigId);            
-                return results;
-            }
-
-            TrigPhoto tp;
-
-            String[] lines = list.split("\n");
-            Log.i(TAG, "Photos found : "+lines.length);
-            
-            for (String line : lines) {
-                if (!(line.trim().equals(""))) { 
-                    String[] csv = line.split("\t");
-                    try {
-                        tp = new TrigPhoto(
-                                csv[2],        //name 
-                                csv[3],     //descr
-                                csv[1],        //photo
-                                csv[0],        //icon
-                                csv[5],        //user
-                                csv[4]);    //date
-                        Log.d(TAG, "Photo URL: " + csv[1] + ", Icon URL: " + csv[0]);
-                        results.add(tp);
-                    } catch (Exception e) {
-                        Log.e(TAG, "Error parsing photo line: " + line, e);
-                    }
-                }
-            }
-            return results;
-        }, executor)
-        .thenAcceptAsync(results -> {
-            int count = results != null ? results.size() : 0;
-            if (count == 0) {
-                mEmptyView.setVisibility(View.VISIBLE);
-                mEmptyView.setText(R.string.noPhotos);
-            } else {
-                mEmptyView.setVisibility(View.GONE);
-            }
-            // Mutate adapter list only on main thread to avoid RecyclerView inconsistencies
+        if (!authPreferences.isLoggedIn()) {
+            Toast.makeText(this, R.string.toastPleaseLogin, Toast.LENGTH_LONG).show();
             mTrigPhotos.clear();
-            if (results != null) { mTrigPhotos.addAll(results); }
             mGridAdapter.notifyDataSetChanged();
-        }, mainHandler::post);
+            mEmptyView.setText(R.string.noPhotos);
+            return;
+        }
+        mTrigPhotos.clear();
+        mGridAdapter.notifyDataSetChanged();
+        fetchTrigPhotosPage(null);
+    }
+
+    private void fetchTrigPhotosPage(String nextLink) {
+        trigApiClient.listTrigPhotos(mTrigId, 100, nextLink, new TrigApiClient.ApiCallback<TrigApiClient.TrigPhotoPage>() {
+            @Override
+            public void onSuccess(TrigApiClient.TrigPhotoPage result) {
+                runOnUiThread(() -> {
+                    if (result != null && result.items != null) {
+                        for (TrigApiClient.TrigPhotoItem item : result.items) {
+                            TrigPhoto tp = new TrigPhoto(
+                                    item.name != null ? item.name : "",
+                                    item.text_desc != null ? item.text_desc : "",
+                                    item.photo_url,
+                                    item.icon_url,
+                                    item.user_name,
+                                    item.log_date
+                            );
+                            tp.setSubject(item.type);
+                            tp.setIspublic("Y".equalsIgnoreCase(item.public_ind));
+                            tp.setLogID(item.log_id);
+                            mTrigPhotos.add(tp);
+                        }
+                        mGridAdapter.notifyDataSetChanged();
+                        if (result.pagination != null && result.pagination.total > 0) {
+                            mEmptyView.setVisibility(View.GONE);
+                        } else {
+                            mEmptyView.setVisibility(View.VISIBLE);
+                            mEmptyView.setText(R.string.noPhotos);
+                        }
+                        if (result.links != null && result.links.next != null && !result.links.next.isEmpty()) {
+                            fetchTrigPhotosPage(result.links.next);
+                        }
+                    } else {
+                        mEmptyView.setVisibility(View.VISIBLE);
+                        mEmptyView.setText(R.string.noPhotos);
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                runOnUiThread(() -> {
+                    Log.e(TAG, "Failed to load trig photos: " + errorMessage);
+                    Toast.makeText(TrigDetailsAlbumTab.this, getString(R.string.error_loading_photos, errorMessage), Toast.LENGTH_LONG).show();
+                    if (mTrigPhotos.isEmpty()) {
+                        mEmptyView.setVisibility(View.VISIBLE);
+                        mEmptyView.setText(R.string.noPhotos);
+                    }
+                });
+            }
+        });
     }
 
     public void refreshAlbumFromParent() {
