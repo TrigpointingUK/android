@@ -93,10 +93,6 @@ public class TrigDetailsLoglistTab extends BaseTabActivity {
         if (authPreferences == null) {
             authPreferences = new AuthPreferences(this);
         }
-        if (!authPreferences.isLoggedIn()) {
-            Toast.makeText(this, R.string.toastPleaseLogin, Toast.LENGTH_LONG).show();
-            return;
-        }
         if (trigApiClient == null) {
             trigApiClient = new TrigApiClient(this);
         }

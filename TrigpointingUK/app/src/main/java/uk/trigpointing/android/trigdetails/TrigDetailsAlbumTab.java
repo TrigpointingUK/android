@@ -98,13 +98,6 @@ public class TrigDetailsAlbumTab extends BaseTabActivity {
 
     private void populatePhotos(boolean refresh) {
         mEmptyView.setText(R.string.downloadingPhotos);
-        if (!authPreferences.isLoggedIn()) {
-            Toast.makeText(this, R.string.toastPleaseLogin, Toast.LENGTH_LONG).show();
-            mTrigPhotos.clear();
-            mGridAdapter.notifyDataSetChanged();
-            mEmptyView.setText(R.string.noPhotos);
-            return;
-        }
         mTrigPhotos.clear();
         mGridAdapter.notifyDataSetChanged();
         fetchTrigPhotosPage(null);

@@ -482,7 +482,7 @@ public class TrigApiClient {
     }
 
     public void listTrigLogs(long trigId, int limit, String pageUrl, ApiCallback<TrigLogPage> callback) {
-        ensureValidToken().thenCompose(token -> CompletableFuture.supplyAsync(() -> {
+        CompletableFuture.supplyAsync(() -> {
             try {
                 String url;
                 if (pageUrl != null && !pageUrl.isEmpty()) {
@@ -490,11 +490,20 @@ public class TrigApiClient {
                 } else {
                     url = API_BASE_URL + "/trigs/" + trigId + "/logs?limit=" + limit + "&skip=0";
                 }
-                Request httpRequest = new Request.Builder()
+                
+                Request.Builder requestBuilder = new Request.Builder()
                         .url(url)
-                        .get()
-                        .addHeader("Authorization", "Bearer " + token)
-                        .build();
+                        .get();
+                
+                // Add authorization header if user is logged in
+                if (authPreferences.isAuth0LoggedIn()) {
+                    String token = authPreferences.getAuth0AccessToken();
+                    if (token != null && !token.isEmpty()) {
+                        requestBuilder.addHeader("Authorization", "Bearer " + token);
+                    }
+                }
+                
+                Request httpRequest = requestBuilder.build();
 
                 try (Response response = httpClient.newCall(httpRequest).execute()) {
                     String responseBody = response.body() != null ? response.body().string() : "";
@@ -510,14 +519,14 @@ public class TrigApiClient {
                 Log.e(TAG, "listTrigLogs: Unexpected error", e);
                 return new ApiResult<TrigLogPage>(false, null, "Error: " + e.getMessage());
             }
-        })).thenAccept(result -> {
+        }).thenAccept(result -> {
             if (result.isSuccess()) {
                 callback.onSuccess(result.getData());
             } else {
                 callback.onError(result.getErrorMessage());
             }
         }).exceptionally(throwable -> {
-            callback.onError("Authentication error: " + throwable.getMessage());
+            callback.onError("Error: " + throwable.getMessage());
             return null;
         });
     }
@@ -546,7 +555,7 @@ public class TrigApiClient {
     }
 
     public void listTrigPhotos(long trigId, int limit, String pageUrl, ApiCallback<TrigPhotoPage> callback) {
-        ensureValidToken().thenCompose(token -> CompletableFuture.supplyAsync(() -> {
+        CompletableFuture.supplyAsync(() -> {
             try {
                 String url;
                 if (pageUrl != null && !pageUrl.isEmpty()) {
@@ -554,11 +563,20 @@ public class TrigApiClient {
                 } else {
                     url = API_BASE_URL + "/trigs/" + trigId + "/photos?limit=" + limit + "&skip=0";
                 }
-                Request httpRequest = new Request.Builder()
+                
+                Request.Builder requestBuilder = new Request.Builder()
                         .url(url)
-                        .get()
-                        .addHeader("Authorization", "Bearer " + token)
-                        .build();
+                        .get();
+                
+                // Add authorization header if user is logged in
+                if (authPreferences.isAuth0LoggedIn()) {
+                    String token = authPreferences.getAuth0AccessToken();
+                    if (token != null && !token.isEmpty()) {
+                        requestBuilder.addHeader("Authorization", "Bearer " + token);
+                    }
+                }
+                
+                Request httpRequest = requestBuilder.build();
 
                 try (Response response = httpClient.newCall(httpRequest).execute()) {
                     String responseBody = response.body() != null ? response.body().string() : "";
@@ -574,14 +592,14 @@ public class TrigApiClient {
                 Log.e(TAG, "listTrigPhotos: Unexpected error", e);
                 return new ApiResult<TrigPhotoPage>(false, null, "Error: " + e.getMessage());
             }
-        })).thenAccept(result -> {
+        }).thenAccept(result -> {
             if (result.isSuccess()) {
                 callback.onSuccess(result.getData());
             } else {
                 callback.onError(result.getErrorMessage());
             }
         }).exceptionally(throwable -> {
-            callback.onError("Authentication error: " + throwable.getMessage());
+            callback.onError("Error: " + throwable.getMessage());
             return null;
         });
     }
