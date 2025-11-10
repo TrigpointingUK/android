@@ -179,7 +179,7 @@ public class TrigDetailsInfoTab extends BaseTabActivity {
         mLatitude  = c.getDouble(latIndex);
         mLongitude = c.getDouble(lonIndex);
         
-        mTUKUrl   = Uri.parse( "https://trigpointing.uk/trigs/trig-details.php?t="+c.getLong(idIndex) );
+        mTUKUrl   = Uri.parse( "https://trigpointing.uk/trig/"+c.getLong(idIndex) );
         mNavUrl   = Uri.parse( String.format(Locale.getDefault(), "google.navigation:ll=%3.5f,%3.5f",mLatitude, mLongitude)); 
         mWaypoint = String.format(Locale.getDefault(), "TP%04d", c.getLong(idIndex));
         

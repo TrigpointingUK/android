@@ -1,14 +1,8 @@
 package uk.trigpointing.android;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.zip.GZIPInputStream;
 
+import uk.trigpointing.android.BuildConfig;
 import uk.trigpointing.android.common.BaseActivity;
 
 import android.annotation.SuppressLint;
@@ -24,6 +18,13 @@ import android.widget.TextView;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 import uk.trigpointing.android.logging.SyncTask;
 import uk.trigpointing.android.logging.SyncListener;
@@ -93,97 +94,131 @@ public class DownloadTrigsActivity extends BaseActivity implements SyncListener 
             Log.i(TAG, "PopulateTrigsTask: Starting download");
 
             DbHelper db = new DbHelper(DownloadTrigsActivity.this);
-            String strLine;                
-            int i=0;
+            OkHttpClient client = new OkHttpClient();
+            Gson gson = new Gson();
+            TrigExportResponse exportResponse;
+
+            try {
+                String downloadUrl = BuildConfig.TRIG_API_BASE + "/v1/trigs/export";
+                Log.i(TAG, "PopulateTrigsTask: Downloading from URL: " + downloadUrl);
+
+                Request request = new Request.Builder()
+                        .url(downloadUrl)
+                        .get()
+                        .build();
+
+                String responseBody;
+                try (Response response = client.newCall(request).execute()) {
+                    if (!response.isSuccessful() || response.body() == null) {
+                        Log.e(TAG, "PopulateTrigsTask: Failed to download trig export, HTTP " + response.code());
+                        return DownloadStatus.ERROR;
+                    }
+                    responseBody = response.body().string();
+                }
+
+                exportResponse = gson.fromJson(responseBody, TrigExportResponse.class);
+            } catch (IOException | JsonSyntaxException e) {
+                Log.e(TAG, "PopulateTrigsTask: Error downloading or parsing export", e);
+                return DownloadStatus.ERROR;
+            }
+
+            if (exportResponse == null || exportResponse.items == null || exportResponse.items.isEmpty()) {
+                Log.e(TAG, "PopulateTrigsTask: Export response was empty");
+                return DownloadStatus.ERROR;
+            }
+
+            int expectedTotal = exportResponse.total != null ? exportResponse.total : exportResponse.items.size();
+            if (expectedTotal <= 0) {
+                expectedTotal = exportResponse.items.size();
+            }
+            if (expectedTotal <= 0) {
+                expectedTotal = 1;
+            }
+            mProgressMax = expectedTotal;
+            final int progressMax = expectedTotal;
+            mainHandler.post(() -> mProgress.setMax(progressMax));
+
+            int insertedCount = 0;
 
             try {
                 Log.i(TAG, "PopulateTrigsTask: Opening database");
                 db.open();
                 db.mDb.beginTransaction();
 
-                String downloadUrl = "https://trigpointing.uk/trigs/down-android-trigs.php?appversion="+ mAppVersion;
-                Log.i(TAG, "PopulateTrigsTask: Downloading from URL: " + downloadUrl);
-                
-                URL url = new URL(downloadUrl);
-                Log.i(TAG, "PopulateTrigsTask: Opening connection");
-                URLConnection ucon = url.openConnection();
-                Log.i(TAG, "PopulateTrigsTask: Getting input stream");
-                InputStream is = ucon.getInputStream();
-                Log.i(TAG, "PopulateTrigsTask: Creating GZIP input stream");
-                GZIPInputStream zis = new GZIPInputStream(new BufferedInputStream(is));
-                Log.i(TAG, "PopulateTrigsTask: Creating buffered reader");
-                BufferedReader br = new BufferedReader(new InputStreamReader(zis));
-
-                Log.i(TAG, "PopulateTrigsTask: Reading first line");
-                if ((strLine = br.readLine()) != null) {
-                    mProgressMax = Integer.parseInt(strLine);
-                    Log.i(TAG, "PopulateTrigsTask: Downloading " + mProgressMax + " trigs");
-                    // Update progress on main thread
-                    mainHandler.post(() -> mProgress.setMax(mProgressMax));
-                }
-                
                 Log.i(TAG, "PopulateTrigsTask: Deleting all existing data");
                 db.deleteAll();
 
-                while ((strLine = br.readLine()) != null && !strLine.trim().isEmpty())   {
-                    //Log.v(TAG,strLine);
-                    String[] csv=strLine.split("\t");
-                    
-                    // Validate CSV array has enough elements
-                    if (csv.length < 10) {
-                        Log.w(TAG, "Skipping invalid line (insufficient columns): " + strLine);
+                for (TrigExportItem item : exportResponse.items) {
+                    if (item == null) {
                         continue;
                     }
-                    
+
                     try {
-                        int id                        = Integer.parseInt(csv[0]);
-                        String waypoint                = csv[1];
-                        String name                    = csv[2];
-                        
-                        // Validate lat/lon are not empty
-                        if (csv[3].trim().isEmpty() || csv[4].trim().isEmpty()) {
-                            Log.w(TAG, "Skipping line with empty lat/lon: " + strLine);
+                        if (item.wgs_lat == null || item.wgs_lat.trim().isEmpty()
+                                || item.wgs_long == null || item.wgs_long.trim().isEmpty()) {
+                            Log.w(TAG, "Skipping item with empty lat/lon: trigId=" + item.id);
                             continue;
                         }
-                        
-                        double lat                    = Double.parseDouble(csv[3]);
-                        double lon                    = Double.parseDouble(csv[4]);
-                        Trig.Physical type            = Trig.Physical.fromCode(csv[5]);
-                        String fb                    = csv[6];
-                        Condition condition            = Condition.fromCode(csv[7]);
-                        Condition logged            = Condition.TRIGNOTLOGGED;
-                        Trig.Current current        = Trig.Current.fromCode(csv[8]);
-                        Trig.Historic historic        = Trig.Historic.fromCode(csv[9]);
-                        db.createTrig(id, name, waypoint, lat, lon, type, condition, logged, current, historic, fb);
-                        
-                        if (i++%10==9){
-                            mDownloadCount=i;
-                            // Update progress on main thread
-                            final int progress = i;
+
+                        double lat = Double.parseDouble(item.wgs_lat);
+                        double lon = Double.parseDouble(item.wgs_long);
+
+                        Trig.Physical physicalType = mapPhysicalType(item.physical_type);
+                        Condition condition = Condition.fromCode(item.condition);
+
+                        db.createTrig(
+                                item.id,
+                                item.name != null ? item.name : "",
+                                item.waypoint != null ? item.waypoint : "",
+                                lat,
+                                lon,
+                                physicalType,
+                                condition,
+                                Condition.TRIGNOTLOGGED,
+                                Trig.Current.NONE,
+                                Trig.Historic.UNKNOWN,
+                                ""
+                        );
+
+                        insertedCount++;
+                        if (insertedCount % 25 == 0 || insertedCount == progressMax) {
+                            final int progress = insertedCount;
                             mainHandler.post(() -> {
                                 mProgress.setProgress(progress);
                                 mStatus.setText("Inserted " + progress + " trigs");
                             });
                         }
-                    } catch (NumberFormatException e) {
-                        Log.w(TAG, "Skipping line with invalid number format: " + strLine + " - " + e.getMessage());
-                    } catch (Exception e) {
-                        Log.w(TAG, "Skipping line with parsing error: " + strLine + " - " + e.getMessage());
+                    } catch (NumberFormatException nfe) {
+                        Log.w(TAG, "Skipping item with invalid number format: trigId=" + item.id, nfe);
+                    } catch (Exception ex) {
+                        Log.w(TAG, "Skipping item due to exception: trigId=" + item.id, ex);
                     }
-                } 
+                }
+
+                final int finalInsertedCount = insertedCount;
+                mainHandler.post(() -> {
+                    mProgress.setProgress(Math.min(finalInsertedCount, progressMax));
+                    mStatus.setText("Inserted " + finalInsertedCount + " trigs");
+                });
+
                 db.mDb.execSQL("create index if not exists latlon on trig (lat, lon)");
                 db.mDb.setTransactionSuccessful();
-            }catch (IOException e) {
-                Log.e(TAG, "Error: " + e.getMessage(), e);
-                return DownloadStatus.ERROR;
             } catch (Exception e) {
-                Log.e(TAG, "Unexpected error: " + e.getMessage(), e);
+                Log.e(TAG, "PopulateTrigsTask: Unexpected error", e);
                 return DownloadStatus.ERROR;
             } finally {
-                db.mDb.endTransaction();
+                if (db.mDb != null && db.mDb.inTransaction()) {
+                    db.mDb.endTransaction();
+                }
                 db.close();
-                mDownloadCount = i;
+                mDownloadCount = insertedCount;
             }
+
+            if (insertedCount == 0) {
+                Log.e(TAG, "PopulateTrigsTask: No trig records inserted");
+                return DownloadStatus.ERROR;
+            }
+
             return DownloadStatus.OK;
         }, executor)
         .thenApplyAsync(result -> {
@@ -208,6 +243,45 @@ public class DownloadTrigsActivity extends BaseActivity implements SyncListener 
             }
             return result;
         }, mainHandler::post);
+    }
+
+    private Trig.Physical mapPhysicalType(String physicalType) {
+        if (physicalType == null) {
+            return Trig.Physical.OTHER;
+        }
+        String normalized = physicalType.trim();
+        for (Trig.Physical type : Trig.Physical.values()) {
+            if (type.toString().equalsIgnoreCase(normalized)) {
+                return type;
+            }
+        }
+        if ("Active station".equalsIgnoreCase(normalized)) {
+            return Trig.Physical.ACTIVE;
+        }
+        if ("Unknown - user added".equalsIgnoreCase(normalized)) {
+            return Trig.Physical.USERADDED;
+        }
+        return Trig.Physical.OTHER;
+    }
+
+    private static class TrigExportResponse {
+        java.util.List<TrigExportItem> items;
+        Integer total;
+        String generated_at;
+        String cache_info;
+    }
+
+    private static class TrigExportItem {
+        int id;
+        String waypoint;
+        String name;
+        String status_name;
+        String physical_type;
+        String condition;
+        String wgs_lat;
+        String wgs_long;
+        String osgb_gridref;
+        String distance_km;
     }
 
     private void scheduleRetryWithCountdown() {

@@ -609,6 +609,70 @@ public class TrigApiClient {
         return page;
     }
 
+    public void listUserLogs(int userId, int limit, String pageUrl, ApiCallback<UserLogPage> callback) {
+        ensureValidToken().thenCompose(token -> CompletableFuture.supplyAsync(() -> {
+            try {
+                String url;
+                if (pageUrl != null && !pageUrl.isEmpty()) {
+                    url = BuildConfig.TRIG_API_BASE + pageUrl;
+                } else {
+                    url = API_BASE_URL + "/users/" + userId + "/logs?limit=" + limit + "&skip=0";
+                }
+                Request httpRequest = new Request.Builder()
+                        .url(url)
+                        .get()
+                        .addHeader("Authorization", "Bearer " + token)
+                        .build();
+
+                try (Response response = httpClient.newCall(httpRequest).execute()) {
+                    String responseBody = response.body() != null ? response.body().string() : "";
+                    if (response.isSuccessful()) {
+                        UserLogPage page = parseUserLogPage(responseBody);
+                        return new ApiResult<>(true, page, null);
+                    } else {
+                        String errorMsg = parseErrorMessage(responseBody, response.code());
+                        return new ApiResult<UserLogPage>(false, null, errorMsg);
+                    }
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "listUserLogs: Unexpected error", e);
+                return new ApiResult<UserLogPage>(false, null, "Error: " + e.getMessage());
+            }
+        })).thenAccept(result -> {
+            if (result.isSuccess()) {
+                callback.onSuccess(result.getData());
+            } else {
+                callback.onError(result.getErrorMessage());
+            }
+        }).exceptionally(throwable -> {
+            callback.onError("Authentication error: " + throwable.getMessage());
+            return null;
+        });
+    }
+
+    private UserLogPage parseUserLogPage(String json) {
+        JsonElement element = gson.fromJson(json, JsonElement.class);
+        UserLogPage page = new UserLogPage();
+        page.items = new java.util.ArrayList<>();
+        if (element != null && element.isJsonObject()) {
+            JsonObject obj = element.getAsJsonObject();
+            if (obj.has("items") && obj.get("items").isJsonArray()) {
+                JsonArray items = obj.getAsJsonArray("items");
+                for (JsonElement item : items) {
+                    UserLog log = gson.fromJson(item, UserLog.class);
+                    page.items.add(log);
+                }
+            }
+            if (obj.has("pagination") && obj.get("pagination").isJsonObject()) {
+                page.pagination = gson.fromJson(obj.get("pagination"), Pagination.class);
+            }
+            if (obj.has("links") && obj.get("links").isJsonObject()) {
+                page.links = gson.fromJson(obj.get("links"), Links.class);
+            }
+        }
+        return page;
+    }
+
     /**
      * Parse error message from API response
      */
@@ -905,6 +969,30 @@ public class TrigApiClient {
         public long trig_id;
         public String trig_name;
         public String log_date;
+    }
+
+    public static class UserLogPage {
+        public java.util.List<UserLog> items;
+        public Pagination pagination;
+        public Links links;
+    }
+
+    public static class UserLog {
+        public int id;
+        public long trig_id;
+        public long user_id;
+        public String date;
+        public String time;
+        public long osgb_eastings;
+        public long osgb_northings;
+        public String osgb_gridref;
+        public String fb_number;
+        public String condition;
+        public String comment;
+        public int score;
+        public String source;
+        public String trig_name;
+        public String user_name;
     }
 }
 

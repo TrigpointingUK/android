@@ -1,16 +1,7 @@
 package uk.trigpointing.android.logging;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLEncoder;
-import java.util.zip.GZIPInputStream;
-import java.nio.charset.StandardCharsets;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -565,54 +556,105 @@ public class SyncTask implements ProgressListener {
     Integer readLogsFromTUK() {
         Log.d(TAG, "readLogsFromTUK");
 
-        String strLine;                
-        int i=0;
-        
-        
-        try {
-            updateProgress(BLANKPROGRESS);
-            updateProgress(MESSAGE, R.string.syncLogsFromTUK);
-            updateProgress(MAX, mPrefs.getInt(PREFS_LOGCOUNT, 1));
-            
-            // Get username from Auth0 profile for legacy endpoint
-            String username = mAuthPreferences.getAuth0UserName();
-            if (username == null || username.isEmpty()) {
-                username = "unknown";
-            }
-            
-            URL url = new URL("https://trigpointing.uk/trigs/down-android-mylogs.php?username="+URLEncoder.encode(username)+"&appversion="+mAppVersion);
-            Log.d(TAG, "Getting " + url);
-            URLConnection ucon = url.openConnection();
-            InputStream is = ucon.getInputStream();
-            GZIPInputStream zis = new GZIPInputStream(new BufferedInputStream(is));
-            BufferedReader br = new BufferedReader(new InputStreamReader(zis));
+        updateProgress(BLANKPROGRESS);
+        updateProgress(MESSAGE, R.string.syncLogsFromTUK);
+        updateProgress(MAX, mPrefs.getInt(PREFS_LOGCOUNT, 1));
 
-            mDb.mDb.beginTransaction();
-            
-            // blank out any existing logs;
-            mDb.deleteAllTrigLogs();
-            
-            // first record contains log count
-            if ((strLine=br.readLine()) != null) {
-                mMax = Integer.parseInt(strLine);
-                Log.i(TAG, "Log count from TUK = " + mMax);
-                updateProgress(MAX, mMax);
+        Integer apiUserId = mAuthPreferences.getApiUserId();
+        if (apiUserId == null) {
+            Log.i(TAG, "readLogsFromTUK: API user ID missing, fetching profile");
+            final java.util.concurrent.CountDownLatch profileLatch = new java.util.concurrent.CountDownLatch(1);
+            final java.util.concurrent.atomic.AtomicReference<TrigApiClient.UserProfile> profileRef = new java.util.concurrent.atomic.AtomicReference<>();
+            final java.util.concurrent.atomic.AtomicReference<String> profileError = new java.util.concurrent.atomic.AtomicReference<>();
+
+            mApiClient.getCurrentUser(new TrigApiClient.ApiCallback<TrigApiClient.UserProfile>() {
+                @Override
+                public void onSuccess(TrigApiClient.UserProfile data) {
+                    profileRef.set(data);
+                    profileLatch.countDown();
+                }
+
+                @Override
+                public void onError(String errorMessage) {
+                    profileError.set(errorMessage);
+                    profileLatch.countDown();
+                }
+            });
+
+            try {
+                if (!profileLatch.await(60, java.util.concurrent.TimeUnit.SECONDS)) {
+                    mErrorMessage = "Timeout while fetching user profile";
+                    return ERROR;
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                mErrorMessage = "Interrupted while fetching user profile";
+                return ERROR;
             }
-            // read log records records
-            while ((strLine = br.readLine()) != null && !strLine.trim().equals(""))   {
-                //Log.i(TAG,strLine);
-                String[] csv=strLine.split("\t");
-                Condition logged        = Condition.fromCode(csv[0]);
-                int id                    = Integer.valueOf(csv[1]);
-                mDb.updateTrigLog(id, logged);
-                i++;
-                // Cancellation check removed - use CompletableFuture.cancel() if needed
-                updateProgress(PROGRESS, i);
+
+            if (profileError.get() != null) {
+                mErrorMessage = profileError.get();
+                return ERROR;
+            }
+
+            TrigApiClient.UserProfile profile = profileRef.get();
+            if (profile != null) {
+                mAuthPreferences.storeApiUser(profile);
+                apiUserId = profile.id;
+            }
+        }
+
+        if (apiUserId == null || apiUserId <= 0) {
+            Log.e(TAG, "readLogsFromTUK: Unable to determine API user ID");
+            mErrorMessage = "Unable to determine user id";
+            return ERROR;
+        }
+
+        final java.util.List<TrigApiClient.UserLog> userLogs = new java.util.ArrayList<>();
+        final java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
+        final java.util.concurrent.atomic.AtomicReference<String> errorRef = new java.util.concurrent.atomic.AtomicReference<>();
+        final java.util.concurrent.atomic.AtomicInteger totalCount = new java.util.concurrent.atomic.AtomicInteger(-1);
+
+        fetchUserLogsPage(apiUserId, null, userLogs, totalCount, latch, errorRef);
+
+        try {
+            if (!latch.await(120, java.util.concurrent.TimeUnit.SECONDS)) {
+                mErrorMessage = "Timeout while fetching logs";
+                return ERROR;
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            mErrorMessage = "Interrupted while fetching logs";
+            return ERROR;
+        }
+
+        if (errorRef.get() != null) {
+            Log.e(TAG, "readLogsFromTUK: Failed to fetch logs: " + errorRef.get());
+            mErrorMessage = errorRef.get();
+            return ERROR;
+        }
+
+        int totalLogs = totalCount.get() >= 0 ? totalCount.get() : userLogs.size();
+        mMax = totalLogs;
+        updateProgress(MAX, Math.max(1, mMax));
+
+        int processed = 0;
+        try {
+            mDb.mDb.beginTransaction();
+            mDb.deleteAllTrigLogs();
+
+            for (TrigApiClient.UserLog log : userLogs) {
+                Condition logged = Condition.fromCode(log.condition);
+                if (logged == null) {
+                    logged = Condition.TRIGNOTLOGGED;
+                }
+                mDb.updateTrigLog(log.trig_id, logged);
+                processed++;
+                updateProgress(PROGRESS, processed);
             }
             mDb.mDb.setTransactionSuccessful();
         } catch (Exception e) {
-            Log.d(TAG, "Error: " + e);
-            i=-1;
+            Log.d(TAG, "Error updating logs from API", e);
             mErrorMessage = e.getMessage();
             return ERROR;
         } finally {
@@ -621,15 +663,44 @@ public class SyncTask implements ProgressListener {
             }
         }
 
-        // store the log count to pre-populate the progress bar next time
-        mPrefs.edit().putInt(PREFS_LOGCOUNT,i).apply();
-        
-        return SUCCESS;        
+        mPrefs.edit().putInt(PREFS_LOGCOUNT, processed).apply();
+
+        return SUCCESS;
     }
     
     
     
     
+    
+    private void fetchUserLogsPage(int userId, String nextLink, java.util.List<TrigApiClient.UserLog> accumulator,
+                                   java.util.concurrent.atomic.AtomicInteger totalCount,
+                                   java.util.concurrent.CountDownLatch latch,
+                                   java.util.concurrent.atomic.AtomicReference<String> errorRef) {
+        mApiClient.listUserLogs(userId, 100, nextLink, new TrigApiClient.ApiCallback<TrigApiClient.UserLogPage>() {
+            @Override
+            public void onSuccess(TrigApiClient.UserLogPage result) {
+                if (result != null) {
+                    if (result.pagination != null && totalCount.get() < 0) {
+                        totalCount.set(result.pagination.total);
+                    }
+                    if (result.items != null) {
+                        accumulator.addAll(result.items);
+                    }
+                    if (result.links != null && result.links.next != null && !result.links.next.isEmpty()) {
+                        fetchUserLogsPage(userId, result.links.next, accumulator, totalCount, latch, errorRef);
+                        return;
+                    }
+                }
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                errorRef.set(errorMessage);
+                latch.countDown();
+            }
+        });
+    }
     
     
     
