@@ -1,6 +1,7 @@
 package uk.trigpointing.android.api;
 
 import android.content.Context;
+import android.net.Uri;
 import android.util.Log;
 import com.auth0.android.Auth0;
 import com.auth0.android.authentication.AuthenticationException;
@@ -83,9 +84,9 @@ public class Auth0Config {
     public void login(Auth0Callback callback) {
         Log.i(TAG, "Starting Auth0 universal login");
         
-        // Use package name as scheme (handles both release and debug builds automatically)
-        String scheme = context.getPackageName();
-        Log.i(TAG, "Using scheme: " + scheme);
+        Uri redirectUri = Uri.parse(auth0RedirectUri);
+        String scheme = redirectUri.getScheme();
+        Log.i(TAG, "Using scheme: " + scheme + " with redirect: " + auth0RedirectUri);
         
         WebAuthProvider.login(auth0)
                 .withScheme(scheme)
@@ -162,9 +163,9 @@ public class Auth0Config {
     public void logout(LogoutCallback callback) {
         Log.i(TAG, "Starting Auth0 logout");
         
-        // Use package name as scheme (handles both release and debug builds automatically)
-        String scheme = context.getPackageName();
-        Log.i(TAG, "Using scheme for logout: " + scheme);
+        Uri redirectUri = Uri.parse(auth0RedirectUri);
+        String scheme = redirectUri.getScheme();
+        Log.i(TAG, "Using scheme for logout: " + scheme + " with returnTo: " + auth0RedirectUri);
         
         WebAuthProvider.logout(auth0)
                 .withScheme(scheme)
