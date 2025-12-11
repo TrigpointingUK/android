@@ -73,6 +73,10 @@
 # Keep all inner classes in TrigApiClient that are used as data models
 -keep class uk.trigpointing.android.api.TrigApiClient$** { *; }
 
+# Keep Trig export data models used by Gson in DownloadTrigsActivity
+-keep class uk.trigpointing.android.DownloadTrigsActivity$TrigExportResponse { *; }
+-keep class uk.trigpointing.android.DownloadTrigsActivity$TrigExportItem { *; }
+
 # Keep Coil classes that might be referenced indirectly by GSON
 -keep class coil.size.** { *; }
 -dontwarn coil.size.**
