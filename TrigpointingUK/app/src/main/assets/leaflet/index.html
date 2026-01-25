@@ -6,6 +6,7 @@
   <title>Leaflet Map</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.2/proj4.js"></script>
   <script src="https://unpkg.com/proj4leaflet@1.0.2/src/proj4leaflet.js"></script>
   <style>
@@ -181,11 +182,35 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.2);
       pointer-events: none; /* Allow clicks to pass through */
     }
+    
+    /* Map Status Display (marker count / heatmap indicator) */
+    .map-status-display {
+      position: absolute;
+      bottom: 30px;
+      left: 10px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 11px;
+      color: #555;
+      font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
+      z-index: 1000;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      pointer-events: none;
+      transition: background-color 0.3s ease;
+    }
+    .map-status-display.heatmap-mode {
+      background: rgba(255, 200, 0, 0.9);
+      color: #333;
+      border-color: rgba(255, 180, 0, 0.8);
+    }
   </style>
 </head>
 <body>
   <div id="map"></div>
   <div id="zoom-level-display" class="zoom-level-display">7</div>
+  <div id="map-status-display" class="map-status-display">Loading...</div>
   <button class="fab location-btn" id="locbtn" title="My location">
     <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
       <!-- Standard location crosshairs icon -->
@@ -898,6 +923,28 @@
               </div>
             </div>
             
+            <!-- Display Mode Section -->
+            <div class="control-section">
+              <button class="section-header" data-section="displaymode">
+                <span>📊 Display mode</span>
+                <span class="toggle-icon">▼</span>
+              </button>
+              <div class="section-content collapsed" id="displaymode-content">
+                <div class="control-option">
+                  <input type="radio" name="displaymode" value="auto" id="js-display-auto" checked>
+                  <label for="js-display-auto">Auto (recommended)</label>
+                </div>
+                <div class="control-option">
+                  <input type="radio" name="displaymode" value="markers" id="js-display-markers">
+                  <label for="js-display-markers">Always Markers</label>
+                </div>
+                <div class="control-option">
+                  <input type="radio" name="displaymode" value="heatmap" id="js-display-heatmap">
+                  <label for="js-display-heatmap">Always Heatmap</label>
+                </div>
+              </div>
+            </div>
+            
           </div>
         `;
         
@@ -1066,6 +1113,16 @@
               currentBounds = null; // Force reload
               loadTrigpointMarkers();
             }
+          }
+        });
+      });
+      
+      // Display mode controls
+      document.querySelectorAll('input[name="displaymode"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+          if (this.checked) {
+            console.log('JS Control - Display mode changed to:', this.value);
+            setRenderMode(this.value);
           }
         });
       });
@@ -1275,14 +1332,47 @@
       
       // Sync localStorage with Android preference
       localStorage.setItem('leaflet_filter_found', filterFound);
+      
+      // Load render mode preference from localStorage
+      const savedRenderMode = localStorage.getItem('leaflet_render_mode') || 'auto';
+      renderMode = savedRenderMode;
+      document.querySelectorAll('input[name="displaymode"]').forEach(radio => {
+        radio.checked = (radio.value === savedRenderMode);
+      });
+      console.log('Loaded render mode:', savedRenderMode);
     }
 
     // Trigpoint marker management
     let markersLayer = null;
+    let heatmapLayer = null;
     let currentBounds = null;
     let currentMarkerColor = 'none';
     let currentTrigpointType = 'all';
     let currentFilterFound = 'all';
+    
+    // Render mode: 'auto', 'markers', or 'heatmap'
+    let renderMode = localStorage.getItem('leaflet_render_mode') || 'auto';
+    let currentDisplayMode = 'markers'; // What's actually being displayed
+    let lastTotalCount = 0;
+    let lastReturnedCount = 0;
+    let markerLimit = 500; // Will be updated from Android
+    
+    // Heatmap configuration matching web version
+    const heatmapConfig = {
+      radius: 15,
+      blur: 10,
+      maxZoom: 17,
+      max: 3.0,
+      minOpacity: 0.2,
+      gradient: {
+        0.0: 'rgba(0, 0, 180, 0)',
+        0.2: 'rgba(0, 100, 255, 0.3)',
+        0.4: 'rgba(0, 180, 180, 0.5)',
+        0.6: 'rgba(100, 200, 100, 0.6)',
+        0.8: 'rgba(255, 200, 0, 0.7)',
+        1.0: 'rgba(255, 100, 0, 0.8)'
+      }
+    };
 
     // Service Worker communication
     async function sendServiceWorkerMessage(type, data = {}) {
@@ -1417,6 +1507,14 @@
       markersLayer = L.layerGroup().addTo(map);
       console.log('MARKER DEBUG: Created markersLayer and added to map');
       
+      // Get marker limit from Android
+      try {
+        markerLimit = AndroidPrefs.getMarkerLimit();
+        console.log('MARKER DEBUG: Got marker limit from Android:', markerLimit);
+      } catch (e) {
+        console.log('MARKER DEBUG: Could not get marker limit, using default:', markerLimit);
+      }
+      
       // Load initial markers
       loadTrigpointMarkers();
       
@@ -1434,6 +1532,7 @@
     function loadTrigpointMarkers() {
       console.log('MARKER DEBUG: loadTrigpointMarkers() called');
       console.log('MARKER DEBUG: markersLayer exists:', !!markersLayer);
+      console.log('MARKER DEBUG: renderMode:', renderMode);
       
       const bounds = map.getBounds();
       const zoom = map.getZoom();
@@ -1455,7 +1554,7 @@
       
       console.log(`Querying trigpoints: S=${expandedBounds.getSouth()}, W=${expandedBounds.getWest()}, N=${expandedBounds.getNorth()}, E=${expandedBounds.getEast()}`);
       
-      // Call Android to get trigpoint data
+      // Call Android to get trigpoint data (now returns metadata for render mode decision)
       AndroidPrefs.getTrigpointData(
         expandedBounds.getSouth(),
         expandedBounds.getWest(), 
@@ -1466,46 +1565,170 @@
         currentMarkerColor
       );
     }
+    
+    // New function to handle the enhanced response with metadata
+    function displayTrigpointData(responseJson) {
+      console.log('displayTrigpointData called');
+      
+      try {
+        const response = JSON.parse(responseJson);
+        const trigpoints = response.trigpoints;
+        lastTotalCount = response.totalCount;
+        lastReturnedCount = response.returnedCount;
+        markerLimit = response.markerLimit;
+        const limitReached = response.limitReached;
+        
+        console.log(`Received ${lastReturnedCount} trigpoints, total in bounds: ${lastTotalCount}, limit: ${markerLimit}, limitReached: ${limitReached}`);
+        
+        // Determine what to display based on render mode
+        let shouldShowHeatmap = false;
+        
+        if (renderMode === 'heatmap') {
+          shouldShowHeatmap = true;
+        } else if (renderMode === 'markers') {
+          shouldShowHeatmap = false;
+        } else { // 'auto' mode
+          shouldShowHeatmap = limitReached;
+        }
+        
+        if (shouldShowHeatmap) {
+          // Need to fetch all coordinates for heatmap
+          console.log('Switching to heatmap mode, fetching all coordinates...');
+          const bounds = map.getBounds();
+          const expandedBounds = bounds.pad(0.5);
+          AndroidPrefs.getHeatmapData(
+            expandedBounds.getSouth(),
+            expandedBounds.getWest(), 
+            expandedBounds.getNorth(),
+            expandedBounds.getEast(),
+            currentTrigpointType,
+            currentFilterFound
+          );
+        } else {
+          // Display markers
+          displayMarkersFromData(trigpoints);
+          currentDisplayMode = 'markers';
+          updateMapStatus();
+        }
+        
+      } catch (error) {
+        console.error('Error parsing trigpoint data response:', error);
+      }
+    }
+    
+    // Display heatmap data received from Android
+    function displayHeatmapData(responseJson) {
+      console.log('displayHeatmapData called');
+      
+      try {
+        const response = JSON.parse(responseJson);
+        const coordinates = response.coordinates;
+        lastTotalCount = response.totalCount;
+        
+        console.log(`Received ${coordinates.length} coordinates for heatmap`);
+        
+        // Clear markers
+        if (markersLayer) {
+          markersLayer.clearLayers();
+        }
+        
+        // Remove existing heatmap layer if present
+        if (heatmapLayer && map.hasLayer(heatmapLayer)) {
+          map.removeLayer(heatmapLayer);
+        }
+        
+        // Create heatmap layer
+        heatmapLayer = L.heatLayer(coordinates, heatmapConfig);
+        heatmapLayer.addTo(map);
+        
+        currentDisplayMode = 'heatmap';
+        updateMapStatus();
+        
+        console.log('Heatmap displayed with', coordinates.length, 'points');
+        
+      } catch (error) {
+        console.error('Error parsing heatmap data:', error);
+      }
+    }
+    
+    // Display markers from trigpoint data array
+    function displayMarkersFromData(trigpoints) {
+      console.log('displayMarkersFromData called with', trigpoints.length, 'trigpoints');
+      
+      // Clear existing markers
+      markersLayer.clearLayers();
+      
+      // Remove heatmap if present
+      if (heatmapLayer && map.hasLayer(heatmapLayer)) {
+        map.removeLayer(heatmapLayer);
+      }
+      
+      trigpoints.forEach(trig => {
+        // Use standard lat/lon - Leaflet CRS should handle transformation automatically
+        const coords = [trig.lat, trig.lon];
+        
+        const marker = L.marker(coords, {
+          icon: createTrigIcon(trig)
+        });
+        
+        // Add popup with basic info
+        marker.bindPopup(`
+          <b>${trig.name}</b><br>
+          Type: ${trig.type}<br>
+          Condition: ${trig.condition}<br>
+          <a href="#" onclick="AndroidPrefs.openTrigDetails(${trig.id})">View Details</a>
+        `);
+        
+        // Add click handler for details
+        marker.on('click', () => {
+          AndroidPrefs.openTrigDetails(trig.id);
+        });
+        
+        markersLayer.addLayer(marker);
+      });
+      
+      console.log(`Added ${trigpoints.length} markers to map`);
+    }
+    
+    // Update the map status display
+    function updateMapStatus() {
+      const statusDisplay = document.getElementById('map-status-display');
+      if (!statusDisplay) return;
+      
+      if (currentDisplayMode === 'heatmap') {
+        statusDisplay.textContent = `Heatmap (${lastTotalCount.toLocaleString()} in view)`;
+        statusDisplay.classList.add('heatmap-mode');
+      } else {
+        statusDisplay.textContent = `${lastReturnedCount.toLocaleString()} markers`;
+        if (lastTotalCount > lastReturnedCount) {
+          statusDisplay.textContent += ` (${lastTotalCount.toLocaleString()} in view)`;
+        }
+        statusDisplay.classList.remove('heatmap-mode');
+      }
+    }
+    
+    // Update render mode and refresh display
+    function setRenderMode(mode) {
+      console.log('Setting render mode to:', mode);
+      renderMode = mode;
+      localStorage.setItem('leaflet_render_mode', mode);
+      
+      // Force reload
+      currentBounds = null;
+      loadTrigpointMarkers();
+    }
 
+    // Legacy function for backwards compatibility (if called directly)
     function displayTrigpointMarkers(trigpointsJson) {
-      console.log('Displaying trigpoint markers:', trigpointsJson);
+      console.log('displayTrigpointMarkers called (legacy)');
       
       try {
         const trigpoints = JSON.parse(trigpointsJson);
-        
-        // Clear existing markers
-        markersLayer.clearLayers();
-        
-        trigpoints.forEach(trig => {
-          // Use standard lat/lon - Leaflet CRS should handle transformation automatically
-          const coords = [trig.lat, trig.lon];
-          
-          console.log(`Creating marker for ${trig.name} at [${trig.lat}, ${trig.lon}] in CRS: ${currentCRS}`);
-          console.log(`Current map bounds:`, map.getBounds());
-          console.log(`Map centre:`, map.getCenter());
-          
-          const marker = L.marker(coords, {
-            icon: createTrigIcon(trig)
-          });
-          
-          // Add popup with basic info
-          marker.bindPopup(`
-            <b>${trig.name}</b><br>
-            Type: ${trig.type}<br>
-            Condition: ${trig.condition}<br>
-            <a href="#" onclick="AndroidPrefs.openTrigDetails(${trig.id})">View Details</a>
-          `);
-          
-          // Add click handler for details
-          marker.on('click', () => {
-            AndroidPrefs.openTrigDetails(trig.id);
-          });
-          
-          markersLayer.addLayer(marker);
-        });
-        
-        console.log(`Added ${trigpoints.length} markers to map`);
-        
+        displayMarkersFromData(trigpoints);
+        lastReturnedCount = trigpoints.length;
+        lastTotalCount = trigpoints.length;
+        currentDisplayMode = 'markers';
+        updateMapStatus();
       } catch (error) {
         console.error('Error parsing trigpoint data:', error);
       }

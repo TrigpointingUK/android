@@ -443,6 +443,74 @@ public class DbHelper {
 */    }
     
     /**
+     * Count trigpoints within a bounding box (without LIMIT)
+     * Used to determine if heatmap mode should be activated
+     * 
+     * @param box Bounding box to count trigpoints in
+     * @return Total count of filtered trigpoints in the bounding box
+     */
+    public int countTrigpointsInBoundingBox(BoundingBox box) {
+        String strWhere = String.format("WHERE %s between %s and %s  and  %s between %s and %s",
+                TRIG_LON, 
+                box.getLonWest(), 
+                box.getLonEast(), 
+                TRIG_LAT, 
+                box.getLatSouth(), 
+                box.getLatNorth()); 
+
+        strWhere += new Filter(mCtx).filterWhere("AND");
+        
+        final String qry = "SELECT COUNT(*) FROM " + TRIG_TABLE + " " +
+                "LEFT OUTER JOIN " + LOG_TABLE + " " +
+                "ON " + TRIG_TABLE + "." + TRIG_ID + "=" + LOG_TABLE + "." + LOG_ID + " " +
+                "LEFT OUTER JOIN " + MARK_TABLE + " " +
+                "ON " + TRIG_TABLE + "." + TRIG_ID + "=" + MARK_TABLE + "." + MARK_ID + " " +
+                strWhere;
+        
+        Log.i(TAG, "countTrigpointsInBoundingBox: " + qry);
+        
+        Cursor cursor = mDb.rawQuery(qry, null);
+        int count = 0;
+        if (cursor != null && cursor.moveToFirst()) {
+            count = cursor.getInt(0);
+            cursor.close();
+        }
+        return count;
+    }
+    
+    /**
+     * Fetch all trigpoint coordinates in a bounding box (for heatmap display)
+     * Returns only lat/lon for efficiency when displaying heatmap
+     * 
+     * @param box Bounding box to query
+     * @return Cursor with lat/lon columns only
+     */
+    public Cursor fetchTrigpointCoordinates(BoundingBox box) {
+        String strWhere = String.format("WHERE %s between %s and %s  and  %s between %s and %s",
+                TRIG_LON, 
+                box.getLonWest(), 
+                box.getLonEast(), 
+                TRIG_LAT, 
+                box.getLatSouth(), 
+                box.getLatNorth()); 
+
+        strWhere += new Filter(mCtx).filterWhere("AND");
+        
+        final String qry = "SELECT " +
+                TRIG_TABLE + "." + TRIG_LAT + ", " +
+                TRIG_TABLE + "." + TRIG_LON + " " +
+                "FROM " + TRIG_TABLE + " " +
+                "LEFT OUTER JOIN " + LOG_TABLE + " " +
+                "ON " + TRIG_TABLE + "." + TRIG_ID + "=" + LOG_TABLE + "." + LOG_ID + " " +
+                "LEFT OUTER JOIN " + MARK_TABLE + " " +
+                "ON " + TRIG_TABLE + "." + TRIG_ID + "=" + MARK_TABLE + "." + MARK_ID + " " +
+                strWhere;
+        
+        Log.i(TAG, "fetchTrigpointCoordinates: " + qry);
+        return mDb.rawQuery(qry, null);
+    }
+    
+    /**
      * Return a Cursor suitable for the triglist screen
      * 
      * @return Cursor 

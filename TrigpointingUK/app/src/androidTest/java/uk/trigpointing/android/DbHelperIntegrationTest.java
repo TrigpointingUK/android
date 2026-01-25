@@ -368,4 +368,144 @@ public class DbHelperIntegrationTest {
             cursor.getString(cursor.getColumnIndex(DbHelper.TRIG_LOGGED)));
         cursor.close();
     }
+
+    // ==================== Heatmap Feature Tests ====================
+
+    @Test
+    public void testCountTrigpointsInBoundingBox() {
+        // Set filter preferences to include all trigpoints (no filtering)
+        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+        editor.putInt("filter_type", 0); // Show all types
+        editor.putInt("filter_radio", 0); // Show all found/not found
+        editor.apply();
+        
+        // Create multiple trigpoints inside the bounding box
+        dbHelper.createTrig(9001, "Inside Trig 1", "I001", 54.5, -3.0,
+            Trig.Physical.PILLAR, Condition.GOOD, Condition.TRIGNOTLOGGED,
+            Trig.Current.ACTIVE, Trig.Historic.PRIMARY, null);
+            
+        dbHelper.createTrig(9002, "Inside Trig 2", "I002", 54.6, -3.1,
+            Trig.Physical.PILLAR, Condition.GOOD, Condition.TRIGNOTLOGGED,
+            Trig.Current.ACTIVE, Trig.Historic.PRIMARY, null);
+            
+        dbHelper.createTrig(9003, "Inside Trig 3", "I003", 54.4, -2.9,
+            Trig.Physical.FBM, Condition.GOOD, Condition.TRIGNOTLOGGED,
+            Trig.Current.ACTIVE, Trig.Historic.PRIMARY, null);
+            
+        // Create trigpoint outside the bounding box
+        dbHelper.createTrig(9004, "Outside Trig", "O001", 55.5, -4.5,
+            Trig.Physical.PILLAR, Condition.GOOD, Condition.TRIGNOTLOGGED,
+            Trig.Current.ACTIVE, Trig.Historic.PRIMARY, null);
+        
+        // Create bounding box that includes only the first 3 trigpoints
+        BoundingBox boundingBox = new BoundingBox(54.8, -2.5, 54.2, -3.5);
+        
+        int count = dbHelper.countTrigpointsInBoundingBox(boundingBox);
+        assertEquals("Should count 3 trigpoints inside bounding box", 3, count);
+    }
+
+    @Test
+    public void testCountTrigpointsInBoundingBoxEmpty() {
+        // Set filter preferences
+        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+        editor.putInt("filter_type", 0);
+        editor.putInt("filter_radio", 0);
+        editor.apply();
+        
+        // Create trigpoint outside the test bounding box
+        dbHelper.createTrig(9101, "Outside", "O001", 55.5, -4.5,
+            Trig.Physical.PILLAR, Condition.GOOD, Condition.TRIGNOTLOGGED,
+            Trig.Current.ACTIVE, Trig.Historic.PRIMARY, null);
+        
+        // Create bounding box in empty area
+        BoundingBox boundingBox = new BoundingBox(50.0, 0.0, 49.0, -1.0);
+        
+        int count = dbHelper.countTrigpointsInBoundingBox(boundingBox);
+        assertEquals("Should count 0 trigpoints in empty area", 0, count);
+    }
+
+    @Test
+    public void testFetchTrigpointCoordinates() {
+        // Set filter preferences to include all trigpoints (no filtering)
+        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+        editor.putInt("filter_type", 0);
+        editor.putInt("filter_radio", 0);
+        editor.apply();
+        
+        // Create trigpoints with known coordinates
+        double lat1 = 54.5, lon1 = -3.0;
+        double lat2 = 54.6, lon2 = -3.1;
+        double lat3 = 54.4, lon3 = -2.9;
+        
+        dbHelper.createTrig(9201, "Coord Test 1", "C001", lat1, lon1,
+            Trig.Physical.PILLAR, Condition.GOOD, Condition.TRIGNOTLOGGED,
+            Trig.Current.ACTIVE, Trig.Historic.PRIMARY, null);
+            
+        dbHelper.createTrig(9202, "Coord Test 2", "C002", lat2, lon2,
+            Trig.Physical.PILLAR, Condition.GOOD, Condition.TRIGNOTLOGGED,
+            Trig.Current.ACTIVE, Trig.Historic.PRIMARY, null);
+            
+        dbHelper.createTrig(9203, "Coord Test 3", "C003", lat3, lon3,
+            Trig.Physical.FBM, Condition.GOOD, Condition.TRIGNOTLOGGED,
+            Trig.Current.ACTIVE, Trig.Historic.PRIMARY, null);
+        
+        // Create bounding box
+        BoundingBox boundingBox = new BoundingBox(54.8, -2.5, 54.2, -3.5);
+        
+        Cursor cursor = dbHelper.fetchTrigpointCoordinates(boundingBox);
+        assertNotNull("Cursor should not be null", cursor);
+        assertEquals("Should return 3 coordinates", 3, cursor.getCount());
+        
+        // Verify cursor has lat/lon columns
+        int latIndex = cursor.getColumnIndex(DbHelper.TRIG_LAT);
+        int lonIndex = cursor.getColumnIndex(DbHelper.TRIG_LON);
+        assertTrue("Should have lat column", latIndex >= 0);
+        assertTrue("Should have lon column", lonIndex >= 0);
+        
+        // Verify coordinates are returned correctly
+        cursor.moveToFirst();
+        do {
+            double lat = cursor.getDouble(latIndex);
+            double lon = cursor.getDouble(lonIndex);
+            // Verify coordinates are within expected range
+            assertTrue("Latitude should be valid", lat >= 54.2 && lat <= 54.8);
+            assertTrue("Longitude should be valid", lon >= -3.5 && lon <= -2.5);
+        } while (cursor.moveToNext());
+        
+        cursor.close();
+    }
+
+    @Test
+    public void testFetchTrigpointCoordinatesNoLimit() {
+        // Set filter preferences
+        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+        editor.putInt("filter_type", 0);
+        editor.putInt("filter_radio", 0);
+        editor.putString("mapcount", "2"); // Set very low limit for fetchTrigMapList
+        editor.apply();
+        
+        // Create more trigpoints than the mapcount limit
+        for (int i = 0; i < 5; i++) {
+            dbHelper.createTrig(9300 + i, "Trig " + i, "T" + i, 54.5 + (i * 0.01), -3.0,
+                Trig.Physical.PILLAR, Condition.GOOD, Condition.TRIGNOTLOGGED,
+                Trig.Current.ACTIVE, Trig.Historic.PRIMARY, null);
+        }
+        
+        // Create bounding box
+        BoundingBox boundingBox = new BoundingBox(54.8, -2.5, 54.2, -3.5);
+        
+        // fetchTrigMapList should be limited by mapcount
+        Cursor limitedCursor = dbHelper.fetchTrigMapList(boundingBox);
+        assertEquals("fetchTrigMapList should be limited to 2", 2, limitedCursor.getCount());
+        limitedCursor.close();
+        
+        // fetchTrigpointCoordinates should NOT be limited
+        Cursor coordinatesCursor = dbHelper.fetchTrigpointCoordinates(boundingBox);
+        assertEquals("fetchTrigpointCoordinates should return all 5", 5, coordinatesCursor.getCount());
+        coordinatesCursor.close();
+        
+        // countTrigpointsInBoundingBox should also return total
+        int count = dbHelper.countTrigpointsInBoundingBox(boundingBox);
+        assertEquals("countTrigpointsInBoundingBox should return 5", 5, count);
+    }
 }

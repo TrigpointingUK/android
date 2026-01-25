@@ -414,19 +414,17 @@ public class LeafletMapActivity extends BaseActivity {
         Log.d(TAG, "Updated session map style to: " + style);
     }
 
-    private String queryTrigpoints(double south, double west, double north, double east, String trigpointType, String filterFound, String colorScheme) {
+    /**
+     * Internal method to query trigpoints with the bounding box already created
+     * and filter preferences already set up.
+     */
+    private String queryTrigpointsInternal(BoundingBox bounds, String colorScheme) {
         if (dbHelper == null) {
             Log.e(TAG, "Database helper not initialised");
             return "[]";
         }
 
         try {
-            // Convert leaflet filter names to Filter constants
-            setupFilterPreferences(trigpointType, filterFound);
-            
-            // Create bounding box for query
-            BoundingBox bounds = new BoundingBox(north, east, south, west);
-            
             // Query database using bounding box
             Cursor cursor = dbHelper.fetchTrigMapList(bounds);
             
@@ -650,16 +648,101 @@ public class LeafletMapActivity extends BaseActivity {
             // Run database query on background thread
             new Thread(() -> {
                 try {
-                    String trigpointsJson = queryTrigpoints(south, west, north, east, trigpointType, filterFound, colorScheme);
+                    // Setup filter preferences first
+                    setupFilterPreferences(trigpointType, filterFound);
+                    
+                    // Create bounding box
+                    BoundingBox bounds = new BoundingBox(north, east, south, west);
+                    
+                    // Get total count first (for heatmap decision)
+                    int totalCount = dbHelper.countTrigpointsInBoundingBox(bounds);
+                    
+                    // Get marker limit from preferences
+                    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(LeafletMapActivity.this);
+                    int markerLimit = Integer.parseInt(prefs.getString("mapcount", DbHelper.DEFAULT_MAP_COUNT));
+                    
+                    // Query the limited marker data
+                    String trigpointsJson = queryTrigpointsInternal(bounds, colorScheme);
+                    
+                    // Build response with metadata
+                    JSONObject response = new JSONObject();
+                    response.put("trigpoints", new JSONArray(trigpointsJson));
+                    response.put("totalCount", totalCount);
+                    response.put("returnedCount", new JSONArray(trigpointsJson).length());
+                    response.put("markerLimit", markerLimit);
+                    response.put("limitReached", totalCount > markerLimit);
+                    
+                    String responseJson = response.toString();
                     
                     // Return results to JavaScript on UI thread
                     runOnUiThread(() -> {
-                        webView.evaluateJavascript("displayTrigpointMarkers('" + trigpointsJson.replace("'", "\\'") + "');", null);
+                        // Escape backslashes first, then single quotes for JavaScript string
+                        String escapedJson = responseJson.replace("\\", "\\\\").replace("'", "\\'");
+                        webView.evaluateJavascript("displayTrigpointData('" + escapedJson + "');", null);
                     });
                 } catch (Exception e) {
                     Log.e(TAG, "Error querying trigpoints", e);
                 }
             }).start();
+        }
+        
+        @JavascriptInterface
+        public void getHeatmapData(double south, double west, double north, double east, String trigpointType, String filterFound) {
+            Log.d(TAG, String.format("getHeatmapData: bounds=(%.6f,%.6f,%.6f,%.6f) type=%s found=%s", south, west, north, east, trigpointType, filterFound));
+            
+            // Run database query on background thread
+            new Thread(() -> {
+                try {
+                    // Setup filter preferences first
+                    setupFilterPreferences(trigpointType, filterFound);
+                    
+                    // Create bounding box
+                    BoundingBox bounds = new BoundingBox(north, east, south, west);
+                    
+                    // Get all coordinates for heatmap (no limit)
+                    Cursor cursor = dbHelper.fetchTrigpointCoordinates(bounds);
+                    
+                    JSONArray coordinates = new JSONArray();
+                    int totalCount = 0;
+                    
+                    if (cursor != null) {
+                        int latIndex = cursor.getColumnIndex(DbHelper.TRIG_LAT);
+                        int lonIndex = cursor.getColumnIndex(DbHelper.TRIG_LON);
+                        
+                        while (cursor.moveToNext()) {
+                            JSONArray coord = new JSONArray();
+                            coord.put(cursor.getDouble(latIndex));
+                            coord.put(cursor.getDouble(lonIndex));
+                            coord.put(1.0); // Intensity
+                            coordinates.put(coord);
+                            totalCount++;
+                        }
+                        cursor.close();
+                    }
+                    
+                    // Build response
+                    JSONObject response = new JSONObject();
+                    response.put("coordinates", coordinates);
+                    response.put("totalCount", totalCount);
+                    
+                    String responseJson = response.toString();
+                    
+                    // Return results to JavaScript on UI thread
+                    runOnUiThread(() -> {
+                        // Escape backslashes first, then single quotes for JavaScript string
+                        String escapedJson = responseJson.replace("\\", "\\\\").replace("'", "\\'");
+                        webView.evaluateJavascript("displayHeatmapData('" + escapedJson + "');", null);
+                    });
+                } catch (Exception e) {
+                    Log.e(TAG, "Error querying heatmap data", e);
+                }
+            }).start();
+        }
+        
+        @JavascriptInterface
+        public int getMarkerLimit() {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(LeafletMapActivity.this);
+            return Integer.parseInt(prefs.getString("mapcount", DbHelper.DEFAULT_MAP_COUNT));
         }
         
         @JavascriptInterface
