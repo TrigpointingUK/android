@@ -151,32 +151,17 @@ public class DbHelper {
         }
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-            if (oldVersion==11 && newVersion==12) {
-                Log.w(TAG, "Upgrading from 11 to 12 - require a resync!");
-                // Note: Can't show Toast here as onUpgrade may be called from background thread
-                ContentValues args = new ContentValues();
-                args.put(TRIG_LOGGED, Condition.TRIGNOTLOGGED.code());
-                db.update(TRIG_TABLE, args, null, null);
-                return;
-            }
-            if (oldVersion == 12 && newVersion == 13) {
-                Log.w(TAG, "Upgrading from 12 to 13 - adding category_name and type_name columns");
-                // Note: Can't show Toast here as onUpgrade may be called from background thread
-                try {
-                    db.execSQL("ALTER TABLE " + TRIG_TABLE + " ADD COLUMN " + TRIG_CATEGORY_NAME + " text");
-                    db.execSQL("ALTER TABLE " + TRIG_TABLE + " ADD COLUMN " + TRIG_TYPE_NAME + " text");
-                } catch (Exception e) {
-                    Log.e(TAG, "Error adding new columns during upgrade", e);
-                }
-                return;
-            }
-            Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
-                    + newVersion + ", which will destroy all old data");
+            // For any database version change, drop and recreate the trig table
+            // This forces a fresh download of trigpoint data with the new schema
+            // User data (logs, photos, marks) is preserved - they reference trig IDs which remain stable
+            Log.w(TAG, "Upgrading database from version " + oldVersion + " to " + newVersion);
+            Log.w(TAG, "Dropping trig table to force fresh data download");
+            
             db.execSQL("DROP TABLE IF EXISTS " + TRIG_TABLE);
-            db.execSQL("DROP TABLE IF EXISTS " + LOG_TABLE);
-            db.execSQL("DROP TABLE IF EXISTS " + PHOTO_TABLE);
-            db.execSQL("DROP TABLE IF EXISTS " + MARK_TABLE);
-            onCreate(db);
+            db.execSQL(TRIG_CREATE);
+            
+            // Note: LOG_TABLE, PHOTO_TABLE, MARK_TABLE are preserved
+            // The app will detect empty trig table and trigger download + sync automatically
         }
     }
     
