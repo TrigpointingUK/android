@@ -154,17 +154,20 @@ public class DownloadTrigsActivity extends BaseActivity implements SyncListener 
                     }
 
                     try {
-                        if (item.wgs_lat == null || item.wgs_lat.trim().isEmpty()
-                                || item.wgs_long == null || item.wgs_long.trim().isEmpty()) {
-                            Log.w(TAG, "Skipping item with empty lat/lon: trigId=" + item.id);
+                        if (item.wgs_lat == 0.0 && item.wgs_long == 0.0) {
+                            Log.w(TAG, "Skipping item with zero lat/lon: trigId=" + item.id);
                             continue;
                         }
 
-                        double lat = Double.parseDouble(item.wgs_lat);
-                        double lon = Double.parseDouble(item.wgs_long);
+                        double lat = item.wgs_lat;
+                        double lon = item.wgs_long;
 
-                        Trig.Physical physicalType = mapPhysicalType(item.physical_type);
+                        // Map category_code to Physical enum for filtering/icons
+                        // Fall back to legacy physical_type mapping if category_code not present
+                        Trig.Physical category = mapCategoryCode(item.category_code, item.physical_type);
                         Condition condition = Condition.fromCode(item.condition);
+                        Trig.Current currentUse = mapCurrentUse(item.current_use);
+                        Trig.Historic historicUse = mapHistoricUse(item.historic_use);
 
                         db.createTrig(
                                 item.id,
@@ -172,12 +175,14 @@ public class DownloadTrigsActivity extends BaseActivity implements SyncListener 
                                 item.waypoint != null ? item.waypoint : "",
                                 lat,
                                 lon,
-                                physicalType,
+                                category,
                                 condition,
                                 Condition.TRIGNOTLOGGED,
-                                Trig.Current.NONE,
-                                Trig.Historic.UNKNOWN,
-                                ""
+                                currentUse,
+                                historicUse,
+                                item.category_name != null ? item.category_name : "",
+                                item.type_name != null ? item.type_name : "",
+                                item.fb_number
                         );
 
                         insertedCount++;
@@ -245,23 +250,124 @@ public class DownloadTrigsActivity extends BaseActivity implements SyncListener 
         }, mainHandler::post);
     }
 
-    private Trig.Physical mapPhysicalType(String physicalType) {
-        if (physicalType == null) {
-            return Trig.Physical.OTHER;
-        }
-        String normalized = physicalType.trim();
-        for (Trig.Physical type : Trig.Physical.values()) {
-            if (type.toString().equalsIgnoreCase(normalized)) {
-                return type;
+    /**
+     * Maps the new category_code to a Physical enum for filtering and icons.
+     * Falls back to legacy physical_type mapping if category_code is not present.
+     */
+    private Trig.Physical mapCategoryCode(String categoryCode, String legacyPhysicalType) {
+        // Try new category_code first
+        if (categoryCode != null && !categoryCode.trim().isEmpty()) {
+            String normalized = categoryCode.trim().toUpperCase();
+            switch (normalized) {
+                case "PILLAR":
+                    return Trig.Physical.PILLAR;
+                case "FBM":
+                    return Trig.Physical.FBM;
+                case "INTERSECTED":
+                    return Trig.Physical.INTERSECTED;
+                case "PASSIVE":
+                    return Trig.Physical.PASSIVE;
+                default:
+                    return Trig.Physical.PASSIVE;
             }
         }
-        if ("Active station".equalsIgnoreCase(normalized)) {
-            return Trig.Physical.ACTIVE;
+        
+        // Fall back to legacy physical_type for backward compatibility
+        if (legacyPhysicalType != null && !legacyPhysicalType.trim().isEmpty()) {
+            String normalized = legacyPhysicalType.trim();
+            for (Trig.Physical type : Trig.Physical.values()) {
+                if (type.toString().equalsIgnoreCase(normalized)) {
+                    return type;
+                }
+            }
+            if ("Active station".equalsIgnoreCase(normalized)) {
+                return Trig.Physical.ACTIVE;
+            }
+            if ("Unknown - user added".equalsIgnoreCase(normalized)) {
+                return Trig.Physical.USERADDED;
+            }
         }
-        if ("Unknown - user added".equalsIgnoreCase(normalized)) {
-            return Trig.Physical.USERADDED;
+        
+        return Trig.Physical.PASSIVE;
+    }
+
+    /**
+     * Maps current_use string from API to Trig.Current enum.
+     */
+    private Trig.Current mapCurrentUse(String currentUse) {
+        if (currentUse == null || currentUse.trim().isEmpty()) {
+            return Trig.Current.NONE;
         }
-        return Trig.Physical.OTHER;
+        String normalized = currentUse.trim().toLowerCase();
+        if (normalized.contains("active")) {
+            return Trig.Current.ACTIVE;
+        }
+        if (normalized.contains("passive")) {
+            return Trig.Current.PASSIVE;
+        }
+        if (normalized.contains("nce")) {
+            return Trig.Current.NCE;
+        }
+        if (normalized.contains("gps")) {
+            return Trig.Current.GPS;
+        }
+        if (normalized.contains("user added") || normalized.contains("useradded")) {
+            return Trig.Current.USERADDED;
+        }
+        return Trig.Current.NONE;
+    }
+
+    /**
+     * Maps historic_use string from API to Trig.Historic enum.
+     */
+    private Trig.Historic mapHistoricUse(String historicUse) {
+        if (historicUse == null || historicUse.trim().isEmpty()) {
+            return Trig.Historic.UNKNOWN;
+        }
+        String normalized = historicUse.trim().toLowerCase();
+        if (normalized.contains("primary")) {
+            return Trig.Historic.PRIMARY;
+        }
+        if (normalized.contains("secondary")) {
+            return Trig.Historic.SECONDARY;
+        }
+        if (normalized.contains("3rd") || normalized.contains("third")) {
+            return Trig.Historic.THIRDORDER;
+        }
+        if (normalized.contains("4th") || normalized.contains("fourth")) {
+            return Trig.Historic.FOURTHORDER;
+        }
+        if (normalized.contains("13th") || normalized.equals("gps")) {
+            return Trig.Historic.GPS;
+        }
+        if (normalized.contains("active")) {
+            return Trig.Historic.ACTIVE;
+        }
+        if (normalized.contains("fundamental") || normalized.equals("fbm")) {
+            return Trig.Historic.FBM;
+        }
+        if (normalized.contains("great glen")) {
+            return Trig.Historic.GREATGLEN;
+        }
+        if (normalized.contains("hydrographic")) {
+            return Trig.Historic.HYDROGRAPHIC;
+        }
+        if (normalized.contains("passive")) {
+            return Trig.Historic.PASSIVE;
+        }
+        if (normalized.contains("emily")) {
+            return Trig.Historic.EMILY;
+        }
+        if (normalized.contains("user added") || normalized.contains("useradded")) {
+            return Trig.Historic.USERADDED;
+        }
+        if (normalized.equals("none")) {
+            return Trig.Historic.NONE;
+        }
+        if (normalized.equals("other")) {
+            return Trig.Historic.OTHER;
+        }
+        return Trig.Historic.UNKNOWN;
     }
 
     private static class TrigExportResponse {
@@ -275,13 +381,19 @@ public class DownloadTrigsActivity extends BaseActivity implements SyncListener 
         int id;
         String waypoint;
         String name;
-        String status_name;
-        String physical_type;
         String condition;
-        String wgs_lat;
-        String wgs_long;
+        String type_code;
+        String type_name;
+        String category_code;
+        String category_name;
+        String current_use;
+        String historic_use;
+        String fb_number;
+        double wgs_lat;
+        double wgs_long;
         String osgb_gridref;
-        String distance_km;
+        // Legacy field for backward compatibility - can be removed once all users upgrade
+        String physical_type;
     }
 
     private void scheduleRetryWithCountdown() {

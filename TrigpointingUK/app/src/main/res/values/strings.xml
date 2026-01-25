@@ -218,7 +218,7 @@
     <string name="grid_ref_placeholder">SU123456</string>
     <string name="wgs84_label">WGS84: </string>
     <string name="coordinates_placeholder">51.123, -1.456</string>
-    <string name="current_label">Current: </string>
+    <string name="current_label">Recent: </string>
     <string name="current_yes">Yes</string>
     <string name="historic_label">Historic: </string>
     <string name="historic_no">No</string>

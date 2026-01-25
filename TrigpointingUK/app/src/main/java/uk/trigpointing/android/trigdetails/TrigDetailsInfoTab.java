@@ -168,6 +168,8 @@ public class TrigDetailsInfoTab extends BaseTabActivity {
         int historicIndex = c.getColumnIndex(DbHelper.TRIG_HISTORIC);
         int typeIndex = c.getColumnIndex(DbHelper.TRIG_TYPE);
         int fbIndex = c.getColumnIndex(DbHelper.TRIG_FB);
+        int categoryNameIndex = c.getColumnIndex(DbHelper.TRIG_CATEGORY_NAME);
+        int typeNameIndex = c.getColumnIndex(DbHelper.TRIG_TYPE_NAME);
         
         if (latIndex < 0 || lonIndex < 0 || idIndex < 0 || conditionIndex < 0 || 
             nameIndex < 0 || currentIndex < 0 || historicIndex < 0 || typeIndex < 0 || fbIndex < 0) {
@@ -209,7 +211,20 @@ public class TrigDetailsInfoTab extends BaseTabActivity {
         tv.setText(Trig.Historic.fromCode(c.getString(historicIndex)).toString());
 
         tv = findViewById(R.id.triginfo_type);
-        tv.setText(Trig.Physical.fromCode(c.getString(typeIndex)).toString());
+        // Display "category_name · type_name" format, falling back to legacy type if new fields not available
+        String categoryName = categoryNameIndex >= 0 ? c.getString(categoryNameIndex) : null;
+        String typeName = typeNameIndex >= 0 ? c.getString(typeNameIndex) : null;
+        if (categoryName != null && !categoryName.isEmpty() && typeName != null && !typeName.isEmpty()) {
+            if (categoryName.equals(typeName)) {
+                // Avoid redundant "Pillar · Pillar" display
+                tv.setText(categoryName);
+            } else {
+                tv.setText(categoryName + " · " + typeName);
+            }
+        } else {
+            // Fall back to legacy type display
+            tv.setText(Trig.Physical.fromCode(c.getString(typeIndex)).toString());
+        }
 
         tv = findViewById(R.id.triginfo_fb);
         tv.setText(c.getString(fbIndex));

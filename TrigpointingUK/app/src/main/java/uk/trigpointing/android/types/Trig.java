@@ -18,32 +18,34 @@ public class Trig extends LatLon {
     private int found;
     
     
-    // PHYSICAL TYPE of the trigpoint
+    // CATEGORY of the trigpoint (simplified from legacy physical types)
     public enum Physical {
-        ACTIVE             ("AC", R.drawable.t_passive        , R.drawable.ts_passive        , "Active"),
+        PILLAR          ("PI", R.drawable.t_pillar        , R.drawable.ts_pillar        , "Pillar"),
+        FBM             ("FB", R.drawable.t_fbm            , R.drawable.ts_fbm            , "FBM"),
+        INTERSECTED     ("IN", R.drawable.t_intersected    , R.drawable.ts_intersected    , "Intersected"),
+        PASSIVE         ("PA", R.drawable.t_passive        , R.drawable.ts_passive        , "Passive"),
+        // Legacy types kept for backward compatibility with existing database records
+        ACTIVE          ("AC", R.drawable.t_passive        , R.drawable.ts_passive        , "Active"),
         BERNTSEN        ("BE", R.drawable.t_passive        , R.drawable.ts_passive        , "Berntsen"),
-        BLOCK            ("BL", R.drawable.t_passive        , R.drawable.ts_passive        , "Block"),
+        BLOCK           ("BL", R.drawable.t_passive        , R.drawable.ts_passive        , "Block"),
         BOLT            ("BO", R.drawable.t_passive        , R.drawable.ts_passive        , "Bolt"),
-        BRASSPLATE        ("BP", R.drawable.t_passive        , R.drawable.ts_passive        , "Brass Plate"),
-        BURIEDBLOCK        ("BB", R.drawable.t_passive        , R.drawable.ts_passive        , "Buried Block"),
-        CANNON            ("CA", R.drawable.t_passive        , R.drawable.ts_passive        , "Cannon"),
-        CENTRE            ("CE", R.drawable.t_passive        , R.drawable.ts_passive        , "Centre"),
+        BRASSPLATE      ("BP", R.drawable.t_passive        , R.drawable.ts_passive        , "Brass Plate"),
+        BURIEDBLOCK     ("BB", R.drawable.t_passive        , R.drawable.ts_passive        , "Buried Block"),
+        CANNON          ("CA", R.drawable.t_passive        , R.drawable.ts_passive        , "Cannon"),
+        CENTRE          ("CE", R.drawable.t_passive        , R.drawable.ts_passive        , "Centre"),
         CONCRETERING    ("CR", R.drawable.t_passive        , R.drawable.ts_passive        , "Concrete Ring"),
-        CURRYSTOOL        ("CS", R.drawable.t_passive        , R.drawable.ts_passive        , "Curry Stool"),
-        CUT                ("CT", R.drawable.t_passive        , R.drawable.ts_passive        , "Cut"),
+        CURRYSTOOL      ("CS", R.drawable.t_passive        , R.drawable.ts_passive        , "Curry Stool"),
+        CUT             ("CT", R.drawable.t_passive        , R.drawable.ts_passive        , "Cut"),
         DISC            ("DI", R.drawable.t_passive        , R.drawable.ts_passive        , "Disc"),
-        FBM                ("FB", R.drawable.t_fbm            , R.drawable.ts_fbm            , "FBM"),
         FENOMARK        ("FE", R.drawable.t_passive        , R.drawable.ts_passive        , "Fenomark"),
-        INTERSECTED        ("IN", R.drawable.t_intersected    , R.drawable.ts_intersected    , "Intersected Station"),
         MONUMENT        ("MO", R.drawable.t_passive        , R.drawable.ts_passive        , "Monument"),
-        OTHER            ("OT", R.drawable.t_passive        , R.drawable.ts_passive        , "Other"),
-        PILLAR            ("PI", R.drawable.t_pillar        , R.drawable.ts_pillar        , "Pillar"),
+        OTHER           ("OT", R.drawable.t_passive        , R.drawable.ts_passive        , "Other"),
         PIPE            ("PP", R.drawable.t_passive        , R.drawable.ts_passive        , "Pipe"),
         PLATFORM        ("PB", R.drawable.t_passive        , R.drawable.ts_passive        , "Platform Bolt"),
-        RIVET            ("RI", R.drawable.t_passive        , R.drawable.ts_passive        , "Rivet"),
-        SPIDER            ("SP", R.drawable.t_passive        , R.drawable.ts_passive        , "Spider"),
+        RIVET           ("RI", R.drawable.t_passive        , R.drawable.ts_passive        , "Rivet"),
+        SPIDER          ("SP", R.drawable.t_passive        , R.drawable.ts_passive        , "Spider"),
         SURFACEBLOCK    ("SB", R.drawable.t_passive        , R.drawable.ts_passive        , "Surface Block"),
-        USERADDED        ("UA", R.drawable.t_passive        , R.drawable.ts_passive        , "Unknown - User Added"),
+        USERADDED       ("UA", R.drawable.t_passive        , R.drawable.ts_passive        , "Unknown - User Added"),
         ;
 
         private final String   code;

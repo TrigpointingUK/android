@@ -137,12 +137,17 @@ public class Filter {
             tok=" AND ";
             break;
         case TYPESPASSIVE:
+            // Include new PASSIVE category code ('PA') or any legacy type that isn't PILLAR/FBM/INTERSECTED
             sql.append(tok)
+               .append("(")
+               .append(DbHelper.TRIG_TABLE).append(".").append(DbHelper.TRIG_TYPE)
+               .append(" = '").append(Trig.Physical.PASSIVE.code()).append("' OR ")
                .append(DbHelper.TRIG_TABLE).append(".").append(DbHelper.TRIG_TYPE)
                .append(" NOT IN ('")
                .append(Trig.Physical.PILLAR.code()).append("', '")
-               .append(Trig.Physical.FBM.code()).append("' ,'")
-               .append(Trig.Physical.INTERSECTED.code()).append("' )");
+               .append(Trig.Physical.FBM.code()).append("', '")
+               .append(Trig.Physical.INTERSECTED.code()).append("', '")
+               .append(Trig.Physical.PASSIVE.code()).append("'))");
             tok=" AND ";
             break;
         case TYPESINTERSECTED:

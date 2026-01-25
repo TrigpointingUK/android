@@ -24,7 +24,7 @@ import uk.trigpointing.android.types.Trig;
 public class DbHelper {
     private static final String TAG                    = "DbHelper";
 
-    private static final int     DATABASE_VERSION     = 12;
+    private static final int     DATABASE_VERSION     = 13;
     private static final String DATABASE_NAME        = "trigpointinguk";
     public  static final String TRIG_TABLE            = "trig";
     public     static final String TRIG_ID                = "_id";
@@ -38,6 +38,8 @@ public class DbHelper {
     public     static final String TRIG_CURRENT        = "current";
     public     static final String TRIG_HISTORIC        = "historic";
     public     static final String TRIG_FB                = "fb";
+    public     static final String TRIG_CATEGORY_NAME    = "category_name";
+    public     static final String TRIG_TYPE_NAME        = "type_name";
     public  static final String LOG_TABLE            = "log";
     public     static final String LOG_ID                = "_id";
     public     static final String LOG_YEAR            = "year";
@@ -78,12 +80,14 @@ public class DbHelper {
         + TRIG_WAYPOINT  + " text not null, "
         + TRIG_LAT         + " real not null, "
         + TRIG_LON         + " real not null, " 
-        + TRIG_TYPE         + " integer not null, "
+        + TRIG_TYPE         + " text not null, "
         + TRIG_CONDITION + " char(1) not null, "
-        + TRIG_LOGGED    + " condition char(1) not null, "
-        + TRIG_CURRENT   + " integer not null, "
-        + TRIG_HISTORIC  + " integer not null, " 
-        + TRIG_FB         + " text"
+        + TRIG_LOGGED    + " char(1) not null, "
+        + TRIG_CURRENT   + " char(1) not null, "
+        + TRIG_HISTORIC  + " char(1) not null, " 
+        + TRIG_FB         + " text, "
+        + TRIG_CATEGORY_NAME + " text, "
+        + TRIG_TYPE_NAME + " text"
         + ");";
 
     private static final String LOG_CREATE = "create table " + LOG_TABLE + "("
@@ -149,10 +153,21 @@ public class DbHelper {
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             if (oldVersion==11 && newVersion==12) {
                 Log.w(TAG, "Upgrading from 11 to 12 - require a resync!");
-                Toast.makeText(mCtx, "Database updated - please sync logs", Toast.LENGTH_LONG).show();
+                // Note: Can't show Toast here as onUpgrade may be called from background thread
                 ContentValues args = new ContentValues();
                 args.put(TRIG_LOGGED, Condition.TRIGNOTLOGGED.code());
                 db.update(TRIG_TABLE, args, null, null);
+                return;
+            }
+            if (oldVersion == 12 && newVersion == 13) {
+                Log.w(TAG, "Upgrading from 12 to 13 - adding category_name and type_name columns");
+                // Note: Can't show Toast here as onUpgrade may be called from background thread
+                try {
+                    db.execSQL("ALTER TABLE " + TRIG_TABLE + " ADD COLUMN " + TRIG_CATEGORY_NAME + " text");
+                    db.execSQL("ALTER TABLE " + TRIG_TABLE + " ADD COLUMN " + TRIG_TYPE_NAME + " text");
+                } catch (Exception e) {
+                    Log.e(TAG, "Error adding new columns during upgrade", e);
+                }
                 return;
             }
             Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
@@ -243,7 +258,10 @@ public class DbHelper {
      * @param id
      * @return rowId or -1 if failed
      */
-    public long createTrig(long id, String name, String waypoint, Double lat, Double lon, Trig.Physical type, Condition condition, Condition logged, Trig.Current current, Trig.Historic historic, String fb) {
+    public long createTrig(long id, String name, String waypoint, Double lat, Double lon, 
+                          Trig.Physical type, Condition condition, Condition logged, 
+                          Trig.Current current, Trig.Historic historic, 
+                          String categoryName, String typeName, String fbNumber) {
         ContentValues initialValues = new ContentValues();
         initialValues.put(TRIG_ID            , id);
         initialValues.put(TRIG_NAME            , name);
@@ -255,8 +273,22 @@ public class DbHelper {
         initialValues.put(TRIG_LOGGED        , logged.code());
         initialValues.put(TRIG_CURRENT        , current.code());
         initialValues.put(TRIG_HISTORIC        , historic.code());
-        initialValues.put(TRIG_FB            , fb);
+        initialValues.put(TRIG_FB            , fbNumber != null ? fbNumber : "");
+        initialValues.put(TRIG_CATEGORY_NAME, categoryName);
+        initialValues.put(TRIG_TYPE_NAME    , typeName);
         return mDb.insert(TRIG_TABLE, null, initialValues);
+    }
+
+    /**
+     * Legacy createTrig method for backward compatibility with tests.
+     * @deprecated Use the new createTrig method with categoryName, typeName, and fbNumber parameters.
+     */
+    @Deprecated
+    public long createTrig(long id, String name, String waypoint, Double lat, Double lon, 
+                          Trig.Physical type, Condition condition, Condition logged, 
+                          Trig.Current current, Trig.Historic historic, String fb) {
+        return createTrig(id, name, waypoint, lat, lon, type, condition, logged, 
+                         current, historic, type.toString(), type.toString(), fb);
     }
 
     /**
@@ -441,7 +473,9 @@ public class DbHelper {
                 TRIG_LOGGED, 
                 TRIG_CURRENT, 
                 TRIG_HISTORIC, 
-                TRIG_FB}, 
+                TRIG_FB,
+                TRIG_CATEGORY_NAME,
+                TRIG_TYPE_NAME}, 
                 TRIG_ID + "="+id, 
                 null, null, null, null);
     }
