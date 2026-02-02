@@ -108,11 +108,12 @@ class OSMTileDownloader:
             raise ValueError(f"No tile URL template available for provider '{provider}'. "
                              f"Specify --tile-url-template explicitly.")
 
-        # Inject API key if required
+        # Store API key separately (don't inject into template to avoid logging secrets)
+        self.api_key = None
         if "{key}" in self.tile_url_template:
             if not api_key:
                 raise ValueError("This provider requires an API key. Supply --api-key.")
-            self.tile_url_template = self.tile_url_template.replace("{key}", api_key)
+            self.api_key = api_key
 
         # Provider directory slug
         if provider_slug:
@@ -252,6 +253,9 @@ class OSMTileDownloader:
             return True, False  # Success but not downloaded
         
         url = self.tile_url_template.format(z=z, x=x, y=y)
+        # Inject API key at request time (not stored in template to avoid logging secrets)
+        if self.api_key:
+            url = url.replace("{key}", self.api_key)
         tile_path = self.get_tile_path(z, x, y)
         
         try:

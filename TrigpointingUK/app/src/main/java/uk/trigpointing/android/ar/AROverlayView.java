@@ -118,6 +118,25 @@ public class AROverlayView extends View {
         this.clickListener = listener;
     }
     
+    /**
+     * Listener for compass orientation changes.
+     * Called when the compass bar snaps to a different edge of the screen.
+     */
+    public interface OnCompassOrientationChangeListener {
+        /**
+         * Called when the compass orientation changes.
+         * @param snappedAngle The snapped angle: 0 (top), 90 (left), 180 (bottom), 270 (right)
+         */
+        void onCompassOrientationChanged(int snappedAngle);
+    }
+    
+    private OnCompassOrientationChangeListener compassOrientationListener;
+    private int lastReportedSnapAngle = -1;
+    
+    public void setOnCompassOrientationChangeListener(OnCompassOrientationChangeListener listener) {
+        this.compassOrientationListener = listener;
+    }
+    
     public void updateOrientation(float azimuth, float pitch, float roll) {
         this.deviceAzimuth = azimuth;
         this.devicePitch = pitch;
@@ -164,6 +183,18 @@ public class AROverlayView extends View {
         // Draw compass directions snapped to the edge closest to zenith, with hysteresis
         float snapAngle = updateCompassSnapAngle(deviceRoll);
         int snapped = ((int) Math.round(((snapAngle % 360f) + 360f) % 360f));
+        
+        // Notify listener if snap angle changed
+        if (snapped != lastReportedSnapAngle && compassOrientationListener != null) {
+            lastReportedSnapAngle = snapped;
+            final int finalSnapped = snapped;
+            post(() -> {
+                if (compassOrientationListener != null) {
+                    compassOrientationListener.onCompassOrientationChanged(finalSnapped);
+                }
+            });
+        }
+        
         boolean anchorTop = (snapped != 180); // top for 0/90/270, bottom for 180
         boolean landscapeSnap = (snapped == 90 || snapped == 270);
         float effectiveHorizontalFov = landscapeSnap ? fieldOfViewDegY : fieldOfViewDegX;

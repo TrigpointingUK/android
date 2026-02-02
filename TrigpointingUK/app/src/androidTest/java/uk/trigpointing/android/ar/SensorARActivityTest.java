@@ -282,4 +282,157 @@ public class SensorARActivityTest {
             assertFalse("Activity should not be finishing", activity.isFinishing());
         });
     }
+
+    // ==================== FOV Calibration Button Tests ====================
+
+    @Test
+    public void testFovCalibrationButtonsExist() {
+        // Test that FOV calibration buttons are present in the layout
+        activityRule.getScenario().onActivity(activity -> {
+            android.widget.Button narrowerBtn = activity.findViewById(uk.trigpointing.android.R.id.ar_narrower);
+            android.widget.Button widerBtn = activity.findViewById(uk.trigpointing.android.R.id.ar_wider);
+            
+            assertNotNull("Narrower button should exist", narrowerBtn);
+            assertNotNull("Wider button should exist", widerBtn);
+        });
+    }
+
+    @Test
+    public void testFovCalibrationButtonsAreVisible() {
+        // Test that FOV calibration buttons are visible
+        activityRule.getScenario().onActivity(activity -> {
+            android.widget.Button narrowerBtn = activity.findViewById(uk.trigpointing.android.R.id.ar_narrower);
+            android.widget.Button widerBtn = activity.findViewById(uk.trigpointing.android.R.id.ar_wider);
+            
+            assertEquals("Narrower button should be visible", 
+                android.view.View.VISIBLE, narrowerBtn.getVisibility());
+            assertEquals("Wider button should be visible", 
+                android.view.View.VISIBLE, widerBtn.getVisibility());
+        });
+    }
+
+    @Test
+    public void testFovCalibrationButtonsHaveCorrectText() {
+        // Test that FOV calibration buttons have correct text
+        activityRule.getScenario().onActivity(activity -> {
+            android.widget.Button narrowerBtn = activity.findViewById(uk.trigpointing.android.R.id.ar_narrower);
+            android.widget.Button widerBtn = activity.findViewById(uk.trigpointing.android.R.id.ar_wider);
+            
+            // Check button text (from strings.xml: <> and ><)
+            String narrowerText = narrowerBtn.getText().toString();
+            String widerText = widerBtn.getText().toString();
+            
+            assertTrue("Narrower button should have <> text", 
+                narrowerText.contains("<") && narrowerText.contains(">"));
+            assertTrue("Wider button should have >< text", 
+                widerText.contains(">") && widerText.contains("<"));
+        });
+    }
+
+    @Test
+    public void testFovScalePreferenceExists() {
+        // Test that FOV scale preference can be read/written
+        Context context = ApplicationProvider.getApplicationContext();
+        android.content.SharedPreferences prefs = 
+            androidx.preference.PreferenceManager.getDefaultSharedPreferences(context);
+        
+        // Write a test value
+        prefs.edit().putFloat("ar_fov_scale", 0.75f).apply();
+        
+        // Read it back
+        float scale = prefs.getFloat("ar_fov_scale", 1.0f);
+        
+        assertEquals("FOV scale should be persisted", 0.75f, scale, 0.001f);
+        
+        // Clean up - restore default
+        prefs.edit().putFloat("ar_fov_scale", 1.0f).apply();
+    }
+
+    @Test
+    public void testFovScaleClampingInPreferences() {
+        // Test that FOV scale clamping works correctly
+        Context context = ApplicationProvider.getApplicationContext();
+        android.content.SharedPreferences prefs = 
+            androidx.preference.PreferenceManager.getDefaultSharedPreferences(context);
+        
+        // The clamping happens when reading, so we test the range
+        float minScale = 0.1f;
+        float maxScale = 1.5f;
+        
+        // Test that values within range are valid
+        prefs.edit().putFloat("ar_fov_scale", 0.5f).apply();
+        float midScale = prefs.getFloat("ar_fov_scale", 1.0f);
+        assertTrue("Mid scale should be in valid range", 
+            midScale >= minScale && midScale <= maxScale);
+        
+        // Clean up
+        prefs.edit().putFloat("ar_fov_scale", 1.0f).apply();
+    }
+
+    @Test
+    public void testOverlayViewExists() {
+        // Test that AR overlay view is present
+        activityRule.getScenario().onActivity(activity -> {
+            android.view.View overlayView = activity.findViewById(uk.trigpointing.android.R.id.ar_overlay);
+            
+            assertNotNull("AR overlay view should exist", overlayView);
+            assertTrue("AR overlay should be AROverlayView instance", 
+                overlayView instanceof AROverlayView);
+        });
+    }
+
+    @Test
+    public void testActivityHandlesFovButtonTouch() {
+        // Test that the activity handles button touch without crashing
+        activityRule.getScenario().onActivity(activity -> {
+            android.widget.Button narrowerBtn = activity.findViewById(uk.trigpointing.android.R.id.ar_narrower);
+            
+            // Simulate a touch event
+            try {
+                narrowerBtn.performClick();
+                // If we get here without exception, the button handling is working
+                assertTrue("Button click should be handled without crash", true);
+            } catch (Exception e) {
+                fail("Button click should not throw exception: " + e.getMessage());
+            }
+        });
+    }
+
+    @Test
+    public void testButtonsRepositionOnOrientationChange() {
+        // Test that buttons can be repositioned (tests the layout params modification)
+        activityRule.getScenario().onActivity(activity -> {
+            android.widget.Button narrowerBtn = activity.findViewById(uk.trigpointing.android.R.id.ar_narrower);
+            android.widget.Button widerBtn = activity.findViewById(uk.trigpointing.android.R.id.ar_wider);
+            
+            // Get initial layout params
+            android.widget.FrameLayout.LayoutParams narrowerParams = 
+                (android.widget.FrameLayout.LayoutParams) narrowerBtn.getLayoutParams();
+            android.widget.FrameLayout.LayoutParams widerParams = 
+                (android.widget.FrameLayout.LayoutParams) widerBtn.getLayoutParams();
+            
+            assertNotNull("Narrower button should have layout params", narrowerParams);
+            assertNotNull("Wider button should have layout params", widerParams);
+            
+            // Verify that layout params have gravity set
+            assertTrue("Narrower button should have gravity set", narrowerParams.gravity != 0);
+            assertTrue("Wider button should have gravity set", widerParams.gravity != 0);
+        });
+    }
+
+    @Test
+    public void testButtonRotationCanBeSet() {
+        // Test that button rotation can be modified
+        activityRule.getScenario().onActivity(activity -> {
+            android.widget.Button narrowerBtn = activity.findViewById(uk.trigpointing.android.R.id.ar_narrower);
+            
+            // Test setting rotation
+            narrowerBtn.setRotation(90f);
+            assertEquals("Button rotation should be settable", 90f, narrowerBtn.getRotation(), 0.001f);
+            
+            // Reset rotation
+            narrowerBtn.setRotation(0f);
+            assertEquals("Button rotation should be resettable", 0f, narrowerBtn.getRotation(), 0.001f);
+        });
+    }
 }

@@ -90,8 +90,10 @@ public class SensorARActivity extends BaseActivity implements SensorEventListene
     private Size previewSize;
     private HandlerThread cameraThread;
     private Handler cameraHandler;
-    private float cameraHfovDeg = 60f; // raw camera horizontal FOV
-    private float cameraVfovDeg = 45f; // raw camera vertical FOV
+    private float originalCameraHfovDeg = 60f; // original camera horizontal FOV from characteristics (never modified)
+    private float originalCameraVfovDeg = 45f; // original camera vertical FOV from characteristics (never modified)
+    private float cameraHfovDeg = 60f; // effective camera horizontal FOV (after zoom/crop adjustments)
+    private float cameraVfovDeg = 45f; // effective camera vertical FOV (after zoom/crop adjustments)
     private float baseFovXDeg = 60f; // mapped to on-screen X
     private float baseFovYDeg = 45f; // mapped to on-screen Y
     private int lastPreviewRotationDeg = 0;
@@ -118,6 +120,8 @@ public class SensorARActivity extends BaseActivity implements SensorEventListene
     
     // UI components
     private AROverlayView overlayView;
+    private Button narrowerBtn;
+    private Button widerBtn;
     
     // Activity lifecycle flag
     private volatile boolean isDestroyed = false;
@@ -152,11 +156,14 @@ public class SensorARActivity extends BaseActivity implements SensorEventListene
                     Toast.makeText(SensorARActivity.this, "Unable to open trig details", Toast.LENGTH_LONG).show();
                 }
             });
+            
+            // Listen for compass orientation changes to reposition buttons
+            overlayView.setOnCompassOrientationChangeListener(this::updateButtonPositions);
         }
         
         // Calibration buttons with auto-repeat on press-and-hold
-        Button narrowerBtn = findViewById(R.id.ar_narrower);
-        Button widerBtn = findViewById(R.id.ar_wider);
+        narrowerBtn = findViewById(R.id.ar_narrower);
+        widerBtn = findViewById(R.id.ar_wider);
         if (narrowerBtn != null) {
             setupAutoRepeatButton(narrowerBtn, -0.02f);
         }
@@ -415,6 +422,8 @@ public class SensorARActivity extends BaseActivity implements SensorEventListene
         if (bestPhysicalId != null) {
             selectedCameraId = bestPhysicalId;
             selectedIsLogical = false;
+            originalCameraHfovDeg = bestPhysicalHFov;
+            originalCameraVfovDeg = bestPhysicalVFov;
             cameraHfovDeg = bestPhysicalHFov;
             cameraVfovDeg = bestPhysicalVFov;
             return;
@@ -438,7 +447,12 @@ public class SensorARActivity extends BaseActivity implements SensorEventListene
         }
         selectedCameraId = bestId;
         selectedIsLogical = true;
-        if (bestId != null) { cameraHfovDeg = bestHFov; cameraVfovDeg = bestVFov; }
+        if (bestId != null) { 
+            originalCameraHfovDeg = bestHFov; 
+            originalCameraVfovDeg = bestVFov;
+            cameraHfovDeg = bestHFov; 
+            cameraVfovDeg = bestVFov; 
+        }
     }
 
     private void openCamera(SurfaceTexture surfaceTexture, int viewWidth, int viewHeight) throws CameraAccessException {
@@ -589,8 +603,9 @@ public class SensorARActivity extends BaseActivity implements SensorEventListene
             float hScale = (float) activeArray.height() / (float) cropH;
             float ratio = (zoomRatio != null && zoomRatio > 0f) ? (1f / zoomRatio) : 1f;
 
-            float effectiveH = cameraHfovDeg * wScale * ratio;
-            float effectiveV = cameraVfovDeg * hScale * ratio;
+            // Use ORIGINAL camera FOV values to avoid exponential compounding
+            float effectiveH = originalCameraHfovDeg * wScale * ratio;
+            float effectiveV = originalCameraVfovDeg * hScale * ratio;
 
             cameraHfovDeg = effectiveH;
             cameraVfovDeg = effectiveV;
@@ -925,8 +940,8 @@ public class SensorARActivity extends BaseActivity implements SensorEventListene
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
             float scale = prefs.getFloat("ar_fov_scale", 1.0f);
             scale += delta;
-            // Clamp defensively
-            if (scale < 0.5f) scale = 0.5f;
+            // Clamp defensively (allow down to 10% for narrow calibration)
+            if (scale < 0.1f) scale = 0.1f;
             if (scale > 1.5f) scale = 1.5f;
             prefs.edit().putFloat("ar_fov_scale", scale).apply();
             if (overlayView != null) {
@@ -955,19 +970,26 @@ public class SensorARActivity extends BaseActivity implements SensorEventListene
                     };
                     arFovRepeatHandler.postDelayed(repeatTaskHolder[0], 300);
                     v.setPressed(true);
-                    return true;
+                    break;
                 case MotionEvent.ACTION_UP:
+                    v.setPressed(false);
+                    if (repeatTaskHolder[0] != null) {
+                        arFovRepeatHandler.removeCallbacks(repeatTaskHolder[0]);
+                        repeatTaskHolder[0] = null;
+                    }
+                    // Call performClick for accessibility on completed touch
+                    v.performClick();
+                    break;
                 case MotionEvent.ACTION_CANCEL:
                     v.setPressed(false);
                     if (repeatTaskHolder[0] != null) {
                         arFovRepeatHandler.removeCallbacks(repeatTaskHolder[0]);
                         repeatTaskHolder[0] = null;
                     }
-                    return true;
+                    break;
             }
-            // Always call performClick for accessibility when touch is handled
-            v.performClick();
-            return false;
+            // Always return true to consume all touch events in the gesture
+            return true;
         });
     }
 
@@ -977,7 +999,7 @@ public class SensorARActivity extends BaseActivity implements SensorEventListene
         float base = baseFovXDeg; // horizontal FOV across screen width
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         float scale = prefs.getFloat("ar_fov_scale", 1.0f);
-        if (scale < 0.5f) scale = 0.5f;
+        if (scale < 0.1f) scale = 0.1f;
         if (scale > 1.5f) scale = 1.5f;
         return base * scale;
     }
@@ -988,7 +1010,7 @@ public class SensorARActivity extends BaseActivity implements SensorEventListene
         float base = baseFovYDeg; // vertical FOV across screen height
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         float scale = prefs.getFloat("ar_fov_scale", 1.0f);
-        if (scale < 0.5f) scale = 0.5f;
+        if (scale < 0.1f) scale = 0.1f;
         if (scale > 1.5f) scale = 1.5f;
         return base * scale;
     }
@@ -1033,5 +1055,79 @@ public class SensorARActivity extends BaseActivity implements SensorEventListene
         }
     }
     
+    /**
+     * Update the position of FOV calibration buttons based on compass orientation.
+     * Buttons should always be on the opposite edge from the compass bar.
+     * 
+     * @param snappedAngle The compass snap angle: 0 (top), 90 (left edge), 180 (bottom), 270 (right edge)
+     */
+    private void updateButtonPositions(int snappedAngle) {
+        if (narrowerBtn == null || widerBtn == null) return;
+        
+        int margin = (int) (16 * getResources().getDisplayMetrics().density);
+        
+        FrameLayout.LayoutParams narrowerParams = (FrameLayout.LayoutParams) narrowerBtn.getLayoutParams();
+        FrameLayout.LayoutParams widerParams = (FrameLayout.LayoutParams) widerBtn.getLayoutParams();
+        
+        // Reset margins
+        narrowerParams.setMargins(0, 0, 0, 0);
+        widerParams.setMargins(0, 0, 0, 0);
+        
+        switch (snappedAngle) {
+            case 0:
+                // Compass at top → buttons at bottom edge
+                narrowerParams.gravity = android.view.Gravity.BOTTOM | android.view.Gravity.START;
+                narrowerParams.setMargins(margin, 0, 0, margin);
+                widerParams.gravity = android.view.Gravity.BOTTOM | android.view.Gravity.END;
+                widerParams.setMargins(0, 0, margin, margin);
+                // No rotation needed for portrait
+                narrowerBtn.setRotation(0);
+                widerBtn.setRotation(0);
+                break;
+            case 90:
+                // Compass at right edge (canvas rotated 90° CW) → buttons at left edge
+                narrowerParams.gravity = android.view.Gravity.START | android.view.Gravity.TOP;
+                narrowerParams.setMargins(margin, margin, 0, 0);
+                widerParams.gravity = android.view.Gravity.START | android.view.Gravity.BOTTOM;
+                widerParams.setMargins(margin, 0, 0, margin);
+                // Rotate buttons to appear upright in landscape
+                narrowerBtn.setRotation(-90);
+                widerBtn.setRotation(-90);
+                break;
+            case 180:
+                // Compass at bottom → buttons at top edge
+                narrowerParams.gravity = android.view.Gravity.TOP | android.view.Gravity.START;
+                narrowerParams.setMargins(margin, margin, 0, 0);
+                widerParams.gravity = android.view.Gravity.TOP | android.view.Gravity.END;
+                widerParams.setMargins(0, margin, margin, 0);
+                // No rotation needed for portrait
+                narrowerBtn.setRotation(0);
+                widerBtn.setRotation(0);
+                break;
+            case 270:
+                // Compass at left edge (canvas rotated 90° CCW) → buttons at right edge
+                narrowerParams.gravity = android.view.Gravity.END | android.view.Gravity.TOP;
+                narrowerParams.setMargins(0, margin, margin, 0);
+                widerParams.gravity = android.view.Gravity.END | android.view.Gravity.BOTTOM;
+                widerParams.setMargins(0, 0, margin, margin);
+                // Rotate buttons to appear upright in landscape
+                narrowerBtn.setRotation(90);
+                widerBtn.setRotation(90);
+                break;
+            default:
+                // Default to bottom edge
+                narrowerParams.gravity = android.view.Gravity.BOTTOM | android.view.Gravity.START;
+                narrowerParams.setMargins(margin, 0, 0, margin);
+                widerParams.gravity = android.view.Gravity.BOTTOM | android.view.Gravity.END;
+                widerParams.setMargins(0, 0, margin, margin);
+                // No rotation for default
+                narrowerBtn.setRotation(0);
+                widerBtn.setRotation(0);
+                break;
+        }
+        
+        narrowerBtn.setLayoutParams(narrowerParams);
+        widerBtn.setLayoutParams(widerParams);
+    }
 
 }

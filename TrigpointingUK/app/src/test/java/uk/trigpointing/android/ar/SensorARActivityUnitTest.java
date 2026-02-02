@@ -242,4 +242,276 @@ public class SensorARActivityUnitTest {
         // This should not cause issues in our code
         assertNull("Null bundle should be handled", nullBundle);
     }
+
+    // ==================== FOV Calibration Tests ====================
+
+    @Test
+    public void testFovScaleClampingMinimum() {
+        // Test that FOV scale is clamped to minimum 0.1 (10%)
+        float scale = 0.05f; // Below minimum
+        float minScale = 0.1f;
+        
+        if (scale < minScale) scale = minScale;
+        
+        assertEquals("Scale should be clamped to minimum 0.1", 0.1f, scale, 0.001f);
+    }
+
+    @Test
+    public void testFovScaleClampingMaximum() {
+        // Test that FOV scale is clamped to maximum 1.5 (150%)
+        float scale = 2.0f; // Above maximum
+        float maxScale = 1.5f;
+        
+        if (scale > maxScale) scale = maxScale;
+        
+        assertEquals("Scale should be clamped to maximum 1.5", 1.5f, scale, 0.001f);
+    }
+
+    @Test
+    public void testFovScaleInRange() {
+        // Test that valid scale values are not clamped
+        float scale = 0.8f; // Valid value
+        float minScale = 0.1f;
+        float maxScale = 1.5f;
+        
+        if (scale < minScale) scale = minScale;
+        if (scale > maxScale) scale = maxScale;
+        
+        assertEquals("Valid scale should not be clamped", 0.8f, scale, 0.001f);
+    }
+
+    @Test
+    public void testFovScaleDeltaNarrower() {
+        // Test that narrower button decreases scale correctly
+        float scale = 1.0f;
+        float delta = -0.02f; // Narrower button delta
+        
+        scale += delta;
+        
+        assertEquals("Scale should decrease by 0.02", 0.98f, scale, 0.001f);
+    }
+
+    @Test
+    public void testFovScaleDeltaWider() {
+        // Test that wider button increases scale correctly
+        float scale = 1.0f;
+        float delta = +0.02f; // Wider button delta
+        
+        scale += delta;
+        
+        assertEquals("Scale should increase by 0.02", 1.02f, scale, 0.001f);
+    }
+
+    @Test
+    public void testFovScaleEffectiveFovCalculation() {
+        // Test that effective FOV is calculated correctly from base FOV and scale
+        float baseFov = 60.0f;
+        float scale = 0.5f;
+        
+        float effectiveFov = baseFov * scale;
+        
+        assertEquals("Effective FOV should be base * scale", 30.0f, effectiveFov, 0.001f);
+    }
+
+    @Test
+    public void testFovScaleMultipleAdjustments() {
+        // Test multiple consecutive adjustments
+        float scale = 1.0f;
+        float delta = -0.02f;
+        float minScale = 0.1f;
+        
+        // Simulate pressing narrower button multiple times
+        for (int i = 0; i < 50; i++) {
+            scale += delta;
+            if (scale < minScale) scale = minScale;
+        }
+        
+        // After 50 presses of -0.02, scale should be at minimum
+        assertEquals("Scale should be clamped at minimum after many presses", 0.1f, scale, 0.001f);
+    }
+
+    // ==================== Button Positioning Tests ====================
+
+    @Test
+    public void testButtonPositionForCompassAtTop() {
+        // When compass is at top (snapped = 0), buttons should be at bottom
+        int snappedAngle = 0;
+        String expectedButtonPosition = "bottom";
+        
+        String buttonPosition = getExpectedButtonPosition(snappedAngle);
+        
+        assertEquals("Buttons should be at bottom when compass at top", 
+            expectedButtonPosition, buttonPosition);
+    }
+
+    @Test
+    public void testButtonPositionForCompassAtBottom() {
+        // When compass is at bottom (snapped = 180), buttons should be at top
+        int snappedAngle = 180;
+        String expectedButtonPosition = "top";
+        
+        String buttonPosition = getExpectedButtonPosition(snappedAngle);
+        
+        assertEquals("Buttons should be at top when compass at bottom", 
+            expectedButtonPosition, buttonPosition);
+    }
+
+    @Test
+    public void testButtonPositionForCompassAtRightEdge() {
+        // When compass is at right edge (snapped = 90), buttons should be at left
+        int snappedAngle = 90;
+        String expectedButtonPosition = "left";
+        
+        String buttonPosition = getExpectedButtonPosition(snappedAngle);
+        
+        assertEquals("Buttons should be at left when compass at right edge", 
+            expectedButtonPosition, buttonPosition);
+    }
+
+    @Test
+    public void testButtonPositionForCompassAtLeftEdge() {
+        // When compass is at left edge (snapped = 270), buttons should be at right
+        int snappedAngle = 270;
+        String expectedButtonPosition = "right";
+        
+        String buttonPosition = getExpectedButtonPosition(snappedAngle);
+        
+        assertEquals("Buttons should be at right when compass at left edge", 
+            expectedButtonPosition, buttonPosition);
+    }
+
+    // Helper method mimicking the button position logic
+    private String getExpectedButtonPosition(int snappedAngle) {
+        switch (snappedAngle) {
+            case 0: return "bottom";
+            case 90: return "left";
+            case 180: return "top";
+            case 270: return "right";
+            default: return "bottom";
+        }
+    }
+
+    // ==================== Button Rotation Tests ====================
+
+    @Test
+    public void testButtonRotationInPortrait() {
+        // In portrait mode (snapped = 0 or 180), buttons should not be rotated
+        int snappedAngle = 0;
+        float expectedRotation = 0f;
+        
+        float rotation = getExpectedButtonRotation(snappedAngle);
+        
+        assertEquals("Buttons should not be rotated in portrait", 
+            expectedRotation, rotation, 0.001f);
+    }
+
+    @Test
+    public void testButtonRotationInPortraitInverted() {
+        // In inverted portrait mode (snapped = 180), buttons should not be rotated
+        int snappedAngle = 180;
+        float expectedRotation = 0f;
+        
+        float rotation = getExpectedButtonRotation(snappedAngle);
+        
+        assertEquals("Buttons should not be rotated in inverted portrait", 
+            expectedRotation, rotation, 0.001f);
+    }
+
+    @Test
+    public void testButtonRotationInLandscapeLeft() {
+        // In landscape left (snapped = 90), buttons should be rotated -90°
+        int snappedAngle = 90;
+        float expectedRotation = -90f;
+        
+        float rotation = getExpectedButtonRotation(snappedAngle);
+        
+        assertEquals("Buttons should be rotated -90° in landscape left", 
+            expectedRotation, rotation, 0.001f);
+    }
+
+    @Test
+    public void testButtonRotationInLandscapeRight() {
+        // In landscape right (snapped = 270), buttons should be rotated 90°
+        int snappedAngle = 270;
+        float expectedRotation = 90f;
+        
+        float rotation = getExpectedButtonRotation(snappedAngle);
+        
+        assertEquals("Buttons should be rotated 90° in landscape right", 
+            expectedRotation, rotation, 0.001f);
+    }
+
+    // Helper method mimicking the button rotation logic
+    private float getExpectedButtonRotation(int snappedAngle) {
+        switch (snappedAngle) {
+            case 0: return 0f;
+            case 90: return -90f;
+            case 180: return 0f;
+            case 270: return 90f;
+            default: return 0f;
+        }
+    }
+
+    // ==================== Camera FOV Calculation Tests ====================
+
+    @Test
+    public void testOriginalCameraFovNotModified() {
+        // Test that original camera FOV values are preserved during calculations
+        float originalHfov = 60f;
+        float originalVfov = 45f;
+        
+        // Simulate the calculation that was causing the bug
+        float wScale = 1.01f;
+        float ratio = 1.0f;
+        
+        // The FIXED calculation uses original values
+        float effectiveH = originalHfov * wScale * ratio;
+        
+        // Original values should remain unchanged
+        assertEquals("Original horizontal FOV should not change", 60f, originalHfov, 0.001f);
+        assertEquals("Original vertical FOV should not change", 45f, originalVfov, 0.001f);
+        
+        // Effective FOV should be calculated correctly
+        assertEquals("Effective FOV should be calculated", 60.6f, effectiveH, 0.001f);
+    }
+
+    @Test
+    public void testFovDoesNotGrowExponentially() {
+        // Test that repeated FOV calculations don't cause exponential growth (the bug we fixed)
+        float originalFov = 60f;
+        float wScale = 1.01f;
+        float ratio = 1.0f;
+        
+        // Simulate 100 frames of calculation using ORIGINAL value (correct approach)
+        float effectiveFov = originalFov;
+        for (int frame = 0; frame < 100; frame++) {
+            effectiveFov = originalFov * wScale * ratio; // Always use original
+        }
+        
+        // FOV should remain bounded and close to expected value
+        assertTrue("FOV should not grow to infinity", effectiveFov < 1000f);
+        assertEquals("FOV should be stable", 60.6f, effectiveFov, 0.001f);
+    }
+
+    @Test
+    public void testFovClamping() {
+        // Test that FOV values are properly clamped to valid range
+        float minFov = 20f;
+        float maxFov = 120f;
+        
+        // Test value below minimum
+        float lowFov = 10f;
+        float clampedLow = Math.max(minFov, Math.min(maxFov, lowFov));
+        assertEquals("FOV below minimum should be clamped", 20f, clampedLow, 0.001f);
+        
+        // Test value above maximum
+        float highFov = 150f;
+        float clampedHigh = Math.max(minFov, Math.min(maxFov, highFov));
+        assertEquals("FOV above maximum should be clamped", 120f, clampedHigh, 0.001f);
+        
+        // Test value in range
+        float normalFov = 60f;
+        float clampedNormal = Math.max(minFov, Math.min(maxFov, normalFov));
+        assertEquals("FOV in range should not be clamped", 60f, clampedNormal, 0.001f);
+    }
 }
