@@ -41,6 +41,7 @@
     <string name="syncPhotosToTUK">Syncing photos to TUK…</string>
     <string name="syncLogsFromTUK">Syncing logs from TUK…</string>
     <string name="toastPleaseLogin">Please login for a more personalised experience</string>
+    <string name="session_expired_login_again">Session expired. Please log in again.</string>
     
     <!-- Filter related strings -->
     <string name="filterAll">All</string>

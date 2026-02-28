@@ -217,7 +217,8 @@ public class AuthPreferences {
     }
     
     /**
-     * Check if user is currently logged in with valid Auth0 token
+     * Check whether we currently have a non-expired Auth0 access token.
+     * This is a strict token validity check, not a full session check.
      */
     public boolean isAuth0LoggedIn() {
         String token = getAuth0AccessToken();
@@ -234,6 +235,19 @@ public class AuthPreferences {
 
         // If we don't have expiration info, assume logged in if we have a token
         return true;
+    }
+
+    /**
+     * Check whether we still have an Auth0 session that can be refreshed.
+     * A refresh token allows seamless re-authentication after access token expiry.
+     */
+    public boolean hasAuth0Session() {
+        if (isAuth0LoggedIn()) {
+            return true;
+        }
+
+        String refreshToken = getAuth0RefreshToken();
+        return refreshToken != null && !refreshToken.isEmpty();
     }
     
     /**
@@ -296,10 +310,11 @@ public class AuthPreferences {
     }
     
     /**
-     * Check if user is logged in (primary method for app-wide use)
+     * Check if user is logged in (primary method for app-wide use).
+     * This is session-based so expired access tokens can still be silently refreshed.
      */
     public boolean isLoggedIn() {
-        return isAuth0LoggedIn();
+        return hasAuth0Session();
     }
     
     /**

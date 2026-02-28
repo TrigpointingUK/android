@@ -31,6 +31,10 @@ public class TrigApiClient {
     // Use BuildConfig to allow different API URLs for debug/release builds
     private static final String API_BASE_HOST = BuildConfig.TRIG_API_BASE;
     private static final String API_BASE_URL = API_BASE_HOST + "/v1";
+    private static final String REAUTH_REQUIRED_SENTINEL = "REAUTH_REQUIRED";
+    private static final String REAUTH_REQUIRED_MESSAGE = "Session expired. Please log in again.";
+    private static final String AUTH_TRANSIENT_SENTINEL = "AUTH_TRANSIENT";
+    private static final String AUTH_TRANSIENT_MESSAGE = "Couldn't refresh your session right now. Check your connection and try again.";
     
     private final OkHttpClient httpClient;
     private final Gson gson;
@@ -66,25 +70,34 @@ public class TrigApiClient {
         void onError(String errorMessage);
     }
 
+    public static boolean isReauthRequiredError(String errorMessage) {
+        return REAUTH_REQUIRED_MESSAGE.equals(errorMessage);
+    }
+
     /**
      * Ensure we have a valid Auth0 access token, refreshing if necessary
      */
     private CompletableFuture<String> ensureValidToken() {
         CompletableFuture<String> future = new CompletableFuture<>();
+        String token = authPreferences.getAuth0AccessToken();
+        boolean hasValidAccessToken = authPreferences.isAuth0LoggedIn();
         
         // Check if we have a valid token
-        if (authPreferences.isAuth0LoggedIn() && !authPreferences.shouldRefreshAuth0Token()) {
-            String token = authPreferences.getAuth0AccessToken();
-            if (token != null && !token.isEmpty()) {
-                future.complete(token);
-                return future;
-            }
+        if (hasValidAccessToken && token != null && !token.isEmpty() && !authPreferences.shouldRefreshAuth0Token()) {
+            future.complete(token);
+            return future;
         }
         
         // Need to refresh token
         String refreshToken = authPreferences.getAuth0RefreshToken();
         if (refreshToken == null || refreshToken.isEmpty()) {
-            future.completeExceptionally(new Exception("No refresh token available. Please log in again."));
+            // If access token still has time left, use it and defer re-login until it truly expires.
+            if (hasValidAccessToken && token != null && !token.isEmpty()) {
+                Log.w(TAG, "No refresh token available; using current access token until expiry");
+                future.complete(token);
+                return future;
+            }
+            requireReauthentication(future, "missing_refresh_token", null);
             return future;
         }
         
@@ -100,11 +113,90 @@ public class TrigApiClient {
             @Override
             public void onError(com.auth0.android.authentication.AuthenticationException error) {
                 Log.e(TAG, "Token refresh failed", error);
-                future.completeExceptionally(new Exception("Token refresh failed: " + error.getMessage()));
+                if (isDefinitiveRefreshFailure(error)) {
+                    requireReauthentication(future, "refresh_failed_definitive", error);
+                    return;
+                }
+
+                // In marginal coverage areas, prefer temporary failure over forced logout.
+                if (authPreferences.isAuth0LoggedIn()) {
+                    String fallbackToken = authPreferences.getAuth0AccessToken();
+                    if (fallbackToken != null && !fallbackToken.isEmpty()) {
+                        Log.w(TAG, "Refresh failed transiently; using existing non-expired access token");
+                        future.complete(fallbackToken);
+                        return;
+                    }
+                }
+
+                requireTransientAuthFailure(future, "refresh_failed_transient", error);
             }
         });
         
         return future;
+    }
+
+    private boolean isDefinitiveRefreshFailure(com.auth0.android.authentication.AuthenticationException error) {
+        if (error == null) {
+            return false;
+        }
+
+        String code = error.getCode() != null ? error.getCode().trim().toLowerCase() : "";
+        String description = error.getDescription() != null ? error.getDescription().trim().toLowerCase() : "";
+        String message = error.getMessage() != null ? error.getMessage().trim().toLowerCase() : "";
+        Integer statusCode = error.getStatusCode();
+
+        // Definitive refresh token/session failures from Auth0 OAuth responses.
+        if ("invalid_grant".equals(code)
+                || "invalid_refresh_token".equals(code)
+                || "login_required".equals(code)
+                || "access_denied".equals(code)) {
+            return true;
+        }
+
+        return (statusCode != null && (statusCode == 401 || statusCode == 403))
+                && (description.contains("refresh_token")
+                || description.contains("refresh token")
+                || description.contains("invalid grant")
+                || description.contains("login required")
+                || message.contains("refresh_token")
+                || message.contains("refresh token")
+                || message.contains("invalid grant")
+                || message.contains("login required"));
+    }
+
+    private void requireReauthentication(CompletableFuture<String> future, String reason, Throwable cause) {
+        Log.w(TAG, "Session refresh failed (" + reason + "), clearing local auth state");
+        authPreferences.clearAuthData();
+
+        Exception sessionExpired = new Exception(REAUTH_REQUIRED_SENTINEL + ":" + reason);
+        if (cause != null) {
+            sessionExpired.initCause(cause);
+        }
+        future.completeExceptionally(sessionExpired);
+    }
+
+    private void requireTransientAuthFailure(CompletableFuture<String> future, String reason, Throwable cause) {
+        Log.w(TAG, "Session refresh failed transiently (" + reason + "), preserving local auth state");
+
+        Exception transientFailure = new Exception(AUTH_TRANSIENT_SENTINEL + ":" + reason);
+        if (cause != null) {
+            transientFailure.initCause(cause);
+        }
+        future.completeExceptionally(transientFailure);
+    }
+
+    private String mapAuthenticationError(Throwable throwable) {
+        String message = throwable != null ? throwable.getMessage() : null;
+        if (message != null && message.contains(REAUTH_REQUIRED_SENTINEL)) {
+            return REAUTH_REQUIRED_MESSAGE;
+        }
+        if (message != null && message.contains(AUTH_TRANSIENT_SENTINEL)) {
+            return AUTH_TRANSIENT_MESSAGE;
+        }
+        if (message == null || message.trim().isEmpty()) {
+            return "Authentication error";
+        }
+        return "Authentication error: " + message;
     }
 
     /**
@@ -156,7 +248,7 @@ public class TrigApiClient {
             }
         }).exceptionally(throwable -> {
             Log.e(TAG, "createLog: Exception", throwable);
-            callback.onError("Authentication error: " + throwable.getMessage());
+            callback.onError(mapAuthenticationError(throwable));
             return null;
         });
     }
@@ -202,7 +294,7 @@ public class TrigApiClient {
                 callback.onError(result.getErrorMessage());
             }
         }).exceptionally(throwable -> {
-            callback.onError("Authentication error: " + throwable.getMessage());
+            callback.onError(mapAuthenticationError(throwable));
             return null;
         });
     }
@@ -242,7 +334,7 @@ public class TrigApiClient {
                 callback.onError(result.getErrorMessage());
             }
         }).exceptionally(throwable -> {
-            callback.onError("Authentication error: " + throwable.getMessage());
+            callback.onError(mapAuthenticationError(throwable));
             return null;
         });
     }
@@ -302,7 +394,7 @@ public class TrigApiClient {
                 callback.onError(result.getErrorMessage());
             }
         }).exceptionally(throwable -> {
-            callback.onError("Authentication error: " + throwable.getMessage());
+            callback.onError(mapAuthenticationError(throwable));
             return null;
         });
     }
@@ -348,7 +440,7 @@ public class TrigApiClient {
                 callback.onError(result.getErrorMessage());
             }
         }).exceptionally(throwable -> {
-            callback.onError("Authentication error: " + throwable.getMessage());
+            callback.onError(mapAuthenticationError(throwable));
             return null;
         });
     }
@@ -388,7 +480,7 @@ public class TrigApiClient {
                 callback.onError(result.getErrorMessage());
             }
         }).exceptionally(throwable -> {
-            callback.onError("Authentication error: " + throwable.getMessage());
+            callback.onError(mapAuthenticationError(throwable));
             return null;
         });
     }
@@ -430,7 +522,7 @@ public class TrigApiClient {
                 callback.onError(result.getErrorMessage());
             }
         }).exceptionally(throwable -> {
-            callback.onError("Authentication error: " + throwable.getMessage());
+            callback.onError(mapAuthenticationError(throwable));
             return null;
         });
     }
@@ -476,7 +568,7 @@ public class TrigApiClient {
                 callback.onError(result.getErrorMessage());
             }
         }).exceptionally(throwable -> {
-            callback.onError("Authentication error: " + throwable.getMessage());
+            callback.onError(mapAuthenticationError(throwable));
             return null;
         });
     }
@@ -663,7 +755,7 @@ public class TrigApiClient {
                 callback.onError(result.getErrorMessage());
             }
         }).exceptionally(throwable -> {
-            callback.onError("Authentication error: " + throwable.getMessage());
+            callback.onError(mapAuthenticationError(throwable));
             return null;
         });
     }

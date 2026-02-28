@@ -129,3 +129,9 @@
 # Suppress warnings for missing Java classes that Jackson depends on
 -dontwarn java.beans.ConstructorProperties
 -dontwarn java.beans.Transient
+
+# OkHttp IDNA mapping tables: keep to avoid rare release-only host parsing crashes
+# seen with optimized R8 + network instrumentation paths.
+-keep class okhttp3.internal.idn.IdnaMappingTable { *; }
+-keep class okhttp3.internal.idn.IdnaMappingTableInstanceKt { *; }
+-keep class okhttp3.internal.idn.IdnaMappingTableKt { *; }

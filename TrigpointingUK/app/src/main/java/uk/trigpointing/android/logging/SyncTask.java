@@ -219,6 +219,8 @@ public class SyncTask implements ProgressListener {
             // Post-execution logic (equivalent to onPostExecute)
             if (result == SUCCESS) {
                 Toast.makeText(mCtx, "Synced with TrigpointingUK " + mErrorMessage, Toast.LENGTH_SHORT).show();
+            } else if (TrigApiClient.isReauthRequiredError(mErrorMessage)) {
+                Toast.makeText(mCtx, R.string.session_expired_login_again, Toast.LENGTH_LONG).show();
             } else {
                 Toast.makeText(mCtx, "Error syncing with TrigpointingUK - " + mErrorMessage, Toast.LENGTH_LONG).show();                    
             }

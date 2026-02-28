@@ -857,14 +857,6 @@ public class LogTrigActivity extends BaseTabActivity implements OnDateChangedLis
             mFb.setText(c.getString(fbIndex));
         }
         
-        // Pre-populate grid reference with GPS if blank and GPS available
-        if (gridrefIndex >= 0) {
-            String gridref = c.getString(gridrefIndex);
-            if (gridref == null || gridref.trim().isEmpty()) {
-                tryPrePopulateGridReference();
-            }
-        }
-        
         // set Time
         int sendTimeIndex = c.getColumnIndex(DbHelper.LOG_SENDTIME);
         if (sendTimeIndex >= 0) {

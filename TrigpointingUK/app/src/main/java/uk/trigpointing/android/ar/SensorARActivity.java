@@ -57,6 +57,7 @@ import android.content.SharedPreferences;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import uk.trigpointing.android.DbHelper;
 import uk.trigpointing.android.R;
@@ -98,6 +99,8 @@ public class SensorARActivity extends BaseActivity implements SensorEventListene
     private float baseFovYDeg = 45f; // mapped to on-screen Y
     private int lastPreviewRotationDeg = 0;
     private CameraCharacteristics activeCharacteristics;
+    // Monotonic token used to ignore stale async session callbacks.
+    private final AtomicInteger previewSessionGeneration = new AtomicInteger(0);
     
     // Sensor components
     private SensorManager sensorManager;
@@ -500,6 +503,7 @@ public class SensorARActivity extends BaseActivity implements SensorEventListene
 
     private void createCameraPreviewSession(Surface surface, CameraCharacteristics cc) throws CameraAccessException {
         if (cameraDevice == null) return;
+        final int sessionGeneration = previewSessionGeneration.incrementAndGet();
         previewRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
         previewRequestBuilder.addTarget(surface);
 
@@ -519,17 +523,34 @@ public class SensorARActivity extends BaseActivity implements SensorEventListene
         cameraDevice.createCaptureSession(java.util.Arrays.asList(surface), new CameraCaptureSession.StateCallback() {
             @Override
             public void onConfigured(@NonNull CameraCaptureSession session) {
+                // Session configuration is async; this callback can arrive after a newer session has been requested.
+                if (cameraDevice == null || isDestroyed || sessionGeneration != previewSessionGeneration.get()) {
+                    Log.w(TAG, "Ignoring stale/closed camera session in onConfigured");
+                    safelyCloseSession(session);
+                    return;
+                }
+
+                CameraCaptureSession previousSession = captureSession;
                 captureSession = session;
+                if (previousSession != null && previousSession != session) {
+                    safelyCloseSession(previousSession);
+                }
+
                 try {
                     CaptureRequest previewRequest = previewRequestBuilder.build();
-                    captureSession.setRepeatingRequest(previewRequest, new CameraCaptureSession.CaptureCallback() {
+                    session.setRepeatingRequest(previewRequest, new CameraCaptureSession.CaptureCallback() {
                         @Override
                         public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull android.hardware.camera2.TotalCaptureResult result) {
                             updateEffectiveFovFromResult(result);
                         }
                     }, cameraHandler);
-                } catch (CameraAccessException e) {
+                } catch (CameraAccessException | IllegalStateException e) {
                     Log.e(TAG, "Failed to start repeating request", e);
+                    if (captureSession == session) {
+                        captureSession = null;
+                    }
+                    safelyCloseSession(session);
+                    return;
                 }
                 runOnUiThread(() -> {
                     // Map camera FOV to on-screen axes depending on display orientation and preview buffer orientation
@@ -540,7 +561,20 @@ public class SensorARActivity extends BaseActivity implements SensorEventListene
             }
             @Override
             public void onConfigureFailed(@NonNull CameraCaptureSession session) {
-                Toast.makeText(SensorARActivity.this, "Preview config failed", Toast.LENGTH_SHORT).show();
+                Log.w(TAG, "Camera preview configuration failed");
+                if (captureSession == session) {
+                    captureSession = null;
+                }
+                safelyCloseSession(session);
+                runOnUiThread(() ->
+                        Toast.makeText(SensorARActivity.this, "Preview config failed", Toast.LENGTH_SHORT).show());
+            }
+
+            @Override
+            public void onClosed(@NonNull CameraCaptureSession session) {
+                if (captureSession == session) {
+                    captureSession = null;
+                }
             }
         }, cameraHandler);
     }
@@ -647,15 +681,37 @@ public class SensorARActivity extends BaseActivity implements SensorEventListene
         }
     }
 
-    private void closeCamera() {
+    private void safelyCloseSession(CameraCaptureSession sessionToClose) {
+        if (sessionToClose == null) {
+            return;
+        }
         try {
-            if (captureSession != null) {
-                captureSession.close();
-                captureSession = null;
+            sessionToClose.stopRepeating();
+        } catch (CameraAccessException | IllegalStateException | UnsupportedOperationException ignored) {
+        }
+        try {
+            sessionToClose.abortCaptures();
+        } catch (CameraAccessException | IllegalStateException | UnsupportedOperationException ignored) {
+        }
+        try {
+            sessionToClose.close();
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void closeCamera() {
+        // Invalidate any in-flight async session callbacks before closing resources.
+        previewSessionGeneration.incrementAndGet();
+        try {
+            CameraCaptureSession sessionToClose = captureSession;
+            captureSession = null;
+            if (sessionToClose != null) {
+                safelyCloseSession(sessionToClose);
             }
-            if (cameraDevice != null) {
-                cameraDevice.close();
-                cameraDevice = null;
+            CameraDevice deviceToClose = cameraDevice;
+            cameraDevice = null;
+            if (deviceToClose != null) {
+                deviceToClose.close();
             }
         } catch (Exception ignored) {}
     }

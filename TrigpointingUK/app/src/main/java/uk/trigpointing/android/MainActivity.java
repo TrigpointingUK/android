@@ -1091,6 +1091,13 @@ public class MainActivity extends BaseActivity implements SyncListener {
             @Override
             public void onError(String errorMessage) {
                 Log.w(TAG, "fetchAndStoreApiUser: Failed to fetch API user profile: " + errorMessage);
+                if (TrigApiClient.isReauthRequiredError(errorMessage)) {
+                    runOnUiThread(() -> {
+                        Toast.makeText(MainActivity.this, R.string.session_expired_login_again, Toast.LENGTH_LONG).show();
+                        updateUserDisplay();
+                        invalidateOptionsMenu();
+                    });
+                }
             }
         });
     }
